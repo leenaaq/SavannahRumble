@@ -4,8 +4,8 @@ void APlayerCharacterController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FInputModeGameOnly Mode;
-	SetInputMode(Mode);
-
-	bShowMouseCursor = false;
+	if (IsLocalController() == false)
+	{
+		return;
+	}
 }
