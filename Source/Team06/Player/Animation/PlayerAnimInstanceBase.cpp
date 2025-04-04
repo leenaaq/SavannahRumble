@@ -1,6 +1,7 @@
 #include "PlayerAnimInstanceBase.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Player/Player/PlayerCharacter.h"
 
 void UPlayerAnimInstanceBase::NativeInitializeAnimation()
 {
@@ -26,4 +27,13 @@ void UPlayerAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 	GroundSpeed = FVector(Velocity.X, Velocity.Y, 0.f).Size();
 	bShouldMove = ((OwnerCharacterMovementComponent->GetCurrentAcceleration().IsNearlyZero()) == false) && (3.f < GroundSpeed);
 	bIsFalling = OwnerCharacterMovementComponent->IsFalling();
+}
+
+void UPlayerAnimInstanceBase::AnimNotify_CheckMeleeAttackHit()
+{
+	APlayerCharacter* OwnerPlayerCharacter = Cast<APlayerCharacter>(OwnerCharacter);
+	if (IsValid(OwnerPlayerCharacter) == true)
+	{
+		//OwnerPlayerCharacter->CheckMeleeAttackHit();
+	}
 }
