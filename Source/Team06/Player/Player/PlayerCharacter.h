@@ -8,6 +8,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class UInputMappingContext;
 class UInputAction;
+class UAnimMontage;
 
 UCLASS()
 class TEAM06_API APlayerCharacter : public APlayerBase
@@ -23,6 +24,8 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	virtual void BeginPlay() override;
+
+	virtual void OnStunned() override;
 
 #pragma endregion
 
@@ -50,18 +53,67 @@ private:
 	void HandleLookInput(const FInputActionValue& InValue);
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputAction> MoveAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputAction> LookAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputAction> JumpAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
+	TObjectPtr<UInputAction> LeftHandAttackAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
+	TObjectPtr<UInputAction> RightHandAttackAction;
 
 #pragma endregion
 
+#pragma region Attack
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+private:
+	void HandleLeftHandMeleeAttack(const FInputActionValue& InValue);
+	void HandleRightHandMeleeAttack(const FInputActionValue& InValue);
+	void PerformMeleeAttack(const FVector& Offset, UAnimMontage* AttackMontage);
+	void CheckMeleeAttackHit(const FVector& AttackOffset);
+	void DrawDebugMeleeAttack(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
+	void ResetAttack();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCLeftHandMeleeAttack(float InStartAttackTime);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCRightHandMeleeAttack(float InStartAttackTime);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayMeleeAttackMontage(UAnimMontage* AttackMontage);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastResetAttack();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Attack")
+	TObjectPtr<UAnimMontage> LeftMeleeAttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Attack")
+	TObjectPtr<UAnimMontage> RightMeleeAttackMontage;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CanAttack)
+	bool bCanAttack;
+
+	FTimerHandle AttackTimerHandle;
+
+	UFUNCTION()
+	void OnRep_CanAttack();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCPerformMeleeHit(AActor* DamagedActor, float InCheckTime);
+
+#pragma endregion
 };
