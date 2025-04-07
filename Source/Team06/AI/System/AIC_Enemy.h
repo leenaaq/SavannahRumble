@@ -6,6 +6,9 @@
 #include "AIController.h"
 #include "AIC_Enemy.generated.h"
 
+class UBlackboardData;
+class UBehaviorTree;
+
 /**
  * 
  */
@@ -20,15 +23,24 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void BeginAI(APawn* InPawn);
+
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-private:
-	void OnPatrolTimerElapsed();
+	void EndAI();
 
+	// ---------- Blackboard Key Declaration ----------
 public:
-	FTimerHandle PatrolTimerHandle = FTimerHandle();
+	static const FName GoalLocationKey;
+	static const FName BuffItemLocationKey;
+	static const FName UseItemLocationKey;
+	static const FName OtherPlayerLocationKey;
 
-	static const float PatrolRepeatInterval;
+	// ---------- Behavior Asset ----------
+private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TObjectPtr<UBlackboardData> BlackboardDataAsset;
 
-	static const float PatrolRadius;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
+	TObjectPtr<UBehaviorTree> BehaviorTree;
 };

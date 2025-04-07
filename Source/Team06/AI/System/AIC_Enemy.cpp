@@ -2,44 +2,57 @@
 
 
 #include "AI/System/AIC_Enemy.h"
-#include "NavigationSystem.h"
-#include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardData.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
-const float AAIC_Enemy::PatrolRepeatInterval(3.f);
-const float AAIC_Enemy::PatrolRadius(500.f);
+const FName AAIC_Enemy::GoalLocationKey(TEXT("GoalLocation"));
+const FName AAIC_Enemy::BuffItemLocationKey(TEXT("BuffItemLocation"));
+const FName AAIC_Enemy::UseItemLocationKey(TEXT("UesItemLocation"));
+const FName AAIC_Enemy::OtherPlayerLocationKey(TEXT("OtherPlayerLocation"));
 
 AAIC_Enemy::AAIC_Enemy()
 {
+	Blackboard = CreateDefaultSubobject<UBlackboardComponent>(TEXT("Blackboard"));
+	BrainComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BrainComponent"));
 }
 
 void AAIC_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->GetTimerManager().SetTimer(PatrolTimerHandle, this, &ThisClass::OnPatrolTimerElapsed, PatrolRepeatInterval, true);
+	APawn* ControlledPawn = GetPawn();
+	if (IsValid(ControlledPawn) == true)
+	{
+		BeginAI(ControlledPawn);
+	}
+}
+
+void AAIC_Enemy::BeginAI(APawn* InPawn)
+{
+	UBlackboardComponent* BlackboardComponent = Cast<UBlackboardComponent>(Blackboard);
+	if (IsValid(BlackboardComponent) == true)
+	{
+		if (UseBlackboard(BlackboardDataAsset, BlackboardComponent) == true)
+		{
+			bool bRunSucceeded = RunBehaviorTree(BehaviorTree);
+		}
+	}
 }
 
 void AAIC_Enemy::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	GetWorld()->GetTimerManager().ClearTimer(PatrolTimerHandle);
+	EndAI();
 
 	Super::EndPlay(EndPlayReason);
 }
 
-void AAIC_Enemy::OnPatrolTimerElapsed()
+void AAIC_Enemy::EndAI()
 {
-	APawn* ControlledPawn = GetPawn();
-	if (IsValid(ControlledPawn) == true)
+	UBehaviorTreeComponent* BehaviorTreeComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
+	if (IsValid(BehaviorTreeComponent) == true)
 	{
-		UNavigationSystemV1* NavigationSystem = UNavigationSystemV1::GetNavigationSystem(GetWorld());
-		if (IsValid(NavigationSystem) == true)
-		{
-			FVector ActorLocation = ControlledPawn->GetActorLocation();
-			FNavLocation NextLocation;
-			if (NavigationSystem->GetRandomPointInNavigableRadius(ActorLocation, PatrolRadius, NextLocation) == true)
-			{
-				UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, NextLocation.Location);
-			}
-		}
+		BehaviorTreeComponent->StopTree();
 	}
 }

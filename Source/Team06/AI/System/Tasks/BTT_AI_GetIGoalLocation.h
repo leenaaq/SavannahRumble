@@ -4,19 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "BTT_AI_MeleeAttack.generated.h"
+#include "BTT_AI_GetIGoalLocation.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class TEAM06_API UBTT_AI_MeleeAttack : public UBTTaskNode
+class TEAM06_API UBTT_AI_GetIGoalLocation : public UBTTaskNode
 {
 	GENERATED_BODY()
-
+	
 public:
-	UBTT_AI_MeleeAttack();
+	UBTT_AI_GetIGoalLocation();
 
 private:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
 };

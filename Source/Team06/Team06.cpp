@@ -1,7 +1,7 @@
 #include "Team06.h"
 #include "Modules/ModuleManager.h"
 
-IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, DedicatedX, "DedicatedX");
+IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, Team06, "Team06");
 
 #pragma region GeneralLogging
 

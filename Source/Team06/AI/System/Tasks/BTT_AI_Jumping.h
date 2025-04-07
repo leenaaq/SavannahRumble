@@ -13,5 +13,10 @@ UCLASS()
 class TEAM06_API UBTT_AI_Jumping : public UBTTaskNode
 {
 	GENERATED_BODY()
-	
+
+public:
+	UBTT_AI_Jumping();
+
+private:
+	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 };
