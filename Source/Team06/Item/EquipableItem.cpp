@@ -1,26 +1,36 @@
-#include "Item.h"
+#include "EquipableItem.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/SphereComponent.h" 
+#include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/SphereComponent.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 
-AItem::AItem()
+
+
+AEquipableItem::AEquipableItem()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
+	RootComponent = CollisionComp;
+
+	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMesh"));
+	ItemMesh->SetupAttachment(CollisionComp);
+	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void AItem::BeginPlay()
+void AEquipableItem::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void AItem::Tick(float DeltaTime)
+void AEquipableItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
-void AItem::ServerApplyDamageAndKnockback_Implementation(AActor* Target, float Damage, float KnockbackForce)
+void AEquipableItem::ServerApplyDamageAndKnockback_Implementation(AActor* Target, float Damage, float KnockbackForce)
 {
 	if (!Target) return;
 
@@ -42,17 +52,17 @@ void AItem::ServerApplyDamageAndKnockback_Implementation(AActor* Target, float D
 	}
 }
 
-bool AItem::ServerApplyDamageAndKnockback_Validate(AActor* Target, float Damage, float KnockbackForce)
+bool AEquipableItem::ServerApplyDamageAndKnockback_Validate(AActor* Target, float Damage, float KnockbackForce)
 {
 	return true;
 }
 
-void AItem::ServerUseItem_Implementation(AActor* Target)
+void AEquipableItem::ServerUseItem_Implementation(AActor* Target)
 {
 	// 아이템 사용 로직 (자식 클래스에서 오버라이드 가능)
 }
 
-void AItem::ServerThrowItem_Implementation(FVector Direction)
+void AEquipableItem::ServerThrowItem_Implementation(FVector Direction)
 {
 	if (RootComponent)
 	{
@@ -64,7 +74,7 @@ void AItem::ServerThrowItem_Implementation(FVector Direction)
 	}
 }
 
-void AItem::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AEquipableItem::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// 충돌 처리 로직 (자식 클래스에서 오버라이드 가능)
 }

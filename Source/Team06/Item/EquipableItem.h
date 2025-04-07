@@ -2,21 +2,32 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Item.generated.h"
+#include "EquipableItem.generated.h"
+
+class UStaticMeshComponent;
+class USphereComponent;
 
 UCLASS()
-class TEAM06_API AItem : public AActor
+class TEAM06_API AEquipableItem : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	AItem();
+	AEquipableItem();
 
 protected:
 	virtual void BeginPlay() override;
 
 public:
 	virtual void Tick(float DeltaTime) override;
+
+	//아이템 메시 (공통 시각적 표현)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* ItemMesh;
+
+	//충돌 범위 (공통 물리/충돌)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USphereComponent* CollisionComp;
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerApplyDamageAndKnockback(AActor* Target, float Damage, float KnockbackForce);

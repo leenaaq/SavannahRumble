@@ -1,15 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Item.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Components/SphereComponent.h"
+#include "EquipableItem.h"
 #include "Explosive_Item.generated.h"
 
 
 UCLASS()
-class TEAM06_API AExplosive_Item : public AItem
+class TEAM06_API AExplosive_Item : public AEquipableItem
 {
 	GENERATED_BODY()
 	
@@ -32,7 +29,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Explosion")
 	float KnockbackStrength = 1200.0f;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	// 폭발 범위 콜리전만 특화로 유지
+	UPROPERTY(VisibleAnywhere, Category = "Explosion")
 	USphereComponent* ExplosionArea;
 
 	UFUNCTION()

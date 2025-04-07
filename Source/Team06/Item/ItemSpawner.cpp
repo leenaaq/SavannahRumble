@@ -1,6 +1,6 @@
 #include "ItemSpawner.h"
 #include "ItemSpawnPoint.h"
-#include "Item.h"
+#include "EquipableItem.h"
 #include "Components/BoxComponent.h"
 #include "Components/SceneComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -44,20 +44,6 @@ void AItemSpawner::BeginPlay()
 		// 아이템 초기 스폰
 		SpawnItems();
 
-		// 디버그용으로 주기적으로 스폰 상태 확인
-		GetWorld()->GetTimerManager().SetTimer(DebugLogHandle, this, &AItemSpawner::LogSpawnerStatus, 5.0f, true);
-
-		DebugAutoRemoveAfterDelay();
-	}
-}
-
-// 디버그용 코드
-void AItemSpawner::LogSpawnerStatus()
-{
-	for (auto& Elem : SpawnedItems)
-	{
-		FString Status = Elem.Value ? TEXT("존재") : TEXT("없음");
-		UE_LOG(LogTemp, Log, TEXT("[ItemSpawner Debug] %s - 아이템 상태: %s"), *Elem.Key->GetName(), *Status);
 	}
 }
 
@@ -79,12 +65,12 @@ void AItemSpawner::SpawnItems()
 
 		// 랜덤 아이템 선택
 		int32 RandomIndex = FMath::RandRange(0, ItemClasses.Num() - 1);
-		TSubclassOf<AItem> RandomItemClass = ItemClasses[RandomIndex];
+		TSubclassOf<AEquipableItem> RandomItemClass = ItemClasses[RandomIndex];
 
 		if (RandomItemClass)
 		{
 			// 아이템 스폰
-			AItem* SpawnedItem = GetWorld()->SpawnActor<AItem>(RandomItemClass, SpawnPoint->GetActorLocation(), FRotator::ZeroRotator);
+			AEquipableItem* SpawnedItem = GetWorld()->SpawnActor<AEquipableItem>(RandomItemClass, SpawnPoint->GetActorLocation(), FRotator::ZeroRotator);
 			if (SpawnedItem)
 			{
 				//아이템이 제대로 생성되었는지 확인
@@ -104,7 +90,7 @@ void AItemSpawner::OnItemDestroyed(AActor* DestroyedActor)
 {
 	if (!DestroyedActor) return;
 
-	AItem* DestroyedItem = Cast<AItem>(DestroyedActor);
+	AEquipableItem* DestroyedItem = Cast<AEquipableItem>(DestroyedActor);
 	if (!DestroyedItem) return;
 
 	// 아이템이 실제로 삭제되었는지 확인
@@ -138,41 +124,6 @@ void AItemSpawner::OnItemDestroyed(AActor* DestroyedActor)
 	}
 }
 
-// 디버깅용 임시 아이템 삭제 기능 추가
-void AItemSpawner::DebugRemoveAllItems()
-{
-	UE_LOG(LogTemp, Warning, TEXT("[ItemSpawner] DEBUG: 모든 아이템 제거 시작"));
-
-	for (auto& Elem : SpawnedItems)
-	{
-		if (IsValid(Elem.Value))  //안전하게 nullptr 검사
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[ItemSpawner] DEBUG: %s 제거됨"), *Elem.Value->GetName());
-			Elem.Value->Destroy();
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[ItemSpawner] DEBUG: 이미 nullptr 상태입니다 - %s"), *Elem.Key->GetName());
-		}
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[ItemSpawner] DEBUG: 모든 아이템 제거 완료"));
-}
-
-void AItemSpawner::DebugAutoRemoveAfterDelay()
-{
-	// 3초 후 자동 삭제 실행
-	FTimerHandle DebugAutoRemoveHandle;
-	GetWorld()->GetTimerManager().SetTimer(
-		DebugAutoRemoveHandle,
-		[this]()
-		{
-			DebugRemoveAllItems(); // 기존에 있던 디버그 제거 함수 호출
-		},
-		3.0f,
-		false
-	);
-}
 void AItemSpawner::RespawnItem(AItemSpawnPoint* SpawnPoint)
 {
 	FTimerHandle TimerHandle;

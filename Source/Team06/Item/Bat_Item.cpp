@@ -1,26 +1,19 @@
 #include "Bat_Item.h"
-#include "Components/CapsuleComponent.h"
-#include "Components/StaticMeshComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
-
 
 ABat_Item::ABat_Item()
 {	
 	PrimaryActorTick.bCanEverTick = false;
 
-	// 콜리전 생성
-	BatCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("BatCollision"));
-	BatCollision->InitCapsuleSize(15.f, 50.f);
-	BatCollision->SetCollisionProfileName(TEXT("PhysicsActor"));
-	BatCollision->SetupAttachment(RootComponent);
-	BatCollision->SetNotifyRigidBodyCollision(true);
+	if (CollisionComp)
+	{
+		CollisionComp->SetCollisionProfileName(TEXT("PhysicsActor"));
+		CollisionComp->SetNotifyRigidBodyCollision(true);
+	}
 
-	// 메쉬 생성
-	BatMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BatMesh"));
-	BatMesh->SetupAttachment(BatCollision);
-	BatMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ABat_Item::BeginPlay()
@@ -64,7 +57,7 @@ void ABat_Item::ServerThrowItem(FVector Direction)
 	}
 	else
 	{
-		ServerThrowItem(Direction);
+		Super::ServerThrowItem(Direction);
 	}
 }
 
@@ -83,7 +76,7 @@ void ABat_Item::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimiti
 {
 	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 
-	if (!HasAuthority()) return;
+	if (!HasAuthority() || !OtherActor || OtherActor == this) return;
 
 	ACharacter* HitCharacter = Cast<ACharacter>(OtherActor);
 	if (HitCharacter)
