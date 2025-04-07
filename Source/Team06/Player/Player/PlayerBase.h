@@ -40,6 +40,9 @@ class TEAM06_API APlayerBase : public ACharacter
 public:
 	APlayerBase();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetEquippedItemName(FName NewItemName);
+
 	virtual void BeginPlay() override;
 	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
@@ -69,22 +72,34 @@ public:
 	void SetLifeCount(int32 NewLifeCount) { PlayerStats.LifeCount = NewLifeCount; }
 	void SetbIsStunned(bool NewbIsStunned) { bIsStunned = NewbIsStunned; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void SetEquippedItemName(FName NewItemName) { CurrentEquippedItemName = NewItemName; }
+	void SetEquipItemMeshStatic(UStaticMesh* NewMesh);
+
+	UFUNCTION()
+	void OnRep_CurrentEquippedItemName();
 
 protected:
 	UFUNCTION()
 	void OnRep_bIsStunned();
-
 	
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FDataTableRowHandle StatsRowHandle;
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UItemManagerComponent* ItemManager;
+
 	UPROPERTY(ReplicatedUsing = OnRep_bIsStunned, BlueprintReadOnly)
 	bool bIsStunned = false;
 
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentEquippedItemName, BlueprintReadWrite)
+	FName CurrentEquippedItemName = "NONE";
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+	class UChildActorComponent* EquipItemChildActor;
+
 private:
 	FPlayerStats PlayerStats;
-
 	FTimerHandle RecoveryTimerHandle;
 };

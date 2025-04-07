@@ -1,14 +1,25 @@
 #include "PlayerBase.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Component/ItemManagerComponent.h"
+#include "Components/ChildActorComponent.h"
+#include "../Component/EquipItemMeshActor.h"
 
 APlayerBase::APlayerBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
+
+	EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
+	EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
+	EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
+	//EquipItemMesh->SetVisibility(false);
 }
 
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
+
 	UpdateStatsFromDataTable();
 }
 
@@ -17,7 +28,7 @@ void APlayerBase::UpdateStatsFromDataTable()
 {
 	if (StatsRowHandle.DataTable)
 	{
-		static const FString ContextString(TEXT("Player"));
+		static const FString ContextString(TEXT("PlayerStats"));
 		FPlayerStats* Stats = StatsRowHandle.DataTable->FindRow<FPlayerStats>(StatsRowHandle.RowName, ContextString);
 		if (Stats)
 		{
@@ -49,6 +60,7 @@ float APlayerBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
+// 스턴 시 레그돌
 void APlayerBase::OnStunned()
 {
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
@@ -66,7 +78,6 @@ void APlayerBase::OnStunned()
 	}
 }
 
-
 void APlayerBase::OnRep_bIsStunned()
 {
 	if (bIsStunned)
@@ -79,4 +90,41 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerBase, bIsStunned);
+	DOREPLIFETIME(APlayerBase, CurrentEquippedItemName);
+}
+
+void APlayerBase::OnRep_CurrentEquippedItemName()
+{
+	if (ItemManager)
+	{
+		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+	}
+}
+
+void APlayerBase::ServerSetEquippedItemName_Implementation(FName NewItemName)
+{
+	CurrentEquippedItemName = NewItemName;
+
+	if (ItemManager)
+	{
+		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+	}
+}
+
+bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)
+{
+	return true;
+}
+
+void APlayerBase::SetEquipItemMeshStatic(UStaticMesh* NewMesh)
+{
+	if (EquipItemChildActor)
+	{
+		AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
+		if (EquipMeshActor)
+		{
+			EquipMeshActor->MeshComp->SetStaticMesh(NewMesh);
+			EquipMeshActor->MeshComp->SetVisibility(NewMesh != nullptr);
+		}
+	}
 }
