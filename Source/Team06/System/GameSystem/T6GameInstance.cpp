@@ -4,6 +4,7 @@
 #include "System/GameSystem/T6GameInstance.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
+#include "AssetRegistry/AssetData.h"
 
 void UT6GameInstance::Init()
 {
@@ -41,7 +42,7 @@ void UT6GameInstance::LoadLevelsFromFolder()
 	}
 	for (const FAssetData& Asset : AssetData)
 	{
-		FString AssetClassPathString = Asset.AssetClassPath.GetAssetName().ToString();
+		FString AssetClassPathString = Asset.GetObjectPathString();
 
 		if (AssetClassPathString == "World")
 		{
