@@ -50,6 +50,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     EIC->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
     EIC->BindAction(LeftHandAttackAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleLeftHandMeleeAttack);
     EIC->BindAction(RightHandAttackAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleRightHandMeleeAttack);
+    EIC->BindAction(BKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleBKey);
+    EIC->BindAction(ESCKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleESCKey);
+
 }
 
 void APlayerCharacter::BeginPlay()
@@ -317,4 +320,34 @@ void APlayerCharacter::OnStunned()
         PC->SetIgnoreMoveInput(true);
         PC->SetIgnoreLookInput(true);
     }
+}
+
+void APlayerCharacter::RecoverFromStun()
+{
+    Super::RecoverFromStun();
+
+    if (APlayerController* PC = Cast<APlayerController>(GetController()))
+    {
+        EnableInput(PC);
+        if (ULocalPlayer* LP = PC->GetLocalPlayer())
+    {
+            if (UEnhancedInputLocalPlayerSubsystem* Subsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
+            {
+                Subsys->AddMappingContext(InputMappingContext, 0);
+            }
+        }
+        PC->SetIgnoreMoveInput(false);
+        PC->SetIgnoreLookInput(false);
+    }
+    GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+void APlayerCharacter::HandleBKey(const FInputActionValue& Value)
+{
+    UE_LOG(LogTemp, Log, TEXT("Bkey"));
+}
+
+void APlayerCharacter::HandleESCKey(const FInputActionValue& Value)
+{
+    UE_LOG(LogTemp, Log, TEXT("ESCkey"));
 }

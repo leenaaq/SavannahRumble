@@ -3,6 +3,7 @@
 #include "Player/Component/ItemManagerComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "../Component/EquipItemMeshActor.h"
+#include "TimerManager.h"
 
 APlayerBase::APlayerBase()
 {
@@ -14,6 +15,7 @@ APlayerBase::APlayerBase()
 	EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
 	EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
 	//EquipItemMesh->SetVisibility(false);
+
 }
 
 void APlayerBase::BeginPlay()
@@ -21,6 +23,15 @@ void APlayerBase::BeginPlay()
 	Super::BeginPlay();
 
 	UpdateStatsFromDataTable();
+}
+
+void APlayerBase::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (bIsStunned && HasAuthority())
+	{
+		RemainingStunTime = FMath::Max(RemainingStunTime - DeltaTime, 0.0f);
+	}
 }
 
 // 데이터 테이블 업데이트
@@ -76,7 +87,38 @@ void APlayerBase::OnStunned()
 		MeshComp->SetSimulatePhysics(true);
 		MeshComp->bBlendPhysics = true;
 	}
+
+	RemainingStunTime = PlayerStats.StunDuration;
+	if (HasAuthority())
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			RecoveryTimerHandle,
+			this,
+			&APlayerBase::MulticastRecoverFromStun,
+			PlayerStats.StunDuration,
+			false
+		);
+	}
 }
+
+void APlayerBase::MulticastRecoverFromStun_Implementation()
+{
+	RecoverFromStun();
+}
+
+void APlayerBase::RecoverFromStun()
+{
+	bIsStunned = false;
+
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		MeshComp->SetSimulatePhysics(false);
+		MeshComp->SetCollisionProfileName(TEXT("CharacterMesh"));
+		MeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	}
+	SetHealth(GetMaxHealth());
+}
+
 
 void APlayerBase::OnRep_bIsStunned()
 {
@@ -91,6 +133,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerBase, bIsStunned);
 	DOREPLIFETIME(APlayerBase, CurrentEquippedItemName);
+	DOREPLIFETIME(APlayerBase, RemainingStunTime);
 }
 
 void APlayerBase::OnRep_CurrentEquippedItemName()
@@ -128,3 +171,4 @@ void APlayerBase::SetEquipItemMeshStatic(UStaticMesh* NewMesh)
 		}
 	}
 }
+

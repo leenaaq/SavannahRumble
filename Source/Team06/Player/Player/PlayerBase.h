@@ -30,6 +30,11 @@ struct FPlayerStats : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 LifeCount = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StunDuration = 0.0f;
+
+
 };
 
 UCLASS()
@@ -44,6 +49,7 @@ public:
 	void ServerSetEquippedItemName(FName NewItemName);
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
 	// 데이터 테이블 적용
@@ -81,6 +87,11 @@ public:
 protected:
 	UFUNCTION()
 	void OnRep_bIsStunned();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRecoverFromStun();
+
+	virtual void RecoverFromStun();
 	
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -98,6 +109,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	class UChildActorComponent* EquipItemChildActor;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	float RemainingStunTime = 0.0f;
 
 private:
 	FPlayerStats PlayerStats;
