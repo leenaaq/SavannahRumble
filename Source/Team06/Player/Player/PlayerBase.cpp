@@ -2,7 +2,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Player/Component/ItemManagerComponent.h"
 #include "Components/ChildActorComponent.h"
-#include "../Component/EquipItemMeshActor.h"
+//#include "../Component/EquipItemMeshActor.h"
 #include "TimerManager.h"
 
 APlayerBase::APlayerBase()
@@ -11,9 +11,9 @@ APlayerBase::APlayerBase()
 
 	ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
 
-	EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
-	EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
-	EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
+	//EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
+	//EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
+	//EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
 	//EquipItemMesh->SetVisibility(false);
 
 }
@@ -132,43 +132,43 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerBase, bIsStunned);
-	DOREPLIFETIME(APlayerBase, CurrentEquippedItemName);
+	//DOREPLIFETIME(APlayerBase, CurrentEquippedItemName);
 	DOREPLIFETIME(APlayerBase, RemainingStunTime);
 }
 
-void APlayerBase::OnRep_CurrentEquippedItemName()
-{
-	if (ItemManager)
-	{
-		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
-	}
-}
+//void APlayerBase::OnRep_CurrentEquippedItemName()
+//{
+//	if (ItemManager)
+//	{
+//		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+//	}
+//}
 
-void APlayerBase::ServerSetEquippedItemName_Implementation(FName NewItemName)
-{
-	CurrentEquippedItemName = NewItemName;
+//void APlayerBase::ServerSetEquippedItemName_Implementation(FName NewItemName)
+//{
+//	CurrentEquippedItemName = NewItemName;
+//
+//	if (ItemManager)
+//	{
+//		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+//	}
+//}
 
-	if (ItemManager)
-	{
-		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
-	}
-}
-
-bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)
-{
-	return true;
-}
-
-void APlayerBase::SetEquipItemMeshStatic(UStaticMesh* NewMesh)
-{
-	if (EquipItemChildActor)
-	{
-		AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
-		if (EquipMeshActor)
-		{
-			EquipMeshActor->MeshComp->SetStaticMesh(NewMesh);
-			EquipMeshActor->MeshComp->SetVisibility(NewMesh != nullptr);
-		}
-	}
-}
-
+//bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)
+//{
+//	return true;
+//}
+//
+//void APlayerBase::SetEquipItemMeshStatic(UStaticMesh* NewMesh)
+//{
+//	if (EquipItemChildActor)
+//	{
+//		AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
+//		if (EquipMeshActor)
+//		{
+//			EquipMeshActor->MeshComp->SetStaticMesh(NewMesh);
+//			EquipMeshActor->MeshComp->SetVisibility(NewMesh != nullptr);
+//		}
+//	}
+//}
+//
