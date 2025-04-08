@@ -45,8 +45,8 @@ class TEAM06_API APlayerBase : public ACharacter
 public:
 	APlayerBase();
 
-	//UFUNCTION(Server, Reliable, WithValidation)
-	//void ServerSetEquippedItemName(FName NewItemName);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetEquippedItemName(FName NewItemName);
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -78,11 +78,11 @@ public:
 	void SetLifeCount(int32 NewLifeCount) { PlayerStats.LifeCount = NewLifeCount; }
 	void SetbIsStunned(bool NewbIsStunned) { bIsStunned = NewbIsStunned; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	//void SetEquippedItemName(FName NewItemName) { CurrentEquippedItemName = NewItemName; }
-	//void SetEquipItemMeshStatic(UStaticMesh* NewMesh);
+	void SetEquippedItemName(FName NewItemName) { CurrentEquippedItemName = NewItemName; }
+	void SetEquipItemMeshStatic(UStaticMesh* NewMesh);
 
-	/*UFUNCTION()
-	void OnRep_CurrentEquippedItemName();*/
+	UFUNCTION()
+	void OnRep_CurrentEquippedItemName();
 
 protected:
 	UFUNCTION()
@@ -104,11 +104,11 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_bIsStunned, BlueprintReadOnly)
 	bool bIsStunned = false;
 
-	//UPROPERTY(ReplicatedUsing = OnRep_CurrentEquippedItemName, BlueprintReadWrite)
-	//FName CurrentEquippedItemName = "NONE";
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentEquippedItemName, BlueprintReadWrite)
+	FName CurrentEquippedItemName = "NONE";
 
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-	//class UChildActorComponent* EquipItemChildActor;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+	class UChildActorComponent* EquipItemChildActor;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	float RemainingStunTime = 0.0f;
