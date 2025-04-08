@@ -1,34 +1,52 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// PlayerRagdollComponent.cpp
 
 #include "PlayerRagdollComponent.h"
+#include "GameFramework/Character.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "PhysicsEngine/PhysicalAnimationComponent.h"
 
-// Sets default values for this component's properties
 UPlayerRagdollComponent::UPlayerRagdollComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+    PrimaryComponentTick.bCanEverTick = false;
 
-	// ...
+    PhysicalAnimation = CreateDefaultSubobject<UPhysicalAnimationComponent>(TEXT("PlayerRagdollPhysicalAnimation"));
 }
 
-
-// Called when the game starts
 void UPlayerRagdollComponent::BeginPlay()
 {
-	Super::BeginPlay();
-
-	// ...
-	
+    Super::BeginPlay();
+    InitializePhysicalAnimation();
 }
 
 
-// Called every frame
-void UPlayerRagdollComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+
+void UPlayerRagdollComponent::InitializePhysicalAnimation()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    if (ACharacter* OwnerChar = Cast<ACharacter>(GetOwner()))
+    {
+        SkeletalMesh = OwnerChar->GetMesh();
+        if (!SkeletalMesh)
+        {
+            UE_LOG(LogTemp, Error, TEXT("PlayerRagdollComponent: SkeletalMesh is nullptr"));
+            return;
+        }
 
-	// ...
+        PhysicalAnimation->SetSkeletalMeshComponent(SkeletalMesh);
+
+        SkeletalMesh->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, false);
+        SkeletalMesh->SetCollisionProfileName(TEXT("PhysicsActor"));
+        SkeletalMesh->SetEnableGravity(true);
+        SkeletalMesh->bBlendPhysics = true;
+
+        FPhysicalAnimationData AnimData;
+        AnimData.bIsLocalSimulation = true;
+        AnimData.OrientationStrength = 5000.0f;
+        AnimData.PositionStrength = 500.0f;
+        AnimData.VelocityStrength = 100.0f;
+        AnimData.AngularVelocityStrength = 100.0f;
+
+        PhysicalAnimation->ApplyPhysicalAnimationSettingsBelow(FName("pelvis"), AnimData, false);
+
+        SkeletalMesh->SetSimulatePhysics(false);
+    }
 }
-
