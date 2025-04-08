@@ -13,6 +13,8 @@ void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, NotificationText);
+
+	DOREPLIFETIME(ThisClass, bIsReady);
 }
 
 void APCController_GamePlay::BeginPlay()
