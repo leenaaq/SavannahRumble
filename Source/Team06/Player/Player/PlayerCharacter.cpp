@@ -13,6 +13,7 @@
 #include "GameFramework/DamageType.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/GameStateBase.h"
+#include "Player/Controller/PCController_GamePlay.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -50,8 +51,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     EIC->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
     EIC->BindAction(LeftHandAttackAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleLeftHandMeleeAttack);
     EIC->BindAction(RightHandAttackAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleRightHandMeleeAttack);
-    EIC->BindAction(BKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleBKey);
-    EIC->BindAction(ESCKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleESCKey);
+    EIC->BindAction(BKeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleBKey);
+    EIC->BindAction(ESCKeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleESCKey);
 
 }
 
@@ -385,7 +386,14 @@ void APlayerCharacter::RecoverFromStun()
 
 void APlayerCharacter::HandleBKey(const FInputActionValue& Value)
 {
-    UE_LOG(LogTemp, Log, TEXT("Bkey"));
+    APCController_GamePlay* PlayerController_GamePlay = GetController<APCController_GamePlay>();
+    if (IsValid(PlayerController_GamePlay))
+    {
+        if (PlayerController_GamePlay->IsLocalController() || PlayerController_GamePlay->LobbyWidget)
+        {
+            PlayerController_GamePlay->OnHandleLobbyUI();
+        }
+    }
 }
 
 void APlayerCharacter::HandleESCKey(const FInputActionValue& Value)

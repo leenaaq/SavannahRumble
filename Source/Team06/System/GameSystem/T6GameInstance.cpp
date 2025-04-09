@@ -42,11 +42,11 @@ void UT6GameInstance::LoadLevelsFromFolder()
 	}
 	for (const FAssetData& Asset : AssetData)
 	{
-		FString AssetClassPathString = Asset.GetObjectPathString();
+		FName AssetClassPathString = Asset.AssetClassPath.GetAssetName();
 
-		if (AssetClassPathString == "World")
+		if (AssetClassPathString == FName("World"))
 		{
-			FString LevelPath = Asset.ObjectPath.ToString();
+			FString LevelPath = Asset.GetObjectPathString();
 			UE_LOG(LogTemp, Warning, TEXT("Found Level: %s"), *LevelPath);
 
 			LevelPath = LevelPath.LeftChop(LevelPath.Find(TEXT(".")) - LevelPath.Len());

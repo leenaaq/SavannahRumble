@@ -28,6 +28,7 @@ void AT6GameModeBase::PostLogin(APlayerController* NewPlayer)
 	if (IsValid(NewPlayerController) == true)
 	{
 		SessionPlayerControllers.Add(NewPlayerController);
+		UE_LOG(LogTemp, Warning, TEXT("NewPlayer PostLogin"));
 		NewPlayerController->NotificationText = FText::FromString(TEXT("Connected to the game server."));
 	}
 }
