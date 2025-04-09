@@ -16,6 +16,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void OnItemLanded_Implementation() override; // 착지 후 폭발 예약|
+
 	// 폭발 기능
 	UPROPERTY(EditDefaultsOnly, Category = "Explosion")
 	float ExplosionDelay = 3.0f;

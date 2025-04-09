@@ -1,9 +1,11 @@
 #include "ItemSpawner.h"
 #include "ItemSpawnPoint.h"
-#include "EquipableItem.h"
+#include "Item/EquipableItem.h"
+#include "Item/TriggerItem.h"
 #include "Components/BoxComponent.h"
 #include "Components/SceneComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/DataTable.h"
 
 
 AItemSpawner::AItemSpawner()
@@ -34,8 +36,7 @@ void AItemSpawner::BeginPlay()
 
 		for (AActor* Actor : FoundActors)
 		{
-			AItemSpawnPoint* SpawnPoint = Cast<AItemSpawnPoint>(Actor);
-			if (SpawnPoint)
+			if (AItemSpawnPoint* SpawnPoint = Cast<AItemSpawnPoint>(Actor))
 			{
 				SpawnPoints.Add(SpawnPoint);
 			}
@@ -47,39 +48,65 @@ void AItemSpawner::BeginPlay()
 	}
 }
 
+FItemSpawnRow* AItemSpawner::GetRandomItem() const
+{
+	if (!ItemDataTable) return nullptr;
+
+	TArray<FItemSpawnRow*> AllRows;
+	static const FString ContextString(TEXT("ItemSpawnContext"));
+	ItemDataTable->GetAllRows<FItemSpawnRow>(ContextString, AllRows);
+
+	if (AllRows.IsEmpty()) return nullptr;
+
+	float TotalChance = 0.0f;
+	for (const FItemSpawnRow* Row : AllRows)
+	{
+		if (Row) TotalChance += Row->SpawnChance;
+	}
+
+	const float RandValue = FMath::FRandRange(0.0f, TotalChance);
+	float AccumulateChance = 0.0f;
+
+	for (FItemSpawnRow* Row : AllRows)
+	{
+		AccumulateChance += Row->SpawnChance;
+		if (RandValue <= AccumulateChance)
+		{
+			return Row;
+		}
+	}
+
+	return nullptr;
+}
+
 void AItemSpawner::SpawnItems()
 {
-	if (ItemClasses.Num() == 0 || SpawnPoints.Num() == 0)
+	if (SpawnPoints.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ItemSpawner] 아이템 클래스가 등록되어 있지 않습니다."));
+		UE_LOG(LogTemp, Warning, TEXT("[ItemSpawner] 스폰 포인트가 비어 있습니다."));
 		return;
 	}
 
 	for (AItemSpawnPoint* SpawnPoint : SpawnPoints)
 	{
-		// 이미 아이템이 스폰되어 있다면 건너뜀
 		if (SpawnedItems.Contains(SpawnPoint) && SpawnedItems[SpawnPoint] != nullptr)
 		{
 			continue;
 		}
 
-		// 랜덤 아이템 선택
-		int32 RandomIndex = FMath::RandRange(0, ItemClasses.Num() - 1);
-		TSubclassOf<AEquipableItem> RandomItemClass = ItemClasses[RandomIndex];
-
-		if (RandomItemClass)
+		FItemSpawnRow* SelectedRow = GetRandomItem();
+		if (SelectedRow && SelectedRow->ItemClass)
 		{
-			// 아이템 스폰
-			AEquipableItem* SpawnedItem = GetWorld()->SpawnActor<AEquipableItem>(RandomItemClass, SpawnPoint->GetActorLocation(), FRotator::ZeroRotator);
+			AEquipableItem* SpawnedItem = GetWorld()->SpawnActor<AEquipableItem>(
+				SelectedRow->ItemClass,
+				SpawnPoint->GetActorLocation(),
+				FRotator::ZeroRotator
+			);
+
 			if (SpawnedItem)
 			{
-				//아이템이 제대로 생성되었는지 확인
 				UE_LOG(LogTemp, Log, TEXT("[ItemSpawner] 아이템 생성 완료: %s (스폰 위치: %s)"), *SpawnedItem->GetName(), *SpawnPoint->GetName());
-
-				// 아이템이 삭제될 때 OnItemDestroyed 함수 호출
 				SpawnedItem->OnDestroyed.AddDynamic(this, &AItemSpawner::OnItemDestroyed);
-
-				// 현재 스폰된 아이템 저장
 				SpawnedItems.Add(SpawnPoint, SpawnedItem);
 			}
 		}

@@ -2,12 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ItemSpawnRow.h"  
 #include "ItemSpawner.generated.h"
 
 
 class UBoxComponent;
 class USceneComponent;
-class AItem;
+class AEquipableItem;
+class ATriggerItem;
 class AItemSpawnPoint;
 
 UCLASS()
@@ -25,38 +27,39 @@ private:
 
 	FTimerHandle DebugLogHandle;
 
-	// 아이템을 생성할 스폰 포인트 목록
+	// 스폰 포인트 목록
 	UPROPERTY()
 	TArray<AItemSpawnPoint*> SpawnPoints;
 
-	// 스폰할 수 있는 아이템 클래스 목록
-	UPROPERTY(EditAnywhere, Category = "Spawn Settings")
-	TArray<TSubclassOf<class AEquipableItem>> ItemClasses;
-
-	// 아이템 리스폰 시간 (초)
+	// 리스폰 시간
 	UPROPERTY(EditAnywhere, Category = "Spawn Settings")
 	float RespawnTime = 3.0f;
 
-	// 각 스폰 포인트에 대한 현재 스폰된 아이템 관리
+	// 현재 스폰된 아이템 관리
 	TMap<AItemSpawnPoint*, AEquipableItem*> SpawnedItems;
 
-	// 박스 범위 (스폰 영역 시각화용)
+	// 스폰 범위 시각화
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UBoxComponent> SpawnArea;
 
-	// 스폰할 위치의 Scene 루트
+	// 루트 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<USceneComponent> SceneRoot;
 
-	UFUNCTION()
-	
-	// 아이템 스폰 함수
+	// 아이템 데이터 테이블
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning", meta = (AllowPrivateAccess = true))
+	UDataTable* ItemDataTable;
+
+	// 무작위 아이템 선택
+	FItemSpawnRow* GetRandomItem() const;
+
+	// 아이템 스폰 처리
 	void SpawnItems();
 
-	// 아이템 제거 및 리스폰 함수
+	// 리스폰 처리
 	void RespawnItem(AItemSpawnPoint* SpawnPoint);
 
-	// 특정 아이템이 제거될 때 호출
+	// 삭제 시 처리
 	UFUNCTION()
 	void OnItemDestroyed(AActor* DestroyedActor);
 };
