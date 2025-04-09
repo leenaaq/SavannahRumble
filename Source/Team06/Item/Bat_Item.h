@@ -28,7 +28,8 @@ public:
 	virtual void ServerThrowItem_Implementation(FVector Direction) override;
 	virtual bool ServerThrowItem_Validate(FVector Direction) override;  // 추가됨
 
-	// 충돌 처리 (맞은 캐릭터 쓰러지게 만들기)
-	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
+	// 충돌 처리
+	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 };

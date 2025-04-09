@@ -1,4 +1,4 @@
-#include "Explosive_Item.h"
+#include "Item/Explosive_Item.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
@@ -25,9 +25,15 @@ void AExplosive_Item::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UE_LOG(LogTemp, Warning, TEXT("[Explosive_Item] BeginPlay 호출됨. %.1f초 뒤에 폭발 예정"), ExplosionDelay);
+	UE_LOG(LogTemp, Log, TEXT("[Explosive_Item] BeginPlay 호출"));
+}
 
-	// 일정 시간 후 폭발 예약
+void AExplosive_Item::OnItemLanded_Implementation()
+{
+	Super::OnItemLanded_Implementation(); // 부모가 무언가 하도록 만들었으면 호출
+
+	UE_LOG(LogTemp, Warning, TEXT("[Explosive_Item] 아이템 착지됨 - %.1f초 후 폭발 예약"), ExplosionDelay);
+
 	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &AExplosive_Item::Explode, ExplosionDelay, false);
 }
 

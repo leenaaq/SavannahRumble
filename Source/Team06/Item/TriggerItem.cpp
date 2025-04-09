@@ -2,6 +2,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 
 ATriggerItem::ATriggerItem()
 {
@@ -51,26 +52,12 @@ void ATriggerItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 
 void ATriggerItem::TriggerEffect_Implementation(AActor* OverlappedActor)
 {
-	if (HasAuthority())
-	{
-		// 서버에서 처리
-		ServerTriggerEffect(OverlappedActor);
-	}
-	else
-	{
-		// 클라에서는 서버에 요청만
-		ServerTriggerEffect(OverlappedActor);
-	}
-	// 기본 동작: 로그만 출력
-	UE_LOG(LogTemp, Log, TEXT("[TriggerItem] TriggerEffect 호출됨 - 대상: %s"), *OverlappedActor->GetName());
-}
+	// 서버에서만 실행
+	if (!HasAuthority()) return;
 
-void ATriggerItem::ServerTriggerEffect_Implementation(AActor* OverlappedActor)
-{
-	// 실제 효과 처리 로직
-	ACharacter* Character = Cast<ACharacter>(OverlappedActor);
-	if (Character)
-	{
-		// 점프 날리기 등 서버 전용 로직
-	}
+	// 이펙트 & 사운드 재생
+	PlayItemEffects(GetActorLocation());
+
+	// 추가 로직이 필요한 경우 자식에서 오버라이드
+	UE_LOG(LogTemp, Log, TEXT("[TriggerItem] TriggerEffect 실행됨 - 대상: %s"), *OverlappedActor->GetName());
 }

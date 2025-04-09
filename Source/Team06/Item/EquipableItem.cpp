@@ -1,23 +1,27 @@
-#include "EquipableItem.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Components/SphereComponent.h" 
+#include "Item/EquipableItem.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "PhysicsEngine/RadialForceComponent.h"
-
-
+#include "NiagaraFunctionLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 AEquipableItem::AEquipableItem()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
-	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
-	RootComponent = CollisionComp;
+	bReplicates = true;
 
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMesh"));
-	ItemMesh->SetupAttachment(CollisionComp);
-	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetRootComponent(ItemMesh);
+	ItemMesh->SetSimulatePhysics(true);
+	ItemMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	ItemMesh->SetNotifyRigidBodyCollision(true);
+
+	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
+	CollisionComp->SetupAttachment(ItemMesh);
+	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionComp->SetCollisionResponseToAllChannels(ECR_Overlap);
+
+	OnActorHit.AddDynamic(this, &AEquipableItem::HandleImpact);
 }
 
 void AEquipableItem::BeginPlay()
@@ -25,29 +29,31 @@ void AEquipableItem::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AEquipableItem::Tick(float DeltaTime)
+void AEquipableItem::ServerUseItem_Implementation(AActor* Target)
 {
-	Super::Tick(DeltaTime);
+	// 자식에서 오버라이드
+}
+
+void AEquipableItem::ServerThrowItem_Implementation(FVector Direction)
+{
+	if (ItemMesh)
+	{
+		bWasThrown = true; // 던졌다고 표시
+		ItemMesh->AddImpulse(Direction * 1000.f, NAME_None, true);
+	}
 }
 
 void AEquipableItem::ServerApplyDamageAndKnockback_Implementation(AActor* Target, float Damage, float KnockbackForce)
 {
-	if (!Target) return;
-
-	// 데미지 적용
-	UGameplayStatics::ApplyDamage(Target, Damage, GetInstigatorController(), this, nullptr);
-
-	// 넉백 적용
-	ACharacter* HitCharacter = Cast<ACharacter>(Target);
-	if (HitCharacter)
+	if (Target && HasAuthority())
 	{
-		UCharacterMovementComponent* Movement = HitCharacter->GetCharacterMovement();
-		if (Movement)
-		{
-			FVector KnockbackDir = (HitCharacter->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-			FVector Knockback = KnockbackDir * KnockbackForce;
+		UGameplayStatics::ApplyDamage(Target, Damage, GetInstigatorController(), this, nullptr);
 
-			Movement->Launch(Knockback);
+		UPrimitiveComponent* TargetRoot = Cast<UPrimitiveComponent>(Target->GetRootComponent());
+		if (TargetRoot && TargetRoot->IsSimulatingPhysics())
+		{
+			FVector KnockDir = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+			TargetRoot->AddImpulse(KnockDir * KnockbackForce, NAME_None, true);
 		}
 	}
 }
@@ -57,25 +63,34 @@ bool AEquipableItem::ServerApplyDamageAndKnockback_Validate(AActor* Target, floa
 	return true;
 }
 
-void AEquipableItem::ServerUseItem_Implementation(AActor* Target)
+void AEquipableItem::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// 아이템 사용 로직 (자식 클래스에서 오버라이드 가능)
+	if (bHasLanded) return;
+
+	bHasLanded = true;
+
+	GetWorld()->GetTimerManager().SetTimer(ActivationTimerHandle, this, &AEquipableItem::OnItemLanded, ActivationDelayAfterLanding, false);
 }
 
-void AEquipableItem::ServerThrowItem_Implementation(FVector Direction)
+void AEquipableItem::HandleImpact(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (RootComponent)
-	{
-		UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(RootComponent);
-		if (PrimitiveComp)
-		{
-			PrimitiveComp->AddImpulse(Direction * 1000.0f, NAME_None, true);
-		}
-	}
+	OnHit(nullptr, OtherActor, nullptr, NormalImpulse, Hit);
 }
 
-void AEquipableItem::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AEquipableItem::OnItemLanded_Implementation()
 {
-	// 충돌 처리 로직 (자식 클래스에서 오버라이드 가능)
+	ActivateEffect();
 }
 
+void AEquipableItem::ActivateEffect_Implementation()
+{
+	PlayItemEffects(GetActorLocation()); // 부모 기능 호출
+}
+
+void AEquipableItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AEquipableItem, bHasLanded);
+	DOREPLIFETIME(AEquipableItem, bWasThrown);
+}
