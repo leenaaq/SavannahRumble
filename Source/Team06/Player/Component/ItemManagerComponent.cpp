@@ -15,32 +15,62 @@ void UItemManagerComponent::BeginPlay()
 
 void UItemManagerComponent::InitializeItemMeshMap()
 {
-    if (!ItemDataTable) return;
+    if (!ItemDataTable)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : ItemDataTable is null!"));
+        return;
+    }
 
     static const FString Context = TEXT("InitMeshMap");
 
+    ACharacter* CharacterOwner = Cast<ACharacter>(GetOwner());
+    if (!CharacterOwner)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Owner is not ACharacter!"));
+        return;
+    }
+
     for (auto RowName : ItemDataTable->GetRowNames())
     {
-        if (const FEquipItemDataRow* Row = ItemDataTable->FindRow<FEquipItemDataRow>(RowName, Context))
+        const FEquipItemDataRow* Row = ItemDataTable->FindRow<FEquipItemDataRow>(RowName, Context);
+        if (!Row)
         {
-            UStaticMeshComponent* NewMesh = NewObject<UStaticMeshComponent>(GetOwner());
-            if (NewMesh)
-            {
-                NewMesh->RegisterComponent();
-                NewMesh->AttachToComponent(Cast<ACharacter>(GetOwner())->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_r_socket"));
-                NewMesh->SetStaticMesh(Row->StaticMesh);
-                NewMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-                NewMesh->SetVisibility(false);
-
-                ItemMeshMap.Add(Row->ItemName, NewMesh);
-            }
+            UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Row not found for %s"), *RowName.ToString());
+            continue;
         }
+
+        if (Row->ItemName.IsNone())
+        {
+            UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Row %s has invalid ItemName (None)"), *RowName.ToString());
+            continue;
+        }
+
+        if (!Row->StaticMesh)
+        {
+            UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Row %s has no StaticMesh!"), *Row->ItemName.ToString());
+            continue;
+        }
+
+        UStaticMeshComponent* NewMesh = NewObject<UStaticMeshComponent>(GetOwner());
+        if (!NewMesh)
+        {
+            UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Failed to create mesh for %s"), *Row->ItemName.ToString());
+            continue;
+        }
+
+        NewMesh->RegisterComponent();
+        NewMesh->AttachToComponent(CharacterOwner->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_r_socket"));
+        NewMesh->SetStaticMesh(Row->StaticMesh);
+        NewMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+        NewMesh->SetVisibility(false);
+
+        ItemMeshMap.Add(Row->ItemName, NewMesh);
     }
 }
 
 void UItemManagerComponent::ValidateEssentialReferences()
 {
-    if (ItemDataTable == nullptr)
+    if (!ItemDataTable)
     {
         UE_LOG(LogTemp, Error, TEXT("[CHECK] UItemManagerComponent : ItemDataTable is not assigned!"));
     }
@@ -49,11 +79,27 @@ void UItemManagerComponent::ValidateEssentialReferences()
     {
         UE_LOG(LogTemp, Error, TEXT("[CHECK] UItemManagerComponent : ItemMeshMap is empty!"));
     }
+    else
+    {
+        for (const auto& Elem : ItemMeshMap)
+        {
+            if (!Elem.Value)
+            {
+                UE_LOG(LogTemp, Error, TEXT("[CHECK] UItemManagerComponent : Mesh component for item %s is null!"), *Elem.Key.ToString());
+            }
+        }
+    }
 
     AActor* OwnerActor = GetOwner();
-    if (OwnerActor == nullptr)
+    if (!OwnerActor)
     {
         UE_LOG(LogTemp, Error, TEXT("[CHECK] UItemManagerComponent : Owner is invalid!"));
+    }
+
+    APlayerBase* PlayerBase = Cast<APlayerBase>(OwnerActor);
+    if (!PlayerBase)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] UItemManagerComponent : Owner is not a valid APlayerBase!"));
     }
 }
 

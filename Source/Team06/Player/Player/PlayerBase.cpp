@@ -3,6 +3,7 @@
 #include "Player/Component/ItemManagerComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Player/Component/EquipItemMeshActor.h"
+#include "Components/ArrowComponent.h"
 #include "TimerManager.h"
 
 APlayerBase::APlayerBase()
@@ -15,6 +16,9 @@ APlayerBase::APlayerBase()
 	EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
 	EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
 	//EquipItemMesh->SetVisibility(false);
+
+	MuzzleComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("MuzzleComponent"));
+	MuzzleComponent->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
 
 }
 
@@ -51,6 +55,12 @@ void APlayerBase::ValidateEssentialReferences()
 	{
 		UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : StatsRowHandle.DataTable is not assigned!"));
 	}
+
+	if (MuzzleComponent == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : MuzzleComponent is not set!"));
+	}
+
 }
 
 // 데이터 테이블 업데이트
@@ -169,6 +179,7 @@ void APlayerBase::ServerSetEquippedItemName_Implementation(FName NewItemName)
 
 	if (ItemManager)
 	{
+		ItemManager->ServerEquipItem(NewItemName);
 		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
 	}
 }

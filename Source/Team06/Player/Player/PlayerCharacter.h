@@ -91,11 +91,15 @@ protected:
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UFUNCTION()
+	void SpawnProjectileFromItem();
+
+	void CheckMeleeAttackHit(const FVector& AttackOffset);
+
 private:
 	void HandleLeftHandMeleeAttack(const FInputActionValue& InValue);
 	void HandleRightHandMeleeAttack(const FInputActionValue& InValue);
 	void PerformMeleeAttack(const FVector& Offset, UAnimMontage* AttackMontage);
-	void CheckMeleeAttackHit(const FVector& AttackOffset);
 	void DrawDebugMeleeAttack(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
 	void ResetAttack();
 

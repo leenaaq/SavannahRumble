@@ -23,6 +23,9 @@ protected:
 	UFUNCTION()
 	void AnimNotify_CheckMeleeAttackHit();
 
+	UFUNCTION()
+	void AnimNotify_CheckRangedAttack();
+
 protected:
 	UPROPERTY()
 	TObjectPtr<ACharacter> OwnerCharacter;

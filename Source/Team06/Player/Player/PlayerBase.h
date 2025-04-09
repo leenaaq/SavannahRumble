@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Engine/DataTable.h"
+#include "Components/ArrowComponent.h"
 #include "PlayerBase.generated.h"
 
 USTRUCT(BlueprintType)
@@ -113,6 +114,9 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	float RemainingStunTime = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UArrowComponent* MuzzleComponent;
 
 private:
 	FPlayerStats PlayerStats;

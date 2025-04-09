@@ -232,7 +232,18 @@ void APlayerCharacter::ServerRPCItemRangedAttack_Implementation(float InStartTim
     FVector Offset = GetActorRightVector() * 50.0f;
     PerformMeleeAttack(Offset, ItemRightRangedAttackMontage);
     MulticastPlayMeleeAttackMontage(ItemRightRangedAttackMontage);
-    ServerSetEquippedItemName("NONE");
+
+    float Duration = ItemRightRangedAttackMontage ? ItemRightRangedAttackMontage->GetPlayLength() : 1.0f;
+    GetWorldTimerManager().SetTimer(
+        AttackTimerHandle,
+        [this]()
+        {
+            ServerSetEquippedItemName("NONE");
+            ResetAttack();
+        },
+        Duration,
+        false
+    );
 }
 
 bool APlayerCharacter::ServerRPCItemRangedAttack_Validate(float InStartTime)
@@ -456,4 +467,52 @@ void APlayerCharacter::HandleBKey(const FInputActionValue& Value)
 void APlayerCharacter::HandleESCKey(const FInputActionValue& Value)
 {
     UE_LOG(LogTemp, Log, TEXT("ESCkey"));
+}
+
+void APlayerCharacter::SpawnProjectileFromItem()
+{
+    UE_LOG(LogTemp, Log, TEXT("CurrentEquippedItemName: %s"), *CurrentEquippedItemName.ToString());
+    if (ItemManager == nullptr || ItemManager->ItemDataTable == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("SpawnProjectileFromItem: ItemManager or DataTable is null"));
+        return;
+    }
+
+    const FName EquippedItem = CurrentEquippedItemName;
+    if (EquippedItem == "NONE")
+    {
+        UE_LOG(LogTemp, Error, TEXT("SpawnProjectileFromItem: No equipped item"));
+        return;
+    }
+
+    static const FString Context = TEXT("ProjectileSpawn");
+    if (const FEquipItemDataRow* Row = ItemManager->ItemDataTable->FindRow<FEquipItemDataRow>(EquippedItem, Context))
+    {
+        if (Row->ProjectileBlueprint == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("ProjectileBlueprint is not set for item %s"), *EquippedItem.ToString());
+            return;
+        }
+        const FTransform MuzzleTransform = MuzzleComponent->GetComponentTransform();
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = this;
+        SpawnParams.Instigator = this;
+
+        AActor* Projectile = GetWorld()->SpawnActor<AActor>(Row->ProjectileBlueprint, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator(), SpawnParams);
+        if (Projectile)
+        {
+            if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Projectile->GetComponentByClass(UPrimitiveComponent::StaticClass())))
+            {
+                if (PrimitiveComp->IsSimulatingPhysics())
+                {
+                    const FVector ForwardVector = MuzzleTransform.GetRotation().GetForwardVector();
+                    const FVector LaunchVelocity = ForwardVector * Row->ProjectileSpeed;
+                    const FVector LaunchForce = ForwardVector * Row->ProjectileForce;
+
+                    PrimitiveComp->SetPhysicsLinearVelocity(LaunchVelocity, true);
+                    PrimitiveComp->AddImpulse(LaunchForce, NAME_None, true);
+                }
+            }
+        }
+    }
 }

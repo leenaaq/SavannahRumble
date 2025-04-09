@@ -26,6 +26,15 @@ struct FEquipItemDataRow : public FTableRowBase
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UStaticMesh* StaticMesh = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<AActor> ProjectileBlueprint;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float ProjectileSpeed = 0.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float ProjectileForce = 0.0f;
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
