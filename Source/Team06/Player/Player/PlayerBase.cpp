@@ -1,6 +1,6 @@
 #include "PlayerBase.h"
 #include "Net/UnrealNetwork.h"
-#include "Player/Component/ItemManagerComponent.h"
+//#include "Player/Component/ItemManagerComponent.h"
 #include "Components/ChildActorComponent.h"
 //#include "../Component/EquipItemMeshActor.h"
 #include "TimerManager.h"
@@ -9,7 +9,7 @@ APlayerBase::APlayerBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
+	//ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
 
 	//EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
 	//EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
