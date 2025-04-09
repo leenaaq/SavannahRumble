@@ -8,13 +8,16 @@
 
 APlayerBase::APlayerBase()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
 
 	EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
 	EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
-	EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
+	if (EquipItemChildActor && EquipItemChildActor->GetChildActorClass() == nullptr)
+	{
+		EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
+	}
 	//EquipItemMesh->SetVisibility(false);
 
 	MuzzleComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("MuzzleComponent"));
@@ -30,14 +33,10 @@ void APlayerBase::BeginPlay()
 	UpdateStatsFromDataTable();
 }
 
-void APlayerBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-	if (bIsStunned && HasAuthority())
-	{
-		RemainingStunTime = FMath::Max(RemainingStunTime - DeltaTime, 0.0f);
-	}
-}
+//void APlayerBase::Tick(float DeltaTime)
+//{
+//	Super::Tick(DeltaTime);
+//}
 
 void APlayerBase::ValidateEssentialReferences()
 {

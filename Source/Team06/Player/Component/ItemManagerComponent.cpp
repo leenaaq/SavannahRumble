@@ -41,13 +41,16 @@ void UItemManagerComponent::InitializeItemMeshMap()
 
         if (Row->ItemName.IsNone())
         {
-            UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Row %s has invalid ItemName (None)"), *RowName.ToString());
+            UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Row %s has invalid ItemName (DEFAULT)"), *RowName.ToString());
             continue;
         }
 
         if (!Row->StaticMesh)
         {
-            UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Row %s has no StaticMesh!"), *Row->ItemName.ToString());
+            if (RowName != "DEFAULT")
+            {
+                UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Row %s has no StaticMesh!"), *Row->ItemName.ToString());
+            }
             continue;
         }
 

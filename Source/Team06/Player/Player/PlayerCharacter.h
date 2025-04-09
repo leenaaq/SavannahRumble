@@ -18,6 +18,8 @@ class TEAM06_API APlayerCharacter : public APlayerBase
 public:
 	APlayerCharacter();
 
+	//void Tick(float DeltaTime);
+
 #pragma region Overrides Character
 
 public:

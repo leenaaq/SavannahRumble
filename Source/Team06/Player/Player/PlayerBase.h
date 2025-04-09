@@ -50,7 +50,7 @@ public:
 	void ServerSetEquippedItemName(FName NewItemName);
 
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+	//virtual void Tick(float DeltaTime) override;
 	virtual void ValidateEssentialReferences();
 	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
@@ -107,7 +107,7 @@ protected:
 	bool bIsStunned = false;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentEquippedItemName, BlueprintReadWrite)
-	FName CurrentEquippedItemName = "NONE";
+	FName CurrentEquippedItemName = "DEFAULT";
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	class UChildActorComponent* EquipItemChildActor;

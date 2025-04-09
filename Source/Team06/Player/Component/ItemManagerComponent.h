@@ -8,7 +8,7 @@
 UENUM(BlueprintType)
 enum class EEquipItemType : uint8
 {
-    Invalid     UMETA(DisplayName = "None (Invalid)"),
+    Invalid     UMETA(DisplayName = "DEFAULT (Invalid)"),
     Melee       UMETA(DisplayName = "Melee"),
     Ranged      UMETA(DisplayName = "Ranged")
 };
@@ -19,7 +19,7 @@ struct FEquipItemDataRow : public FTableRowBase
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    FName ItemName = "NONE";
+    FName ItemName = "DEFAULT";
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EEquipItemType ItemType = EEquipItemType::Invalid;

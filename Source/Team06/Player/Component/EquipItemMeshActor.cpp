@@ -15,11 +15,11 @@ AEquipItemMeshActor::AEquipItemMeshActor()
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
-	if (SphereMesh.Succeeded())
-	{
-		MeshComp->SetStaticMesh(SphereMesh.Object);
-	}
+	//static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+	//if (SphereMesh.Succeeded())
+	//{
+	//	MeshComp->SetStaticMesh(SphereMesh.Object);
+	//}
 }
 
 void AEquipItemMeshActor::BeginPlay()

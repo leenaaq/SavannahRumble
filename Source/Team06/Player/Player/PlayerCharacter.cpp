@@ -18,7 +18,7 @@
 
 APlayerCharacter::APlayerCharacter()
 {
-    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bCanEverTick = false;
 
     bUseControllerRotationPitch = false;
     bUseControllerRotationYaw = false;
@@ -39,6 +39,31 @@ APlayerCharacter::APlayerCharacter()
 
     bCanAttack = true;
 }
+
+//void APlayerCharacter::Tick(float DeltaTime)
+//{
+//    Super::Tick(DeltaTime);
+//
+//    if (bIsStunned && HasAuthority())
+//    {
+//        RemainingStunTime = FMath::Max(RemainingStunTime - DeltaTime, 0.0f);
+//    }
+//
+//    /*if (GEngine && IsLocallyControlled())
+//    {
+//        const FString ItemNameStr = FString::Printf(TEXT("EquippedItem: %s"), *CurrentEquippedItemName.ToString());
+//
+//        FString AttackStateStr = TEXT("bCanAttack: ?");
+//        if (const APlayerCharacter* PC = Cast<APlayerCharacter>(this))
+//        {
+//            AttackStateStr = FString::Printf(TEXT("bCanAttack: %s"), bCanAttack ? TEXT("true") : TEXT("false"));
+//        }
+//
+//        GEngine->AddOnScreenDebugMessage((uint64)1, 0.f, FColor::Green, ItemNameStr);
+//        GEngine->AddOnScreenDebugMessage((uint64)2, 0.f, FColor::Yellow, AttackStateStr);
+//    }*/
+//}
+
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -193,7 +218,7 @@ void APlayerCharacter::HandleRightHandMeleeAttack(const FInputActionValue& InVal
     float StartAttackTime = GetWorld()->GetTimeSeconds();
     bCanAttack = false;
 
-    if (EquippedItem == "NONE")
+    if (EquippedItem == "DEFAULT")
     {
         ServerRPCRightHandMeleeAttack(StartAttackTime);
     }
@@ -226,7 +251,7 @@ void APlayerCharacter::ServerRPCItemMeleeAttack_Implementation(float InStartTime
     FVector Offset = GetActorRightVector() * 50.0f;
     PerformMeleeAttack(Offset, ItemRightMeleeAttackMontage);
     MulticastPlayMeleeAttackMontage(ItemRightMeleeAttackMontage);
-    ServerSetEquippedItemName("NONE");
+    ServerSetEquippedItemName("DEFAULT");
 }
 
 bool APlayerCharacter::ServerRPCItemMeleeAttack_Validate(float InStartTime)
@@ -244,7 +269,6 @@ void APlayerCharacter::ServerRPCItemRangedAttack_Implementation(float InStartTim
         AttackTimerHandle,
         [this]()
         {
-            ServerSetEquippedItemName("NONE");
             ResetAttack();
         },
         Duration,
@@ -509,7 +533,7 @@ void APlayerCharacter::SpawnProjectileFromItem()
     }
 
     const FName EquippedItem = CurrentEquippedItemName;
-    if (EquippedItem == "NONE")
+    if (EquippedItem == "DEFAULT")
     {
         UE_LOG(LogTemp, Error, TEXT("SpawnProjectileFromItem: No equipped item"));
         return;
@@ -549,7 +573,7 @@ void APlayerCharacter::SpawnProjectileFromItem()
 
 void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
 {
-    if (!bCanAttack || CurrentEquippedItemName == "NONE" || !ItemManager || !ItemManager->ItemDataTable)
+    if (!bCanAttack || CurrentEquippedItemName == "DEFAULT" || !ItemManager || !ItemManager->ItemDataTable)
     {
         return;
     }
@@ -584,8 +608,11 @@ void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
 
     GetWorldTimerManager().SetTimer(
         AttackTimerHandle,
-        this,
-        &APlayerCharacter::ResetAttack,
+        [this]()
+        {
+            ResetAttack();
+            MulticastResetAttack();
+        },
         Duration,
         false
     );
