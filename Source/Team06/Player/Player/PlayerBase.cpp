@@ -4,6 +4,7 @@
 #include "Components/ChildActorComponent.h"
 #include "Player/Component/EquipItemMeshActor.h"
 #include "Components/ArrowComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "TimerManager.h"
 
 APlayerBase::APlayerBase()
@@ -143,6 +144,10 @@ void APlayerBase::RecoverFromStun()
 		MeshComp->SetSimulatePhysics(false);
 		MeshComp->SetCollisionProfileName(TEXT("CharacterMesh"));
 		MeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+
+		MeshComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+		MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	}
 	SetHealth(GetMaxHealth());
 }
