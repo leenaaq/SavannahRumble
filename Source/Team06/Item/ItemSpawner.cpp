@@ -121,7 +121,7 @@ void AItemSpawner::OnItemDestroyed(AActor* DestroyedActor)
 	if (!DestroyedItem) return;
 
 	// 아이템이 실제로 삭제되었는지 확인
-	UE_LOG(LogTemp, Warning, TEXT("[ItemSpawner] 아이템 삭제됨: %s"), *DestroyedItem->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("[ItemSpawner] 아이템 삭제됨: %s"), *DestroyedItem->GetName());
 
 	// 삭제된 아이템의 스폰 포인트 찾기
 	for (auto& Elem : SpawnedItems)
@@ -132,7 +132,7 @@ void AItemSpawner::OnItemDestroyed(AActor* DestroyedActor)
 			SpawnedItems[SpawnPoint] = nullptr; // 아이템 삭제됨 표시
 
 			// 아이템이 삭제됐을 때 리스폰 타이머가 정상 작동하는지 확인
-			UE_LOG(LogTemp, Log, TEXT("[ItemSpawner] %.1f초 후 [%s]에서 아이템 리스폰 예정"), RespawnTime, *SpawnPoint->GetName());
+			//UE_LOG(LogTemp, Log, TEXT("[ItemSpawner] %.1f초 후 [%s]에서 아이템 리스폰 예정"), RespawnTime, *SpawnPoint->GetName());
 
 			// 일정 시간 후 아이템 재생성
 			FTimerHandle RespawnTimerHandle;
@@ -141,7 +141,7 @@ void AItemSpawner::OnItemDestroyed(AActor* DestroyedActor)
 					if (SpawnPoint)
 					{
 						// 삭제 후 아이템이 정상적으로 생성되는지 확인
-						UE_LOG(LogTemp, Log, TEXT("[ItemSpawner] 리스폰 타이머 발동 - 아이템 재스폰 시도"));
+						//UE_LOG(LogTemp, Log, TEXT("[ItemSpawner] 리스폰 타이머 발동 - 아이템 재스폰 시도"));
 						this->SpawnItems();
 					}
 				}), RespawnTime, false);

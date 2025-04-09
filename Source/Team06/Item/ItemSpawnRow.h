@@ -12,12 +12,12 @@ struct FItemSpawnRow : public FTableRowBase
 public:
     // 아이템 이름
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    FName ItemName;
+    FName ItemName = "none";
     // 어떤 아이템 클래스를 스폰할지
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TSubclassOf<AActor> ItemClass;
+    TSubclassOf<AActor> ItemClass=nullptr;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float SpawnChance;
+    float SpawnChance= 0.0f;
 	
 };
