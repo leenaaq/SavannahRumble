@@ -34,6 +34,15 @@ void UPlayerAnimInstanceBase::AnimNotify_CheckMeleeAttackHit()
 	APlayerCharacter* OwnerPlayerCharacter = Cast<APlayerCharacter>(OwnerCharacter);
 	if (IsValid(OwnerPlayerCharacter) == true)
 	{
-		//OwnerPlayerCharacter->CheckMeleeAttackHit();
+		//OwnerPlayerCharacter->CheckMeleeAttackHit(AttackOffset);
+	}
+}
+
+void UPlayerAnimInstanceBase::AnimNotify_CheckRangedAttack()
+{
+	APlayerCharacter* OwnerPlayerCharacter = Cast<APlayerCharacter>(OwnerCharacter);
+	if (IsValid(OwnerPlayerCharacter) == true)
+	{
+		OwnerPlayerCharacter->SpawnProjectileFromItem();
 	}
 }

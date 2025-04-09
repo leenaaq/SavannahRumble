@@ -29,6 +29,8 @@ public:
 
 	virtual void OnStunned() override;
 
+	void ValidateEssentialReferences();
+
 #pragma endregion
 
 #pragma region DXPlayerCharacter Components
@@ -58,6 +60,8 @@ private:
 
 	void HandleESCKey(const FInputActionValue& Value);
 
+	void HandleFKey(const FInputActionValue& Value);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -83,17 +87,25 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputAction> ESCKeyAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
+	TObjectPtr<UInputAction> FKeyAction;
+
 #pragma endregion
 
 #pragma region Attack
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UFUNCTION()
+	void SpawnProjectileFromItem();
+
+	void CheckMeleeAttackHit(const FVector& AttackOffset);
+
 private:
 	void HandleLeftHandMeleeAttack(const FInputActionValue& InValue);
 	void HandleRightHandMeleeAttack(const FInputActionValue& InValue);
 	void PerformMeleeAttack(const FVector& Offset, UAnimMontage* AttackMontage);
-	void CheckMeleeAttackHit(const FVector& AttackOffset);
+	void PerformRangedAttack(UAnimMontage* AttackMontage);
 	void DrawDebugMeleeAttack(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
 	void ResetAttack();
 
@@ -110,11 +122,20 @@ private:
 	void MulticastResetAttack();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Attack")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
 	TObjectPtr<UAnimMontage> LeftMeleeAttackMontage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Attack")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
 	TObjectPtr<UAnimMontage> RightMeleeAttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
+	TObjectPtr<UAnimMontage> ItemRightMeleeAttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
+	TObjectPtr<UAnimMontage> ItemRightRangedAttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
+	TObjectPtr<UAnimMontage> ItemShortRangedAttackMontage;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CanAttack)
 	bool bCanAttack;
@@ -126,6 +147,13 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRPCPerformMeleeHit(AActor* DamagedActor, float InCheckTime);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCItemMeleeAttack(float InStartTime);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCItemRangedAttack(float InStartTime);
+
 
 #pragma endregion
 };
