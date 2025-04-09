@@ -60,6 +60,8 @@ private:
 
 	void HandleESCKey(const FInputActionValue& Value);
 
+	void HandleFKey(const FInputActionValue& Value);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -85,6 +87,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputAction> ESCKeyAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
+	TObjectPtr<UInputAction> FKeyAction;
+
 #pragma endregion
 
 #pragma region Attack
@@ -100,6 +105,7 @@ private:
 	void HandleLeftHandMeleeAttack(const FInputActionValue& InValue);
 	void HandleRightHandMeleeAttack(const FInputActionValue& InValue);
 	void PerformMeleeAttack(const FVector& Offset, UAnimMontage* AttackMontage);
+	void PerformRangedAttack(UAnimMontage* AttackMontage);
 	void DrawDebugMeleeAttack(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
 	void ResetAttack();
 
@@ -127,6 +133,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
 	TObjectPtr<UAnimMontage> ItemRightRangedAttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
+	TObjectPtr<UAnimMontage> ItemShortRangedAttackMontage;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CanAttack)
 	bool bCanAttack;

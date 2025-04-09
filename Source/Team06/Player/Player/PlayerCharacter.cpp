@@ -53,7 +53,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     EIC->BindAction(RightHandAttackAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleRightHandMeleeAttack);
     EIC->BindAction(BKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleBKey);
     EIC->BindAction(ESCKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleESCKey);
-    
+    EIC->BindAction(FKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleFKey);
 }
 
 void APlayerCharacter::BeginPlay()
@@ -100,6 +100,11 @@ void APlayerCharacter::ValidateEssentialReferences()
         UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : LeftMeleeAttackMontage is not set!"));
     }
 
+    if (ItemShortRangedAttackMontage == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemShortRangedAttackMontage is not set!"));
+    }
+
     if (ItemManager == nullptr)
     {
         UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemManagerComponent is missing!"));
@@ -121,6 +126,7 @@ void APlayerCharacter::ValidateEssentialReferences()
     if (RightHandAttackAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : RightHandAttackAction is not set!"));
     if (BKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : BKeyAction is not set!"));
     if (ESCKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ESCKeyAction is not set!"));
+    if (FKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : FKeyAction is not set!"));
 }
 
 
@@ -229,8 +235,7 @@ bool APlayerCharacter::ServerRPCItemMeleeAttack_Validate(float InStartTime)
 
 void APlayerCharacter::ServerRPCItemRangedAttack_Implementation(float InStartTime)
 {
-    FVector Offset = GetActorRightVector() * 50.0f;
-    PerformMeleeAttack(Offset, ItemRightRangedAttackMontage);
+    PerformRangedAttack(ItemRightRangedAttackMontage);
     MulticastPlayMeleeAttackMontage(ItemRightRangedAttackMontage);
 
     float Duration = ItemRightRangedAttackMontage ? ItemRightRangedAttackMontage->GetPlayLength() : 1.0f;
@@ -268,6 +273,23 @@ void APlayerCharacter::PerformMeleeAttack(const FVector& AttackOffset, UAnimMont
         ResetAttack();
     }
 }
+
+void APlayerCharacter::PerformRangedAttack(UAnimMontage* AttackMontage)
+{
+    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+    if (AnimInstance && AttackMontage)
+    {
+        AnimInstance->Montage_Play(AttackMontage);
+
+        float MontageDuration = AttackMontage->GetPlayLength();
+        GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &APlayerCharacter::ResetAttack, MontageDuration, false);
+    }
+    else
+    {
+        ResetAttack();
+    }
+}
+
 
 void APlayerCharacter::CheckMeleeAttackHit(const FVector& AttackOffset)
 {
@@ -516,3 +538,48 @@ void APlayerCharacter::SpawnProjectileFromItem()
         }
     }
 }
+
+void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
+{
+    if (!bCanAttack || CurrentEquippedItemName == "NONE" || !ItemManager || !ItemManager->ItemDataTable)
+    {
+        return;
+    }
+
+    const FString Context = TEXT("FKeyContext");
+    const FEquipItemDataRow* Row = ItemManager->ItemDataTable->FindRow<FEquipItemDataRow>(CurrentEquippedItemName, Context);
+    if (!Row)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[FKey] Cannot find item row for '%s'"), *CurrentEquippedItemName.ToString());
+        return;
+    }
+
+    bCanAttack = false;
+
+    UAnimMontage* UseMontage = nullptr;
+    float Duration = 1.0f;
+
+    if (Row->ItemType == EEquipItemType::Melee)
+    {
+        UseMontage = ItemRightRangedAttackMontage;
+        Duration = UseMontage ? UseMontage->GetPlayLength() : 1.0f;
+    }
+    else if (Row->ItemType == EEquipItemType::Ranged)
+    {
+        UseMontage = ItemShortRangedAttackMontage;
+        Duration = UseMontage ? UseMontage->GetPlayLength() : 1.0f;
+        const_cast<FEquipItemDataRow*>(Row)->ProjectileSpeed *= 0.9f;
+        const_cast<FEquipItemDataRow*>(Row)->ProjectileForce *= 0.5f;
+    }
+
+    MulticastPlayMeleeAttackMontage(UseMontage);
+
+    GetWorldTimerManager().SetTimer(
+        AttackTimerHandle,
+        this,
+        &APlayerCharacter::ResetAttack,
+        Duration,
+        false
+    );
+}
+
