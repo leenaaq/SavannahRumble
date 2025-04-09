@@ -17,7 +17,8 @@
 //    UStaticMesh* StaticMesh = nullptr;
 //};
 
-UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+//UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+UCLASS()
 class TEAM06_API UItemManagerComponent : public UActorComponent
 {
     GENERATED_BODY()

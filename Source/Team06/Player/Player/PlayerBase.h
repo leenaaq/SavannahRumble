@@ -98,8 +98,8 @@ public:
 	FDataTableRowHandle StatsRowHandle;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UItemManagerComponent* ItemManager;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	//class UItemManagerComponent* ItemManager;
 
 	UPROPERTY(ReplicatedUsing = OnRep_bIsStunned, BlueprintReadOnly)
 	bool bIsStunned = false;
