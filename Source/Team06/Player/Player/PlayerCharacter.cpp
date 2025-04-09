@@ -13,6 +13,7 @@
 #include "GameFramework/DamageType.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/GameStateBase.h"
+#include "Player/Component/ItemManagerComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -52,7 +53,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     EIC->BindAction(RightHandAttackAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleRightHandMeleeAttack);
     EIC->BindAction(BKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleBKey);
     EIC->BindAction(ESCKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleESCKey);
-
+    
 }
 
 void APlayerCharacter::BeginPlay()
@@ -70,8 +71,59 @@ void APlayerCharacter::BeginPlay()
         EILPS->AddMappingContext(InputMappingContext, 0);
     }
 
+    
+    ValidateEssentialReferences();
     UpdateStatsFromDataTable();
 }
+
+void APlayerCharacter::ValidateEssentialReferences()
+{
+    Super::ValidateEssentialReferences();
+
+    if (ItemRightMeleeAttackMontage == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemRightMeleeAttackMontage is not set!"));
+    }
+
+    if (ItemRightRangedAttackMontage == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemRightRangedAttackMontage is not set!"));
+    }
+
+    if (RightMeleeAttackMontage == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : RightMeleeAttackMontage is not set!"));
+    }
+
+    if (LeftMeleeAttackMontage == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : LeftMeleeAttackMontage is not set!"));
+    }
+
+    if (ItemManager == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemManagerComponent is missing!"));
+    }
+    else if (ItemManager->ItemDataTable == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemDataTable is not set in ItemManagerComponent!"));
+    }
+
+    if (InputMappingContext == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : InputMappingContext is not set!"));
+    }
+
+    if (MoveAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : MoveAction is not set!"));
+    if (LookAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : LookAction is not set!"));
+    if (JumpAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : JumpAction is not set!"));
+    if (LeftHandAttackAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : LeftHandAttackAction is not set!"));
+    if (RightHandAttackAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : RightHandAttackAction is not set!"));
+    if (BKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : BKeyAction is not set!"));
+    if (ESCKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ESCKeyAction is not set!"));
+}
+
+
 
 void APlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 {
@@ -130,51 +182,64 @@ void APlayerCharacter::HandleRightHandMeleeAttack(const FInputActionValue& InVal
         return;
     }
 
-    // 들고 있는 아이템이 없는 지 확인(none)일 경우 아래 코드 실행
-
+    const FName EquippedItem = CurrentEquippedItemName;
     float StartAttackTime = GetWorld()->GetTimeSeconds();
     bCanAttack = false;
-    ServerRPCRightHandMeleeAttack(StartAttackTime);
 
-    // 들고 있는 템이 none이 아닐 경우 
-        // 장착 아이템 테이블에서 들고있는 아이템 이름을 키로 해당 아이템이 melee 아이템인지 ranged 아이템인지 확인
-
-        // melee 아이템일 경우
-            // float StartAttackTime = GetWorld()->GetTimeSeconds();
-            // bCanAttack = false;
-            // ServerRPCItemMeleeAttack
-            
-        // Ranged 아이템일 경우
-            // float StartAttackTime = GetWorld()->GetTimeSeconds();
-            // bCanAttack = false; 
-            // ServerRPCItemRangedAttack
+    if (EquippedItem == "NONE")
+    {
+        ServerRPCRightHandMeleeAttack(StartAttackTime);
+    }
+    else
+    {
+        static const FString Context = TEXT("EquipItemContext");
+        if (const UDataTable* Table = ItemManager->ItemDataTable)
+        {
+            if (const FEquipItemDataRow* Row = Table->FindRow<FEquipItemDataRow>(EquippedItem, Context))
+            {
+                switch (Row->ItemType)
+                {
+                case EEquipItemType::Melee:
+                    ServerRPCItemMeleeAttack(StartAttackTime);
+                    break;
+                case EEquipItemType::Ranged:
+                    ServerRPCItemRangedAttack(StartAttackTime);
+                    break;
+                default:
+                    UE_LOG(LogTemp, Warning, TEXT("Invalid item type: %s"), *EquippedItem.ToString());
+                    break;
+                }
+            }
+        }
+    }
 }
 
-// 근거리 아이템 RPC
-//void APlayerCharacter::ServerRPCRightHandMeleeAttack_Implementation(float InStartAttackTime)
-//{
-    //FVector RightOffset = GetActorRightVector() * 50.0f;
-    //PerformMeleeAttack(RightOffset, ItemRightMeleeAttackMontage);
-    //MulticastPlayMeleeAttackMontage(ItemRightMeleeAttackMontage);
-//}
+void APlayerCharacter::ServerRPCItemMeleeAttack_Implementation(float InStartTime)
+{
+    FVector Offset = GetActorRightVector() * 50.0f;
+    PerformMeleeAttack(Offset, ItemRightMeleeAttackMontage);
+    MulticastPlayMeleeAttackMontage(ItemRightMeleeAttackMontage);
+    ServerSetEquippedItemName("NONE");
+}
 
-//bool APlayerCharacter::ServerRPCRightHandMeleeAttack_Validate(float InStartAttackTime)
-//{
-    //return true;
-//}
+bool APlayerCharacter::ServerRPCItemMeleeAttack_Validate(float InStartTime)
+{
+    return true;
+}
 
+void APlayerCharacter::ServerRPCItemRangedAttack_Implementation(float InStartTime)
+{
+    FVector Offset = GetActorRightVector() * 50.0f;
+    PerformMeleeAttack(Offset, ItemRightRangedAttackMontage);
+    MulticastPlayMeleeAttackMontage(ItemRightRangedAttackMontage);
+    ServerSetEquippedItemName("NONE");
+}
 
-// 원거리 아이템 RPC
-//void APlayerCharacter::ServerRPCItemRangedAttack_Implementation(float InStartAttackTime)
-//{
-    //PerformMeleeAttack(RightOffset, ItemRightMeleeAttackMontage);
-    //MulticastPlayMeleeAttackMontage(ItemRightRangedAttackMontage);
-//}
+bool APlayerCharacter::ServerRPCItemRangedAttack_Validate(float InStartTime)
+{
+    return true;
+}
 
-//bool APlayerCharacter::ServerRPCItemRangedAttack_Validate(float InStartAttackTime)
-//{
-    //return true;
-//}
 
 void APlayerCharacter::PerformMeleeAttack(const FVector& AttackOffset, UAnimMontage* AttackMontage)
 {

@@ -29,6 +29,8 @@ public:
 
 	virtual void OnStunned() override;
 
+	void ValidateEssentialReferences();
+
 #pragma endregion
 
 #pragma region DXPlayerCharacter Components
@@ -110,11 +112,17 @@ private:
 	void MulticastResetAttack();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Attack")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
 	TObjectPtr<UAnimMontage> LeftMeleeAttackMontage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Attack")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
 	TObjectPtr<UAnimMontage> RightMeleeAttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
+	TObjectPtr<UAnimMontage> ItemRightMeleeAttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
+	TObjectPtr<UAnimMontage> ItemRightRangedAttackMontage;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CanAttack)
 	bool bCanAttack;
@@ -126,6 +134,13 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRPCPerformMeleeHit(AActor* DamagedActor, float InCheckTime);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCItemMeleeAttack(float InStartTime);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCItemRangedAttack(float InStartTime);
+
 
 #pragma endregion
 };

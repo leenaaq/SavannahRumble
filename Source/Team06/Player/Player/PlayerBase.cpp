@@ -1,19 +1,19 @@
 #include "PlayerBase.h"
 #include "Net/UnrealNetwork.h"
-//#include "Player/Component/ItemManagerComponent.h"
+#include "Player/Component/ItemManagerComponent.h"
 #include "Components/ChildActorComponent.h"
-//#include "../Component/EquipItemMeshActor.h"
+#include "Player/Component/EquipItemMeshActor.h"
 #include "TimerManager.h"
 
 APlayerBase::APlayerBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	//ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
+	ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
 
-	//EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
-	//EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
-	//EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
+	EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
+	EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
+	EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
 	//EquipItemMesh->SetVisibility(false);
 
 }
@@ -22,6 +22,7 @@ void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ValidateEssentialReferences();
 	UpdateStatsFromDataTable();
 }
 
@@ -31,6 +32,24 @@ void APlayerBase::Tick(float DeltaTime)
 	if (bIsStunned && HasAuthority())
 	{
 		RemainingStunTime = FMath::Max(RemainingStunTime - DeltaTime, 0.0f);
+	}
+}
+
+void APlayerBase::ValidateEssentialReferences()
+{
+	if (EquipItemChildActor == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : EquipItemChildActor is missing!"));
+	}
+
+	if (ItemManager == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : ItemManagerComponent is missing!"));
+	}
+
+	if (StatsRowHandle.DataTable == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : StatsRowHandle.DataTable is not assigned!"));
 	}
 }
 
@@ -132,43 +151,44 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerBase, bIsStunned);
-	//DOREPLIFETIME(APlayerBase, CurrentEquippedItemName);
+	DOREPLIFETIME(APlayerBase, CurrentEquippedItemName);
 	DOREPLIFETIME(APlayerBase, RemainingStunTime);
 }
 
-//void APlayerBase::OnRep_CurrentEquippedItemName()
-//{
-//	if (ItemManager)
-//	{
-//		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
-//	}
-//}
+void APlayerBase::OnRep_CurrentEquippedItemName()
+{
+	if (ItemManager)
+	{
+		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+	}
+}
 
-//void APlayerBase::ServerSetEquippedItemName_Implementation(FName NewItemName)
-//{
-//	CurrentEquippedItemName = NewItemName;
-//
-//	if (ItemManager)
-//	{
-//		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
-//	}
-//}
+void APlayerBase::ServerSetEquippedItemName_Implementation(FName NewItemName)
+{
+	CurrentEquippedItemName = NewItemName;
 
-//bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)
-//{
-//	return true;
-//}
-//
-//void APlayerBase::SetEquipItemMeshStatic(UStaticMesh* NewMesh)
-//{
-//	if (EquipItemChildActor)
-//	{
-//		AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
-//		if (EquipMeshActor)
-//		{
-//			EquipMeshActor->MeshComp->SetStaticMesh(NewMesh);
-//			EquipMeshActor->MeshComp->SetVisibility(NewMesh != nullptr);
-//		}
-//	}
-//}
-//
+	if (ItemManager)
+	{
+		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+	}
+}
+
+bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)
+{
+	return true;
+}
+
+void APlayerBase::SetEquipItemMeshStatic(UStaticMesh* NewMesh)
+{
+	if (EquipItemChildActor)
+	{
+		AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
+		if (EquipMeshActor)
+		{
+			EquipMeshActor->MeshComp->SetStaticMesh(NewMesh);
+			EquipMeshActor->MeshComp->SetVisibility(NewMesh != nullptr);
+			EquipMeshActor->MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+		}
+	}
+}
+

@@ -9,12 +9,14 @@ class TEAM06_API AEquipItemMeshActor : public AActor
 {
 	GENERATED_BODY()
 
-//public:
-//	AEquipItemMeshActor();
-//
-//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "EquipItem")
-//	USceneComponent* RootComp;
-//
-//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "EquipItem")
-//	UStaticMeshComponent* MeshComp;
+public:
+	AEquipItemMeshActor();
+	virtual void BeginPlay() override;
+	void ValidateEssentialReferences() const;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "EquipItem")
+	USceneComponent* RootComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "EquipItem")
+	UStaticMeshComponent* MeshComp;
 };
