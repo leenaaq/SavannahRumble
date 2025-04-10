@@ -6,12 +6,16 @@
 #include "System/GameSystem/T6GameModeBase.h"
 #include "T6GameModeBase_GameLevel.generated.h"
 
-/**
- * 
- */
+class APlayerController;
+
 UCLASS()
 class TEAM06_API AT6GameModeBase_GameLevel : public AT6GameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	UFUNCTION(BlueprintCallable)
+	void HandlePlayerGameWin(APlayerController* Winner);
+
+
 };
