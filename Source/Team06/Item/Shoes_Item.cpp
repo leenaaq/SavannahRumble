@@ -1,44 +1,87 @@
 #include "Item/Shoes_Item.h"
-#include "GameFramework/Character.h"
+#include "Player/Player/PlayerBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "TimerManager.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
+
+
+AShoes_Item::AShoes_Item()
+{
+	PrimaryActorTick.bCanEverTick = false;
+
+	DebugMessage = TEXT("신발 아이템 작동!");
+}
+
+void AShoes_Item::BeginPlay()
+{
+	Super::BeginPlay();
+}
 
 void AShoes_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 {
 	Super::TriggerEffect_Implementation(OverlappedActor);
 
-	ACharacter* Character = Cast<ACharacter>(OverlappedActor);
-	if (Character && Character->GetCharacterMovement())
+	APlayerBase* Player = Cast<APlayerBase>(OverlappedActor);
+	if (!Player || !Player->GetCharacterMovement())
 	{
-		UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
-
-		// 기존 값 저장
-		const float OriginalSpeed = Movement->MaxWalkSpeed;
-		const float OriginalJumpZ = Movement->JumpZVelocity;
-
-		// 부스트 적용
-		Movement->MaxWalkSpeed += SpeedBoost;
-		Movement->JumpZVelocity += JumpBoost;
-
-		UE_LOG(LogTemp, Log, TEXT("[Shoes_Item] %s 캐릭터에 부스트 적용됨 (속도 +%.1f, 점프력 +%.1f)"),
-			*Character->GetName(), SpeedBoost, JumpBoost);
-
-		// 타이머로 원상 복귀
-		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, [this, Character, OriginalSpeed, OriginalJumpZ]()
-			{
-				if (IsValid(Character) && Character->GetCharacterMovement())
-				{
-					UCharacterMovementComponent* MovementComp = Character->GetCharacterMovement();
-					MovementComp->MaxWalkSpeed = OriginalSpeed;
-					MovementComp->JumpZVelocity = OriginalJumpZ;
-
-					UE_LOG(LogTemp, Log, TEXT("[Shoes_Item] %s 캐릭터 부스트 효과 종료 (속도, 점프력 원상 복귀)"), *Character->GetName());
-				}
-			}, Duration, false);
+		UE_LOG(LogTemp, Warning, TEXT("[Shoes_Item] TriggerEffect 실패 - APlayerBase 캐스팅 실패"));
+		return;
 	}
-	else
+
+	auto Move = Player->GetCharacterMovement();
+	const float OriginalSpeed = Move->MaxWalkSpeed;
+	const float OriginalJump = Move->JumpZVelocity;
+
+	// 속도 및 점프력 증가
+	Move->MaxWalkSpeed += SpeedBoost;
+	Move->JumpZVelocity += JumpBoost;
+
+
+	UE_LOG(LogTemp, Log, TEXT("[Shoes_Item] %s → 부스트 적용 (속도 +%.1f, 점프력 +%.1f)"),
+		*Player->GetName(), SpeedBoost, JumpBoost);
+
+	if (LoopSound)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Shoes_Item] TriggerEffect 실패 - 유효하지 않은 캐릭터입니다."));
+		LoopSoundComp = UGameplayStatics::SpawnSoundAttached(
+			LoopSound, Player->GetRootComponent(),
+			NAME_None, FVector::ZeroVector,
+			EAttachLocation::KeepRelativeOffset,
+			true // Loop
+		);
+	}
+
+	// 아이템이 사라지기 직전 → 서버에서 멀티캐스트로 시각 이펙트 제거
+	if (HasAuthority())
+	{
+		Multicast_PlayLoopEffect(Player); // ItemBase의 이펙트 제거 함수 (서버 → 모든 클라이언트)
+	}
+
+	// 일정 시간 후 부스트 해제 및 사운드 종료
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this, Player, OriginalSpeed, OriginalJump]()
+		{
+			if (IsValid(Player) && Player->GetCharacterMovement())
+			{
+				Player->GetCharacterMovement()->MaxWalkSpeed = OriginalSpeed;
+				Player->GetCharacterMovement()->JumpZVelocity = OriginalJump;
+
+				UE_LOG(LogTemp, Log, TEXT("[Shoes_Item] %s → 부스트 종료"), *Player->GetName());
+			}
+
+			StopLoopSound();
+
+			if (HasAuthority())
+			{
+				Multicast_StopLoopEffect(); //  루프 이펙트 종료
+			}
+
+		}, Duration, false);
+}
+void AShoes_Item::StopLoopSound()
+{
+	if (LoopSoundComp && LoopSoundComp->IsPlaying())
+	{
+		LoopSoundComp->FadeOut(0.5f, 0.0f); // 자연스럽게 사라지게
+		LoopSoundComp = nullptr;
 	}
 }

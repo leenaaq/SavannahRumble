@@ -18,4 +18,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Effect")
 	float RagdollDuration = 2.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Effect|Sound")
+	USoundBase* SlipSound;
 };
