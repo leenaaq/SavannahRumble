@@ -2,7 +2,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Player/Component/ItemManagerComponent.h"
 #include "Components/ChildActorComponent.h"
-#include "Player/Component/EquipItemMeshActor.h"
+//#include "Player/Component/EquipItemMeshActor.h"
 #include "Components/ArrowComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "TimerManager.h"
@@ -13,9 +13,9 @@ APlayerBase::APlayerBase()
 
 	ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
 
-	EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
-	EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
-	EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
+	//EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
+	//EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
+	//EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
 
 	//EquipItemMesh->SetVisibility(false);
 
@@ -76,10 +76,10 @@ void APlayerBase::BeginPlay()
 
 void APlayerBase::ValidateEssentialReferences()
 {
-	if (EquipItemChildActor == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : EquipItemChildActor is missing!"));
-	}
+	//if (EquipItemChildActor == nullptr)
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : EquipItemChildActor is missing!"));
+	//}
 
 	if (ItemManager == nullptr)
 	{
@@ -228,17 +228,17 @@ bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)
 	return true;
 }
 
-void APlayerBase::SetEquipItemMeshStatic(UStaticMesh* NewMesh)
-{
-	if (EquipItemChildActor)
-	{
-		AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
-		if (EquipMeshActor)
-		{
-			EquipMeshActor->MeshComp->SetStaticMesh(NewMesh);
-			EquipMeshActor->MeshComp->SetVisibility(NewMesh != nullptr);
-			EquipMeshActor->MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-		}
-	}
-}
+//void APlayerBase::SetEquipItemMeshStatic(UStaticMesh* NewMesh)
+//{
+//	if (EquipItemChildActor)
+//	{
+//		AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
+//		if (EquipMeshActor)
+//		{
+//			EquipMeshActor->MeshComp->SetStaticMesh(NewMesh);
+//			EquipMeshActor->MeshComp->SetVisibility(NewMesh != nullptr);
+//			EquipMeshActor->MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+//		}
+//	}
+//}
 
