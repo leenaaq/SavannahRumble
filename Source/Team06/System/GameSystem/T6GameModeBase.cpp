@@ -7,6 +7,7 @@
 #include "Player/Controller/PCController_GamePlay.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PlayerState/T6PlayerCharacterState_GamePlay.h"
+
 void AT6GameModeBase::NotifyToAllPlayer(const FString& NotificationString)
 {
 	for (auto AlivePlayerController : SessionPlayerControllers)
@@ -15,15 +16,41 @@ void AT6GameModeBase::NotifyToAllPlayer(const FString& NotificationString)
 	}
 
 }
+
+void AT6GameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName,Options,ErrorMessage);
+	UE_LOG(LogTemp, Warning, TEXT("InitGame -MapName: %s"), *MapName);
+	UE_LOG(LogTemp, Warning, TEXT("InitGame -Options: %s"), *Options);
+
+}
+
+void AT6GameModeBase::GameWelcomePlayer(UNetConnection* Connection, FString& RedirectURL)
+{
+	Super::GameWelcomePlayer(Connection, RedirectURL);
+	UE_LOG(LogTemp, Warning, TEXT("GameWelcomePlayer -RedirectURL: %s"), *RedirectURL);
+}
+
+void AT6GameModeBase::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+	UE_LOG(LogTemp, Warning, TEXT("PreLogin -Address: %s"), *Address);
+	UE_LOG(LogTemp, Warning, TEXT("PreLogin -Options: %s"), *Options);
+
+}
+
 APlayerController* AT6GameModeBase::Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
 {
-	APlayerController* PC = Super::Login(NewPlayer, InRemoteRole,Portal, Options, UniqueId, ErrorMessage);
+	// 1. URL 옵션에서 Name 추출
+	FString DesiredPlayerName = UGameplayStatics::ParseOption(Options, TEXT("Name"));
+	UE_LOG(LogTemp, Warning, TEXT("Login - Parsed PlayerName from Options: %s"), *DesiredPlayerName);
 
-	FString Name = UGameplayStatics::ParseOption(Options, "Name");
-	PC->PlayerState->SetPlayerName(Name);
+	// 이 함수는 APlayerController* 를 리턴해야 하므로, Super 를 호출
+	APlayerController* NewPC = Super::Login(NewPlayer, InRemoteRole, Portal, Options, UniqueId, ErrorMessage);
 
-	return PC;
+	return NewPC;
 }
+
 void AT6GameModeBase::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
@@ -55,6 +82,21 @@ void AT6GameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 }
+
+FString AT6GameModeBase::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
+{
+	FString Result = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+	FString IncomingName = UGameplayStatics::ParseOption(Options, TEXT("Name"));
+	UE_LOG(LogTemp, Log, TEXT("Option set to '%s'"), *Options);
+	if (NewPlayerController && NewPlayerController->PlayerState)
+	{
+		NewPlayerController->PlayerState->SetPlayerName(IncomingName);
+		UE_LOG(LogTemp, Log, TEXT("PlayerName set to '%s' via InitNewPlayer"), *IncomingName);
+	}
+
+	return Result;
+}
+
 void AT6GameModeBase::ChangeGameLevel()
 {
 	if (GetWorld()->GetNetMode() != NM_DedicatedServer)

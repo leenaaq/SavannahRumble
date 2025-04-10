@@ -22,11 +22,11 @@ void AItemBase::PlayItemEffects(FVector Location)
 {
 	if (NiagaraEffect)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), NiagaraEffect, Location);
+		SpawnedNiagaraEffect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), NiagaraEffect, Location);
 	}
 	if (LegacyEffect)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), LegacyEffect, Location);
+		SpawnedLegacyEffect = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), LegacyEffect, Location);
 	}
 	if (UseSound)
 	{
@@ -37,25 +37,24 @@ void AItemBase::PlayItemEffects(FVector Location)
 // 이펙트 제거 함수 추가
 void AItemBase::StopItemEffects()
 {
-	if (ActiveEffectComp)
+	if (SpawnedNiagaraEffect)
 	{
-		ActiveEffectComp->Deactivate();
-		ActiveEffectComp = nullptr;
+		SpawnedNiagaraEffect->Deactivate();
+		SpawnedNiagaraEffect = nullptr;
 	}
-}
-
-// 기본 캐릭터 적용 처리 함수 (자식에서 오버라이드 가능)
-void AItemBase::ApplyToCharacter_Implementation(APlayerBase* Character)
-{
-	UE_LOG(LogTemp, Log, TEXT("[ItemBase] %s 캐릭터에게 아이템 적용됨"), *Character->GetName());
+	if (SpawnedLegacyEffect)
+	{
+		SpawnedLegacyEffect->DeactivateSystem();
+		SpawnedLegacyEffect = nullptr;
+	}
 }
 
 void AItemBase::Multicast_PlayLoopEffect_Implementation(APlayerBase* Target)
 {
-	if (!Target || !LoopEffect) return;
+	if (!Target || !NiagaraEffect) return;
 
-	ActiveEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
-		LoopEffect,
+	SpawnedNiagaraEffect = UNiagaraFunctionLibrary::SpawnSystemAttached(
+		NiagaraEffect,
 		Target->GetRootComponent(),
 		NAME_None,
 		FVector::ZeroVector,
@@ -63,6 +62,12 @@ void AItemBase::Multicast_PlayLoopEffect_Implementation(APlayerBase* Target)
 		EAttachLocation::KeepRelativeOffset,
 		true, true
 	);
+}
+
+// 기본 캐릭터 적용 처리 함수 (자식에서 오버라이드 가능)
+void AItemBase::ApplyToCharacter_Implementation(APlayerBase* Character)
+{
+	UE_LOG(LogTemp, Log, TEXT("[ItemBase] %s 캐릭터에게 아이템 적용됨"), *Character->GetName());
 }
 
 void AItemBase::Multicast_StopLoopEffect_Implementation()

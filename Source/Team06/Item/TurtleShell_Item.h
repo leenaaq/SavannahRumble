@@ -15,4 +15,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Effect")
 	float BounceImpulse = 3000.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Effect|Sound")
+	USoundBase* BounceSound;
 };
