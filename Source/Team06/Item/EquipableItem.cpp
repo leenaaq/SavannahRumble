@@ -9,6 +9,7 @@ AEquipableItem::AEquipableItem()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	SetReplicateMovement(true);
 
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMesh"));
 	SetRootComponent(ItemMesh);
@@ -45,15 +46,16 @@ void AEquipableItem::ServerThrowItem_Implementation(FVector Direction)
 
 void AEquipableItem::ServerApplyDamageAndKnockback_Implementation(AActor* Target, float Damage, float KnockbackForce)
 {
-	if (Target && HasAuthority())
-	{
-		UGameplayStatics::ApplyDamage(Target, Damage, GetInstigatorController(), this, nullptr);
+	if (!Target || !HasAuthority()) return;
 
-		UPrimitiveComponent* TargetRoot = Cast<UPrimitiveComponent>(Target->GetRootComponent());
-		if (TargetRoot && TargetRoot->IsSimulatingPhysics())
+	UGameplayStatics::ApplyDamage(Target, Damage, GetInstigatorController(), this, nullptr);
+
+	if (UPrimitiveComponent* TargetComp = Cast<UPrimitiveComponent>(Target->GetRootComponent()))
+	{
+		if (TargetComp->IsSimulatingPhysics())
 		{
 			FVector KnockDir = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-			TargetRoot->AddImpulse(KnockDir * KnockbackForce, NAME_None, true);
+			TargetComp->AddImpulse(KnockDir * KnockbackForce, NAME_None, true);
 		}
 	}
 }
@@ -66,7 +68,7 @@ bool AEquipableItem::ServerApplyDamageAndKnockback_Validate(AActor* Target, floa
 void AEquipableItem::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (bHasLanded) return;
+	if (bHasLanded || !bWasThrown) return;
 
 	bHasLanded = true;
 
@@ -80,7 +82,10 @@ void AEquipableItem::HandleImpact(AActor* SelfActor, AActor* OtherActor, FVector
 
 void AEquipableItem::OnItemLanded_Implementation()
 {
+	if (bIsActivated) return;
+
 	ActivateEffect();
+	bIsActivated = true;
 }
 
 void AEquipableItem::ActivateEffect_Implementation()
@@ -93,4 +98,5 @@ void AEquipableItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AEquipableItem, bHasLanded);
 	DOREPLIFETIME(AEquipableItem, bWasThrown);
+	DOREPLIFETIME(AEquipableItem, bIsActivated);
 }

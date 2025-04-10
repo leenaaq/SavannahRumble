@@ -68,4 +68,7 @@ public:
 	bool bWasThrown = false;
 
 	FTimerHandle ActivationTimerHandle;
+
+	// --- 리플리케이션 설정 ---
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
