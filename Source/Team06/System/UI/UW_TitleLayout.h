@@ -34,4 +34,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = USLobbyLevelUI, Meta = (AllowPrivateAccess, BindWidget))
 	TObjectPtr<UEditableText> ServerIPEditableText;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = USLobbyLevelUI, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<UEditableText> UserNameEditableText;
 };

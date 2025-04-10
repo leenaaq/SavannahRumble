@@ -5,8 +5,8 @@
 #include "System/GameSystem/T6GameInstance.h"
 #include "System/GameSystem/T6GameStateBase.h"
 #include "Player/Controller/PCController_GamePlay.h"
-
-
+#include "Kismet/GameplayStatics.h"
+#include "Player/PlayerState/T6PlayerCharacterState_GamePlay.h"
 void AT6GameModeBase::NotifyToAllPlayer(const FString& NotificationString)
 {
 	for (auto AlivePlayerController : SessionPlayerControllers)
@@ -14,6 +14,15 @@ void AT6GameModeBase::NotifyToAllPlayer(const FString& NotificationString)
 		AlivePlayerController->NotificationText = FText::FromString(NotificationString);
 	}
 
+}
+APlayerController* AT6GameModeBase::Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	APlayerController* PC = Super::Login(NewPlayer, InRemoteRole,Portal, Options, UniqueId, ErrorMessage);
+
+	FString Name = UGameplayStatics::ParseOption(Options, "Name");
+	PC->PlayerState->SetPlayerName(Name);
+
+	return PC;
 }
 void AT6GameModeBase::PostLogin(APlayerController* NewPlayer)
 {

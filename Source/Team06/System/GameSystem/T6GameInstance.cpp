@@ -63,3 +63,32 @@ void UT6GameInstance::LoadLevelsFromFolder()
 		UE_LOG(LogTemp, Error, TEXT("No levels found in /Game/Team6/GameSystem/GS_Level/GameLevel !!"));
 	}
 }
+
+void UT6GameInstance::CheckWinScore()
+{
+	for (auto PlayerScore : PlayerScoreBoard)
+	{
+		if (PlayerScore.Value.TotalWins == GameOverScoreToWin)
+		{
+
+		}
+	}
+}
+
+void UT6GameInstance::RegisterPlayer(const FString& PlayerName)
+{
+	if (!PlayerScoreBoard.Contains(PlayerName))
+	{
+		FPlayerScore NewEntry;
+		NewEntry.PlayerName = PlayerName;
+		PlayerScoreBoard.Add(PlayerName, NewEntry);
+	}
+}
+
+void UT6GameInstance::AddWinForPlayer(const FString& PlayerName)
+{
+	if (FPlayerScore* Entry = PlayerScoreBoard.Find(PlayerName))
+	{
+		Entry->TotalWins++;
+	}
+}
