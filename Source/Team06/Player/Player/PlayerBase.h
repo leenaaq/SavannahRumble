@@ -112,8 +112,8 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentEquippedItemName, BlueprintReadWrite)
 	FName CurrentEquippedItemName = "DEFAULT";
 
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-	//class UChildActorComponent* EquipItemChildActor;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+	class UChildActorComponent* EquipItemChildActor;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	float RemainingStunTime = 0.0f;

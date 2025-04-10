@@ -45,29 +45,29 @@ void UItemManagerComponent::InitializeItemMeshMap()
             continue;
         }
 
-        //if (!Row->StaticMesh)
-        //{
-        //    if (RowName != "DEFAULT")
-        //    {
-        //        UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Row %s has no StaticMesh!"), *Row->ItemName.ToString());
-        //    }
-        //    continue;
-        //}
+        if (!Row->StaticMesh)
+        {
+            if (RowName != "DEFAULT")
+            {
+                UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Row %s has no StaticMesh!"), *Row->ItemName.ToString());
+            }
+            continue;
+        }
 
-        //UStaticMeshComponent* NewMesh = NewObject<UStaticMeshComponent>(GetOwner());
-        //if (!NewMesh)
-        //{
-        //    UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Failed to create mesh for %s"), *Row->ItemName.ToString());
-        //    continue;
-        //}
+        UStaticMeshComponent* NewMesh = NewObject<UStaticMeshComponent>(GetOwner());
+        if (!NewMesh)
+        {
+            UE_LOG(LogTemp, Error, TEXT("[CHECK] InitializeItemMeshMap : Failed to create mesh for %s"), *Row->ItemName.ToString());
+            continue;
+        }
 
-        //NewMesh->RegisterComponent();
-        //NewMesh->AttachToComponent(CharacterOwner->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_r_socket"));
-        //NewMesh->SetStaticMesh(Row->StaticMesh);
-        //NewMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-        //NewMesh->SetVisibility(false);
+        NewMesh->RegisterComponent();
+        NewMesh->AttachToComponent(CharacterOwner->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("hand_r_socket"));
+        NewMesh->SetStaticMesh(Row->StaticMesh);
+        NewMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+        NewMesh->SetVisibility(false);
 
-        //ItemMeshMap.Add(Row->ItemName, NewMesh);
+        ItemMeshMap.Add(Row->ItemName, NewMesh);
     }
 
     APlayerBase* PlayerBase = Cast<APlayerBase>(CharacterOwner);
@@ -85,10 +85,10 @@ void UItemManagerComponent::ValidateEssentialReferences()
         UE_LOG(LogTemp, Error, TEXT("[CHECK] UItemManagerComponent : ItemDataTable is not assigned!"));
     }
 
-    //if (ItemMeshMap.Num() == 0)
-    //{
-    //    UE_LOG(LogTemp, Error, TEXT("[CHECK] UItemManagerComponent : ItemMeshMap is empty!"));
-    //}
+    if (ItemMeshMap.Num() == 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[CHECK] UItemManagerComponent : ItemMeshMap is empty!"));
+    }
     else
     {
         for (const auto& Elem : ItemMeshMap)
@@ -158,36 +158,36 @@ void UItemManagerComponent::UpdateItemVisibility(FName NewItemName)
     APlayerBase* Player = Cast<APlayerBase>(GetOwner());
     if (!Player)
     {
-        //UE_LOG(LogTemp, Warning, TEXT("UpdateItemVisibility: Owner is not a PlayerBase."));
+        UE_LOG(LogTemp, Warning, TEXT("UpdateItemVisibility: Owner is not a PlayerBase."));
         return;
     }
 
-    //if (ItemDataTable && NewItemName != NAME_None)
-    //{
-    //    static const FString ContextString(TEXT("ItemManagerContext"));
-    //    FEquipItemDataRow* FoundRow = ItemDataTable->FindRow<FEquipItemDataRow>(NewItemName, ContextString, true);
-    //    if (FoundRow)
-    //    {
-    //        if (FoundRow->StaticMesh)
-    //        {
-    //            //UE_LOG(LogTemp, Log, TEXT("UpdateItemVisibility: Found item %s, mapping StaticMesh: %s."), *NewItemName.ToString(), *FoundRow->StaticMesh->GetName());
-    //            Player->SetEquipItemMeshStatic(FoundRow->StaticMesh);
-    //        }
-    //        else
-    //        {
-    //            //UE_LOG(LogTemp, Warning, TEXT("UpdateItemVisibility: Found item %s but StaticMesh is nullptr."), *NewItemName.ToString());
-    //            Player->SetEquipItemMeshStatic(nullptr);
-    //        }
-    //    }
-    //    else
-    //    {
-    //        //UE_LOG(LogTemp, Warning, TEXT("UpdateItemVisibility: No row found for item %s."), *NewItemName.ToString());
-    //        Player->SetEquipItemMeshStatic(nullptr);
-    //    }
-    //}
-    //else
-    //{
-    //    //UE_LOG(LogTemp, Warning, TEXT("UpdateItemVisibility: ItemDataTable is null or NewItemName is NAME None."));
-    //    Player->SetEquipItemMeshStatic(nullptr);
-    //}
+    if (ItemDataTable && NewItemName != NAME_None)
+    {
+        static const FString ContextString(TEXT("ItemManagerContext"));
+        FEquipItemDataRow* FoundRow = ItemDataTable->FindRow<FEquipItemDataRow>(NewItemName, ContextString, true);
+        if (FoundRow)
+        {
+            if (FoundRow->StaticMesh)
+            {
+                //UE_LOG(LogTemp, Log, TEXT("UpdateItemVisibility: Found item %s, mapping StaticMesh: %s."), *NewItemName.ToString(), *FoundRow->StaticMesh->GetName());
+                Player->SetEquipItemMeshStatic(FoundRow->StaticMesh);
+            }
+            else
+            {
+                //UE_LOG(LogTemp, Warning, TEXT("UpdateItemVisibility: Found item %s but StaticMesh is nullptr."), *NewItemName.ToString());
+                Player->SetEquipItemMeshStatic(nullptr);
+            }
+        }
+        else
+        {
+            //UE_LOG(LogTemp, Warning, TEXT("UpdateItemVisibility: No row found for item %s."), *NewItemName.ToString());
+            Player->SetEquipItemMeshStatic(nullptr);
+        }
+    }
+    else
+    {
+        //UE_LOG(LogTemp, Warning, TEXT("UpdateItemVisibility: ItemDataTable is null or NewItemName is NAME None."));
+        Player->SetEquipItemMeshStatic(nullptr);
+    }
 }
