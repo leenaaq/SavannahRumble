@@ -5,11 +5,15 @@
 //#include "Player/Component/EquipItemMeshActor.h"
 #include "Components/ArrowComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "TimerManager.h"
+#include "System/UI/UW_PlayerNameText.h"
+#include "GameFramework/PlayerState.h"
 
 APlayerBase::APlayerBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
 
@@ -21,6 +25,12 @@ APlayerBase::APlayerBase()
 
 	MuzzleComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("MuzzleComponent"));
 	MuzzleComponent->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
+
+	PlayerNameWidgetComponent = CreateDefaultSubobject<UPlayerTextWidgetComponent>(TEXT("PlayerNameWidget"));
+	PlayerNameWidgetComponent->SetupAttachment(GetRootComponent());
+	PlayerNameWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+	PlayerNameWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
+	PlayerNameWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	FPhysicalAnimationData PhysAnimData;
 	PhysAnimData.bIsLocalSimulation = true;
@@ -55,24 +65,57 @@ void APlayerBase::BeginPlay()
 		{
 			BodyInst->SetInstanceSimulatePhysics(false);
 		}
-		//if (FBodyInstance* BodyInst = MeshComp->GetBodyInstance(TEXT("hand_l")))
-		//{
-		//	BodyInst->SetInstanceSimulatePhysics(false);
-		//}
-		//if (FBodyInstance* BodyInst = MeshComp->GetBodyInstance(TEXT("hand_r")))
-		//{
-		//	BodyInst->SetInstanceSimulatePhysics(false);
-		//}
 	}
 
 	ValidateEssentialReferences();
 	UpdateStatsFromDataTable();
+
+	if (PlayerNameWidgetComponent)
+	{
+		PlayerNameWidgetComponent->InitWidget();
+
+		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			FVector CamLoc = PC->PlayerCameraManager->GetCameraLocation();
+			FVector WidgetLoc = PlayerNameWidgetComponent->GetComponentLocation();
+			FRotator LookRot = (CamLoc - WidgetLoc).Rotation();
+			PlayerNameWidgetComponent->SetWorldRotation(LookRot);
+		}
+	}
 }
 
-//void APlayerBase::Tick(float DeltaTime)
-//{
-//	Super::Tick(DeltaTime);
-//}
+
+void APlayerBase::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!bPlayerNameInitialized && PlayerNameWidgetComponent && GetPlayerState())
+	{
+		if (UUW_PlayerNameText* NameWidget = Cast<UUW_PlayerNameText>(PlayerNameWidgetComponent->GetUserWidgetObject()))
+		{
+			NameWidget->UpdatePlayerName();
+			bPlayerNameInitialized = true;
+		}
+	}
+
+	if (IsValid(PlayerNameWidgetComponent) && HasAuthority() == false)
+	{
+		APlayerController* LocalController = UGameplayStatics::GetPlayerController(this, 0);
+		if (IsValid(LocalController))
+		{
+			APlayerCameraManager* CameraManager = LocalController->PlayerCameraManager;
+			if (IsValid(CameraManager))
+			{
+				const FVector WidgetLocation = PlayerNameWidgetComponent->GetComponentLocation();
+				const FVector CameraLocation = CameraManager->GetCameraLocation();
+
+				const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(WidgetLocation, CameraLocation);
+				PlayerNameWidgetComponent->SetWorldRotation(LookAtRotation);
+			}
+		}
+	}
+}
+
 
 void APlayerBase::ValidateEssentialReferences()
 {

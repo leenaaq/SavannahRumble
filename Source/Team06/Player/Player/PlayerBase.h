@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Player/Component/PlayerTextWidgetComponent.h"
 #include "Engine/DataTable.h"
 #include "Components/ArrowComponent.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
@@ -51,7 +52,7 @@ public:
 	void ServerSetEquippedItemName(FName NewItemName);
 
 	virtual void BeginPlay() override;
-	//virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void ValidateEssentialReferences();
 	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
@@ -123,7 +124,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UPhysicalAnimationComponent* PhysicalAnimationComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UPlayerTextWidgetComponent> PlayerNameWidgetComponent;
+
 private:
 	FPlayerStats PlayerStats;
 	FTimerHandle RecoveryTimerHandle;
+	bool bPlayerNameInitialized = false;
 };
