@@ -25,7 +25,8 @@ void UUW_TitleLayout::OnPlayButtonClicked()
 	if (IsValid(PlayerController) == true)
 	{
 		FText ServerIP = ServerIPEditableText->GetText();
-		PlayerController->JoinServer(ServerIP.ToString());
+		FText UserName = UserNameEditableText->GetText();
+		PlayerController->JoinServer(ServerIP.ToString(),UserName.ToString());
 	}
 }
 

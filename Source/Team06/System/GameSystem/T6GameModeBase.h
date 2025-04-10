@@ -16,10 +16,12 @@ class TEAM06_API AT6GameModeBase : public AGameModeBase
 protected:
 	virtual void NotifyToAllPlayer(const FString& NotificationString);
 public:
+	virtual APlayerController* Login(UPlayer* NewPlayer,
+		ENetRole InRemoteRole, const FString& Portal,
+		const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	virtual void BeginPlay() override;
-
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<TObjectPtr<APCController_GamePlay>> SessionPlayerControllers;

@@ -19,7 +19,7 @@ class TEAM06_API APCController_Title : public APlayerCharacterController
 public:
 	virtual void BeginPlay() override;
 
-	void JoinServer(const FString& InIPAddress);
+	void JoinServer(const FString& InIPAddress, const FString& InUserName);
 
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = ASUIPlayerController, Meta = (AllowPrivateAccess))

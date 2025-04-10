@@ -27,8 +27,13 @@ void APCController_Title::BeginPlay()
 	}
 }
 
-void APCController_Title::JoinServer(const FString& InIPAddress)
+void APCController_Title::JoinServer(const FString& InIPAddress, const FString& InUserName)
 {
+
+	// URL 쿼리 형식으로 이름 파라미터 추가
+	FString Options = FString::Printf(TEXT("?Name=%s"), *InUserName);
+
 	FName NextLevelName = FName(*InIPAddress);
-	UGameplayStatics::OpenLevel(GetWorld(), NextLevelName, true);
+	UGameplayStatics::OpenLevel(GetWorld(), NextLevelName, true, Options);
+
 }
