@@ -33,12 +33,11 @@ APlayerCharacter::APlayerCharacter()
     SpringArm->TargetArmLength = 400.f;
     SpringArm->bUsePawnControlRotation = true;
     SpringArm->SetupAttachment(GetRootComponent());
+    SpringArm->bDoCollisionTest = false;
 
     Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
     Camera->bUsePawnControlRotation = false;
     Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-
-    bCanAttack = true;
 }
 
 //void APlayerCharacter::Tick(float DeltaTime)
@@ -47,25 +46,28 @@ APlayerCharacter::APlayerCharacter()
 //
 //    if (IsLocallyControlled())
 //    {
-//        FString CurrentWeaponName = CurrentEquippedItemName.ToString();
+//        //FString CurrentWeaponName = CurrentEquippedItemName.ToString();
 //
-//        FString WeaponMeshName = TEXT("None");
+//        //FString WeaponMeshName = TEXT("None");
 //
-//        if (EquipItemChildActor)
-//        {
-//            AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
-//            if (EquipMeshActor && EquipMeshActor->MeshComp && EquipMeshActor->MeshComp->GetStaticMesh())
-//            {
-//                WeaponMeshName = EquipMeshActor->MeshComp->GetStaticMesh()->GetName();
-//            }
-//        }
+//        //if (EquipItemChildActor)
+//        //{
+//        //    AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
+//        //    if (EquipMeshActor && EquipMeshActor->MeshComp && EquipMeshActor->MeshComp->GetStaticMesh())
+//        //    {
+//        //        WeaponMeshName = EquipMeshActor->MeshComp->GetStaticMesh()->GetName();
+//        //    }
+//        //}
+//
+//        FString LeftStatus = bLeftCanAttack ? TEXT("Ready") : TEXT("Attacking");
+//        FString RightStatus = bRightCanAttack ? TEXT("Ready") : TEXT("Attacking");
 //
 //        if (GEngine)
 //        {
-//            GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green,
-//                FString::Printf(TEXT("Current Weapon: %s"), *CurrentWeaponName));
-//            GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::Blue,
-//                FString::Printf(TEXT("Weapon Mesh: %s"), *WeaponMeshName));
+//            GEngine->AddOnScreenDebugMessage(100, 0.f, FColor::Red,
+//                FString::Printf(TEXT("[LEFT]  %s"), *LeftStatus));
+//            GEngine->AddOnScreenDebugMessage(101, 0.f, FColor::Blue,
+//                FString::Printf(TEXT("[RIGHT] %s"), *RightStatus));
 //        }
 //    }
 //}
@@ -199,29 +201,30 @@ void APlayerCharacter::HandleLookInput(const FInputActionValue& InValue)
 ///////////////////////////////////////////
 //           MeleeAttack                 //
 ///////////////////////////////////////////
+
 #pragma region Attack
 void APlayerCharacter::HandleLeftHandMeleeAttack(const FInputActionValue& InValue)
 {
-    if (!bCanAttack || GetbIsStunned())
+    if (!bLeftCanAttack || GetbIsStunned())
     {
         return;
     }
 
     float StartAttackTime = GetWorld()->GetTimeSeconds();
-    //bCanAttack = false;
+    bLeftCanAttack = false;
     ServerRPCLeftHandMeleeAttack(StartAttackTime);
 }
 
 void APlayerCharacter::HandleRightHandMeleeAttack(const FInputActionValue& InValue)
 {
-    if (!bCanAttack || GetbIsStunned())
+    if (!bRightCanAttack || GetbIsStunned())
     {
         return;
     }
 
     const FName EquippedItem = CurrentEquippedItemName;
     float StartAttackTime = GetWorld()->GetTimeSeconds();
-    //bCanAttack = false;
+    bRightCanAttack = false;
 
     if (EquippedItem == "DEFAULT")
     {
@@ -254,7 +257,7 @@ void APlayerCharacter::HandleRightHandMeleeAttack(const FInputActionValue& InVal
 void APlayerCharacter::ServerRPCItemMeleeAttack_Implementation(float InStartTime)
 {
     PendingAttackOffset = GetActorRightVector() * 50.0f;
-    PerformMeleeAttack(PendingAttackOffset, ItemRightMeleeAttackMontage);
+    PerformMeleeAttack(PendingAttackOffset, ItemRightMeleeAttackMontage, false);
     MulticastPlayMeleeAttackMontage(ItemRightMeleeAttackMontage);
     ServerSetEquippedItemName("DEFAULT");
 }
@@ -274,7 +277,7 @@ void APlayerCharacter::ServerRPCItemRangedAttack_Implementation(float InStartTim
         AttackTimerHandle,
         [this]()
         {
-            ResetAttack();
+            ResetRightAttack();
         },
         Duration,
         false
@@ -287,20 +290,50 @@ bool APlayerCharacter::ServerRPCItemRangedAttack_Validate(float InStartTime)
 }
 
 
-void APlayerCharacter::PerformMeleeAttack(const FVector& AttackOffset, UAnimMontage* AttackMontage)
+void APlayerCharacter::PerformMeleeAttack(const FVector& Offset, UAnimMontage* Montage, bool bIsLeftHand)
 {
     UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-    if (AnimInstance && AttackMontage)
+    if (AnimInstance && Montage)
     {
-        AnimInstance->Montage_Play(AttackMontage);
+        AnimInstance->Montage_Play(Montage);
 
-        float MontageDuration = AttackMontage->GetPlayLength();
-        GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &APlayerCharacter::ResetAttack, MontageDuration, false);
-        //CheckMeleeAttackHit(AttackOffset);
+        if (bIsLeftHand)
+        {
+            bLeftCanAttack = false;
+        }
+        else
+        {
+            bRightCanAttack = false;
+        }
+
+        float Duration = Montage->GetPlayLength();
+        GetWorld()->GetTimerManager().SetTimer(
+            bIsLeftHand ? LeftAttackTimerHandle : AttackTimerHandle,
+            [this, bIsLeftHand]()
+            {
+                if (bIsLeftHand)
+                {
+                    bLeftCanAttack = true;
+                }
+                else
+                {
+                    bRightCanAttack = true;
+                }
+            },
+            Duration,
+            false
+        );
     }
     else
     {
-        ResetAttack();
+        if (bIsLeftHand)
+        {
+            bLeftCanAttack = true;
+        }
+        else
+        {
+            bRightCanAttack = true;
+        }
     }
 }
 
@@ -312,11 +345,11 @@ void APlayerCharacter::PerformRangedAttack(UAnimMontage* AttackMontage)
         AnimInstance->Montage_Play(AttackMontage);
 
         float MontageDuration = AttackMontage->GetPlayLength();
-        GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &APlayerCharacter::ResetAttack, MontageDuration, false);
+        GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &APlayerCharacter::ResetRightAttack, MontageDuration, false);
     }
     else
     {
-        ResetAttack();
+        ResetRightAttack();
     }
 }
 
@@ -400,19 +433,29 @@ void APlayerCharacter::DrawDebugMeleeAttack(const FColor& DrawColor, FVector Tra
     DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, MeleeAttackRadius, FRotationMatrix::MakeFromZ(Forward).ToQuat(), DrawColor, false, 5.0f);
 }
 
-void APlayerCharacter::ResetAttack()
+void APlayerCharacter::ResetLeftAttack()
 {
     if (HasAuthority())
     {
         PendingAttackOffset = FVector::ZeroVector;
-        MulticastResetAttack();
+        MulticastResetAttack(bLeftCanAttack);
     }
 }
+
+void APlayerCharacter::ResetRightAttack()
+{
+    if (HasAuthority())
+    {
+        PendingAttackOffset = FVector::ZeroVector;
+        MulticastResetAttack(bRightCanAttack);
+    }
+}
+
 
 void APlayerCharacter::ServerRPCLeftHandMeleeAttack_Implementation(float InStartAttackTime)
 {
     PendingAttackOffset = GetActorRightVector() * -50.0f;
-    PerformMeleeAttack(PendingAttackOffset, LeftMeleeAttackMontage);
+    PerformMeleeAttack(PendingAttackOffset, LeftMeleeAttackMontage, true);
     MulticastPlayMeleeAttackMontage(LeftMeleeAttackMontage);
 }
 
@@ -424,7 +467,7 @@ bool APlayerCharacter::ServerRPCLeftHandMeleeAttack_Validate(float InStartAttack
 void APlayerCharacter::ServerRPCRightHandMeleeAttack_Implementation(float InStartAttackTime)
 {
     PendingAttackOffset = GetActorRightVector() * 50.0f;
-    PerformMeleeAttack(PendingAttackOffset, RightMeleeAttackMontage);
+    PerformMeleeAttack(PendingAttackOffset, RightMeleeAttackMontage, false);
     MulticastPlayMeleeAttackMontage(RightMeleeAttackMontage);
 }
 
@@ -445,28 +488,24 @@ void APlayerCharacter::MulticastPlayMeleeAttackMontage_Implementation(UAnimMonta
     }
 }
 
-void APlayerCharacter::MulticastResetAttack_Implementation()
+void APlayerCharacter::MulticastResetAttack_Implementation(bool bIsLeftHand)
 {
-    bCanAttack = true;
-    OnRep_CanAttack();
-}
-
-void APlayerCharacter::OnRep_CanAttack()
-{
-    if (bCanAttack)
+    if (bIsLeftHand)
     {
-        GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+        bLeftCanAttack = true;
     }
     else
     {
-        GetCharacterMovement()->SetMovementMode(MOVE_None);
+        bRightCanAttack = true;
     }
+
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME(APlayerCharacter, bCanAttack);
+    DOREPLIFETIME(APlayerCharacter, bLeftCanAttack);
+    DOREPLIFETIME(APlayerCharacter, bRightCanAttack);
 }
 
 #pragma endregion
@@ -579,7 +618,7 @@ void APlayerCharacter::SpawnProjectileFromItem()
 
 void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
 {
-    if (!bCanAttack || CurrentEquippedItemName == "DEFAULT" || !ItemManager || !ItemManager->ItemDataTable)
+    if (!bRightCanAttack || CurrentEquippedItemName == "DEFAULT" || !ItemManager || !ItemManager->ItemDataTable)
     {
         return;
     }
@@ -592,7 +631,7 @@ void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
         return;
     }
 
-    bCanAttack = false;
+    bRightCanAttack = false;
 
     UAnimMontage* UseMontage = nullptr;
     float Duration = 1.0f;
@@ -616,8 +655,8 @@ void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
         AttackTimerHandle,
         [this]()
         {
-            ResetAttack();
-            MulticastResetAttack();
+            ResetRightAttack();
+            MulticastResetAttack(bRightCanAttack);
         },
         Duration,
         false
