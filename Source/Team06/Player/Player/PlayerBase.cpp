@@ -32,22 +32,8 @@ APlayerBase::APlayerBase()
 	PlayerNameWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 	PlayerNameWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	FPhysicalAnimationData PhysAnimData;
-	PhysAnimData.bIsLocalSimulation = true;
-	PhysAnimData.OrientationStrength = 1000.f;
-	PhysAnimData.AngularVelocityStrength = 100.f;
-	PhysAnimData.PositionStrength = 1000.f;
-	PhysAnimData.VelocityStrength = 100.f;
-	PhysAnimData.MaxLinearForce = 100.f;
-	PhysAnimData.MaxAngularForce = 100.f;
 
 	PhysicalAnimationComponent = CreateDefaultSubobject<UPhysicalAnimationComponent>(TEXT("PhysicalAnimationComponent"));
-	if (USkeletalMeshComponent* MeshComp = GetMesh())
-	{
-		PhysicalAnimationComponent->SetSkeletalMeshComponent(MeshComp);
-	}
-	PhysicalAnimationComponent->ApplyPhysicalAnimationSettingsBelow(TEXT("pelvis"), PhysAnimData, true);
-
 }
 
 void APlayerBase::BeginPlay()
@@ -56,15 +42,17 @@ void APlayerBase::BeginPlay()
 
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
+		FPhysicalAnimationData PhysAnimData;
+		PhysAnimData.bIsLocalSimulation = true;
+		PhysAnimData.OrientationStrength = 5000.f;
+		PhysAnimData.AngularVelocityStrength = 500.f;
+		PhysAnimData.PositionStrength = 5000.f;
+		PhysAnimData.VelocityStrength = 500.f;
+		PhysAnimData.MaxLinearForce = 500.f;
+		PhysAnimData.MaxAngularForce = 500.f;
+		PhysicalAnimationComponent->SetSkeletalMeshComponent(MeshComp);
+		PhysicalAnimationComponent->ApplyPhysicalAnimationSettingsBelow(TEXT("pelvis"), PhysAnimData, true);
 		MeshComp->SetAllBodiesBelowSimulatePhysics(TEXT("pelvis"), true, false);
-		if (FBodyInstance* BodyInst = MeshComp->GetBodyInstance(TEXT("foot_l")))
-		{
-			BodyInst->SetInstanceSimulatePhysics(false);
-		}
-		if (FBodyInstance* BodyInst = MeshComp->GetBodyInstance(TEXT("foot_r")))
-		{
-			BodyInst->SetInstanceSimulatePhysics(false);
-		}
 	}
 
 	ValidateEssentialReferences();
@@ -89,6 +77,7 @@ void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// 닉네임
 	if (!bPlayerNameInitialized && PlayerNameWidgetComponent && GetPlayerState())
 	{
 		if (UUW_PlayerNameText* NameWidget = Cast<UUW_PlayerNameText>(PlayerNameWidgetComponent->GetUserWidgetObject()))
@@ -98,6 +87,7 @@ void APlayerBase::Tick(float DeltaTime)
 		}
 	}
 
+	// UI 닉네임 카메라
 	if (IsValid(PlayerNameWidgetComponent) && HasAuthority() == false)
 	{
 		APlayerController* LocalController = UGameplayStatics::GetPlayerController(this, 0);

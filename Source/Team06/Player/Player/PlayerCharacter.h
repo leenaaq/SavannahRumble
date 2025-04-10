@@ -107,10 +107,11 @@ public:
 private:
 	void HandleLeftHandMeleeAttack(const FInputActionValue& InValue);
 	void HandleRightHandMeleeAttack(const FInputActionValue& InValue);
-	void PerformMeleeAttack(const FVector& Offset, UAnimMontage* AttackMontage);
+	void PerformMeleeAttack(const FVector& Offset, UAnimMontage* Montage, bool bIsLeftHand);
 	void PerformRangedAttack(UAnimMontage* AttackMontage);
 	void DrawDebugMeleeAttack(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
-	void ResetAttack();	
+	void ResetLeftAttack();
+	void ResetRightAttack();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRPCLeftHandMeleeAttack(float InStartAttackTime);
@@ -122,11 +123,11 @@ private:
 	void MulticastPlayMeleeAttackMontage(UAnimMontage* AttackMontage);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastResetAttack();
+	void MulticastResetAttack(bool bIsLeftHand);
 
 protected:
-	UFUNCTION()
-	void OnRep_CanAttack();
+	//UFUNCTION()
+	//void OnRep_CanAttack();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRPCPerformMeleeHit(AActor* DamagedActor, float InCheckTime);
@@ -139,25 +140,33 @@ protected:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
-	TObjectPtr<UAnimMontage> LeftMeleeAttackMontage;
+	TObjectPtr<UAnimMontage> LeftMeleeAttackMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
-	TObjectPtr<UAnimMontage> RightMeleeAttackMontage;
+	TObjectPtr<UAnimMontage> RightMeleeAttackMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
-	TObjectPtr<UAnimMontage> ItemRightMeleeAttackMontage;
+	TObjectPtr<UAnimMontage> ItemRightMeleeAttackMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
-	TObjectPtr<UAnimMontage> ItemRightRangedAttackMontage;
+	TObjectPtr<UAnimMontage> ItemRightRangedAttackMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
-	TObjectPtr<UAnimMontage> ItemShortRangedAttackMontage;
+	TObjectPtr<UAnimMontage> ItemShortRangedAttackMontage = nullptr;
 
-	UPROPERTY(ReplicatedUsing = OnRep_CanAttack)
-	bool bCanAttack;
+	//UPROPERTY(ReplicatedUsing = OnRep_CanAttack)
+	UPROPERTY(Replicated)
+	bool bLeftCanAttack = true;
+
+	//UPROPERTY(ReplicatedUsing = OnRep_CanAttack)
+	UPROPERTY(Replicated)
+	bool bRightCanAttack = true;
+
+	int32 isAlive = 0;
 
 private:
 	FTimerHandle AttackTimerHandle;
+	FTimerHandle LeftAttackTimerHandle;
 
 	FVector PendingAttackOffset;
 #pragma endregion
