@@ -69,6 +69,13 @@ void UItemManagerComponent::InitializeItemMeshMap()
 
         ItemMeshMap.Add(Row->ItemName, NewMesh);
     }
+
+    APlayerBase* PlayerBase = Cast<APlayerBase>(CharacterOwner);
+    if (PlayerBase)
+    {
+        FName CurrentItem = PlayerBase->GetCurrentEquippedItemName();
+        UpdateItemVisibility(CurrentItem);
+    }
 }
 
 void UItemManagerComponent::ValidateEssentialReferences()

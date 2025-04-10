@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "Engine/DataTable.h"
 #include "Components/ArrowComponent.h"
+#include "PhysicsEngine/PhysicalAnimationComponent.h"
 #include "PlayerBase.generated.h"
 
 USTRUCT(BlueprintType)
@@ -69,6 +70,7 @@ public:
 	int32 GetKnockBack() const { return PlayerStats.KnockBack; }
 	int32 GetLifeCount() const { return PlayerStats.LifeCount; }
 	bool GetbIsStunned() const { return bIsStunned; }
+	FName GetCurrentEquippedItemName() const { return CurrentEquippedItemName; }
 
 	// Setters
 	void SetHealth(float NewHealth) { PlayerStats.Health = NewHealth; }
@@ -117,6 +119,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UArrowComponent* MuzzleComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPhysicalAnimationComponent* PhysicalAnimationComponent;
 
 private:
 	FPlayerStats PlayerStats;

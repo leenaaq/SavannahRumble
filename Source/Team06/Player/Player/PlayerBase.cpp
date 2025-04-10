@@ -15,20 +15,55 @@ APlayerBase::APlayerBase()
 
 	EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
 	EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
-	if (EquipItemChildActor && EquipItemChildActor->GetChildActorClass() == nullptr)
-	{
-		EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
-	}
+	EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
+
 	//EquipItemMesh->SetVisibility(false);
 
 	MuzzleComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("MuzzleComponent"));
 	MuzzleComponent->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
+
+	FPhysicalAnimationData PhysAnimData;
+	PhysAnimData.bIsLocalSimulation = true;
+	PhysAnimData.OrientationStrength = 1000.f;
+	PhysAnimData.AngularVelocityStrength = 100.f;
+	PhysAnimData.PositionStrength = 1000.f;
+	PhysAnimData.VelocityStrength = 100.f;
+	PhysAnimData.MaxLinearForce = 100.f;
+	PhysAnimData.MaxAngularForce = 100.f;
+
+	PhysicalAnimationComponent = CreateDefaultSubobject<UPhysicalAnimationComponent>(TEXT("PhysicalAnimationComponent"));
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		PhysicalAnimationComponent->SetSkeletalMeshComponent(MeshComp);
+	}
+	PhysicalAnimationComponent->ApplyPhysicalAnimationSettingsBelow(TEXT("pelvis"), PhysAnimData, true);
 
 }
 
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		MeshComp->SetAllBodiesBelowSimulatePhysics(TEXT("pelvis"), true, false);
+		if (FBodyInstance* BodyInst = MeshComp->GetBodyInstance(TEXT("foot_l")))
+		{
+			BodyInst->SetInstanceSimulatePhysics(false);
+		}
+		if (FBodyInstance* BodyInst = MeshComp->GetBodyInstance(TEXT("foot_r")))
+		{
+			BodyInst->SetInstanceSimulatePhysics(false);
+		}
+		//if (FBodyInstance* BodyInst = MeshComp->GetBodyInstance(TEXT("hand_l")))
+		//{
+		//	BodyInst->SetInstanceSimulatePhysics(false);
+		//}
+		//if (FBodyInstance* BodyInst = MeshComp->GetBodyInstance(TEXT("hand_r")))
+		//{
+		//	BodyInst->SetInstanceSimulatePhysics(false);
+		//}
+	}
 
 	ValidateEssentialReferences();
 	UpdateStatsFromDataTable();

@@ -31,11 +31,11 @@ void UPlayerAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 
 void UPlayerAnimInstanceBase::AnimNotify_CheckMeleeAttackHit()
 {
-	APlayerCharacter* OwnerPlayerCharacter = Cast<APlayerCharacter>(OwnerCharacter);
-	if (IsValid(OwnerPlayerCharacter) == true)
-	{
-		//OwnerPlayerCharacter->CheckMeleeAttackHit(AttackOffset);
-	}
+    APlayerCharacter* OwnerPlayerCharacter = Cast<APlayerCharacter>(OwnerCharacter);
+    if (IsValid(OwnerPlayerCharacter) && OwnerPlayerCharacter->HasAuthority())
+    {
+        OwnerPlayerCharacter->CheckMeleeAttackHit(OwnerPlayerCharacter->GetPendingAttackOffset());
+    }
 }
 
 void UPlayerAnimInstanceBase::AnimNotify_CheckRangedAttack()

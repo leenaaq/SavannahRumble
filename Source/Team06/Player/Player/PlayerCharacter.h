@@ -103,13 +103,14 @@ public:
 
 	void CheckMeleeAttackHit(const FVector& AttackOffset);
 
+	FVector GetPendingAttackOffset() const { return PendingAttackOffset; }
 private:
 	void HandleLeftHandMeleeAttack(const FInputActionValue& InValue);
 	void HandleRightHandMeleeAttack(const FInputActionValue& InValue);
 	void PerformMeleeAttack(const FVector& Offset, UAnimMontage* AttackMontage);
 	void PerformRangedAttack(UAnimMontage* AttackMontage);
 	void DrawDebugMeleeAttack(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
-	void ResetAttack();
+	void ResetAttack();	
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRPCLeftHandMeleeAttack(float InStartAttackTime);
@@ -122,6 +123,19 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastResetAttack();
+
+protected:
+	UFUNCTION()
+	void OnRep_CanAttack();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCPerformMeleeHit(AActor* DamagedActor, float InCheckTime);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCItemMeleeAttack(float InStartTime);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRPCItemRangedAttack(float InStartTime);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
@@ -142,20 +156,9 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CanAttack)
 	bool bCanAttack;
 
+private:
 	FTimerHandle AttackTimerHandle;
 
-	UFUNCTION()
-	void OnRep_CanAttack();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRPCPerformMeleeHit(AActor* DamagedActor, float InCheckTime);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRPCItemMeleeAttack(float InStartTime);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerRPCItemRangedAttack(float InStartTime);
-
-
+	FVector PendingAttackOffset;
 #pragma endregion
 };

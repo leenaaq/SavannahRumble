@@ -15,10 +15,11 @@
 #include "GameFramework/GameStateBase.h"
 #include "Player/Controller/PCController_GamePlay.h"
 #include "Player/Component/ItemManagerComponent.h"
+#include "Player/Component/EquipItemMeshActor.h" 
 
 APlayerCharacter::APlayerCharacter()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
 
     bUseControllerRotationPitch = false;
     bUseControllerRotationYaw = false;
@@ -44,26 +45,30 @@ APlayerCharacter::APlayerCharacter()
 //{
 //    Super::Tick(DeltaTime);
 //
-//    if (bIsStunned && HasAuthority())
+//    if (IsLocallyControlled())
 //    {
-//        RemainingStunTime = FMath::Max(RemainingStunTime - DeltaTime, 0.0f);
-//    }
+//        FString CurrentWeaponName = CurrentEquippedItemName.ToString();
 //
-//    /*if (GEngine && IsLocallyControlled())
-//    {
-//        const FString ItemNameStr = FString::Printf(TEXT("EquippedItem: %s"), *CurrentEquippedItemName.ToString());
+//        FString WeaponMeshName = TEXT("None");
 //
-//        FString AttackStateStr = TEXT("bCanAttack: ?");
-//        if (const APlayerCharacter* PC = Cast<APlayerCharacter>(this))
+//        if (EquipItemChildActor)
 //        {
-//            AttackStateStr = FString::Printf(TEXT("bCanAttack: %s"), bCanAttack ? TEXT("true") : TEXT("false"));
+//            AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
+//            if (EquipMeshActor && EquipMeshActor->MeshComp && EquipMeshActor->MeshComp->GetStaticMesh())
+//            {
+//                WeaponMeshName = EquipMeshActor->MeshComp->GetStaticMesh()->GetName();
+//            }
 //        }
 //
-//        GEngine->AddOnScreenDebugMessage((uint64)1, 0.f, FColor::Green, ItemNameStr);
-//        GEngine->AddOnScreenDebugMessage((uint64)2, 0.f, FColor::Yellow, AttackStateStr);
-//    }*/
+//        if (GEngine)
+//        {
+//            GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green,
+//                FString::Printf(TEXT("Current Weapon: %s"), *CurrentWeaponName));
+//            GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::Blue,
+//                FString::Printf(TEXT("Weapon Mesh: %s"), *WeaponMeshName));
+//        }
+//    }
 //}
-
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -203,7 +208,7 @@ void APlayerCharacter::HandleLeftHandMeleeAttack(const FInputActionValue& InValu
     }
 
     float StartAttackTime = GetWorld()->GetTimeSeconds();
-    bCanAttack = false;
+    //bCanAttack = false;
     ServerRPCLeftHandMeleeAttack(StartAttackTime);
 }
 
@@ -216,7 +221,7 @@ void APlayerCharacter::HandleRightHandMeleeAttack(const FInputActionValue& InVal
 
     const FName EquippedItem = CurrentEquippedItemName;
     float StartAttackTime = GetWorld()->GetTimeSeconds();
-    bCanAttack = false;
+    //bCanAttack = false;
 
     if (EquippedItem == "DEFAULT")
     {
@@ -248,8 +253,8 @@ void APlayerCharacter::HandleRightHandMeleeAttack(const FInputActionValue& InVal
 
 void APlayerCharacter::ServerRPCItemMeleeAttack_Implementation(float InStartTime)
 {
-    FVector Offset = GetActorRightVector() * 50.0f;
-    PerformMeleeAttack(Offset, ItemRightMeleeAttackMontage);
+    PendingAttackOffset = GetActorRightVector() * 50.0f;
+    PerformMeleeAttack(PendingAttackOffset, ItemRightMeleeAttackMontage);
     MulticastPlayMeleeAttackMontage(ItemRightMeleeAttackMontage);
     ServerSetEquippedItemName("DEFAULT");
 }
@@ -291,7 +296,7 @@ void APlayerCharacter::PerformMeleeAttack(const FVector& AttackOffset, UAnimMont
 
         float MontageDuration = AttackMontage->GetPlayLength();
         GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &APlayerCharacter::ResetAttack, MontageDuration, false);
-        CheckMeleeAttackHit(AttackOffset);
+        //CheckMeleeAttackHit(AttackOffset);
     }
     else
     {
@@ -399,14 +404,15 @@ void APlayerCharacter::ResetAttack()
 {
     if (HasAuthority())
     {
+        PendingAttackOffset = FVector::ZeroVector;
         MulticastResetAttack();
     }
 }
 
 void APlayerCharacter::ServerRPCLeftHandMeleeAttack_Implementation(float InStartAttackTime)
 {
-    FVector LeftOffset = GetActorRightVector() * -50.0f;
-    PerformMeleeAttack(LeftOffset, LeftMeleeAttackMontage);
+    PendingAttackOffset = GetActorRightVector() * -50.0f;
+    PerformMeleeAttack(PendingAttackOffset, LeftMeleeAttackMontage);
     MulticastPlayMeleeAttackMontage(LeftMeleeAttackMontage);
 }
 
@@ -417,8 +423,8 @@ bool APlayerCharacter::ServerRPCLeftHandMeleeAttack_Validate(float InStartAttack
 
 void APlayerCharacter::ServerRPCRightHandMeleeAttack_Implementation(float InStartAttackTime)
 {
-    FVector RightOffset = GetActorRightVector() * 50.0f;
-    PerformMeleeAttack(RightOffset, RightMeleeAttackMontage);
+    PendingAttackOffset = GetActorRightVector() * 50.0f;
+    PerformMeleeAttack(PendingAttackOffset, RightMeleeAttackMontage);
     MulticastPlayMeleeAttackMontage(RightMeleeAttackMontage);
 }
 

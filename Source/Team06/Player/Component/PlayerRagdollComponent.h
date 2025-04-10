@@ -1,5 +1,3 @@
-// PlayerRagdollComponent.h
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -18,19 +16,4 @@ class TEAM06_API UPlayerRagdollComponent : public UActorComponent
 public:
     UPlayerRagdollComponent();
 
-    void ActivateRagdoll();
-
-    void InitializePhysicalAnimation();
-
-protected:
-    virtual void BeginPlay() override;
-
-private:
-    // 일. 물리 애니메이션 컴포넌트
-    UPROPERTY()
-    UPhysicalAnimationComponent* PhysicalAnimation;
-
-    // 이. 스켈레탈 메시
-    UPROPERTY()
-    USkeletalMeshComponent* SkeletalMesh;
 };
