@@ -23,6 +23,15 @@ public:
 protected:
 	
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+	FName ItemID = "Default";
+
+public:
+	// 외부에서 안전하게 접근 가능하도록 Getter 제공
+	FName GetItemID() const { return ItemID; }
+
+protected:
 	
 	// 이펙트 & 사운드 공통 속성
 	UPROPERTY(EditAnywhere, Category = "Effect")
@@ -40,6 +49,9 @@ protected:
 
 	UPROPERTY()
 	UNiagaraComponent* ActiveEffectComp;
+
+	UPROPERTY()
+	UNiagaraComponent* SpawnedNiagaraEffect;
 
 	// 사운드 재생
 	UPROPERTY()

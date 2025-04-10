@@ -4,6 +4,7 @@
 #include "EquipableItem.h"
 #include "Explosive_Item.generated.h"
 
+class USphereComponent;
 
 UCLASS()
 class TEAM06_API AExplosive_Item : public AEquipableItem
@@ -17,6 +18,13 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void OnItemLanded_Implementation() override; // 착지 후 폭발 예약|
+
+	UFUNCTION()
+	void Explode();
+
+	/** 클라이언트에 폭발 이펙트 보여주기 */
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ExplodeEffect();
 
 	// 폭발 기능
 	UPROPERTY(EditDefaultsOnly, Category = "Explosion")
@@ -35,8 +43,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Explosion")
 	USphereComponent* ExplosionArea;
 
-	UFUNCTION()
-	void Explode();
+	UPROPERTY(EditAnywhere, Category = "Explosion|Effect")
+	UNiagaraSystem* ExplosionEffect;
+
+	UPROPERTY(EditAnywhere, Category = "Explosion|Sound")
+	USoundBase* ExplosionSound;
+
 
 private:
 	FTimerHandle ExplosionTimerHandle;
