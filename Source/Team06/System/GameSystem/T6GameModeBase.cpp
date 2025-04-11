@@ -17,6 +17,11 @@ void AT6GameModeBase::NotifyToAllPlayer(const FString& NotificationString)
 
 }
 
+AT6GameModeBase::AT6GameModeBase()
+{
+	bUseSeamlessTravel = true;
+}
+
 void AT6GameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
 	Super::InitGame(MapName,Options,ErrorMessage);
@@ -42,7 +47,7 @@ void AT6GameModeBase::PreLogin(const FString& Options, const FString& Address, c
 APlayerController* AT6GameModeBase::Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
 {
 	// 1. URL 옵션에서 Name 추출
-	FString DesiredPlayerName = UGameplayStatics::ParseOption(Options, TEXT("Name"));
+	FString DesiredPlayerName = UGameplayStatics::ParseOption(Options, TEXT("TName"));
 	UE_LOG(LogTemp, Warning, TEXT("Login - Parsed PlayerName from Options: %s"), *DesiredPlayerName);
 
 	// 이 함수는 APlayerController* 를 리턴해야 하므로, Super 를 호출
@@ -86,12 +91,22 @@ void AT6GameModeBase::BeginPlay()
 FString AT6GameModeBase::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
 {
 	FString Result = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
-	FString IncomingName = UGameplayStatics::ParseOption(Options, TEXT("Name"));
+	FString IncomingName = UGameplayStatics::ParseOption(Options, TEXT("TName"));
 	UE_LOG(LogTemp, Log, TEXT("Option set to '%s'"), *Options);
 	if (NewPlayerController && NewPlayerController->PlayerState)
 	{
 		NewPlayerController->PlayerState->SetPlayerName(IncomingName);
 		UE_LOG(LogTemp, Log, TEXT("PlayerName set to '%s' via InitNewPlayer"), *IncomingName);
+	}
+	FString IsClient = UGameplayStatics::ParseOption(Options, TEXT("Client"));
+	if (IsClient == FString("true"))
+	{
+		// 실제 쿼리로 ?Client=true를 받은 접속 요청에 대해서만 등록 시작
+		UT6GameInstance* GI = Cast<UT6GameInstance>(GetGameInstance());
+
+
+		GI->RegisterPlayer(IncomingName);
+		UE_LOG(LogTemp,Warning,TEXT("Server-GameMode: Player %s Registered"), *IncomingName);
 	}
 
 	return Result;
