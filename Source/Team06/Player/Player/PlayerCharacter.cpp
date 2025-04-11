@@ -86,8 +86,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     EIC->BindAction(RightHandAttackAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleRightHandMeleeAttack);
     EIC->BindAction(BKeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleBKey);
     EIC->BindAction(ESCKeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleESCKey);
-
     EIC->BindAction(FKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleFKey);
+
+    EIC->BindAction(CheatKeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleCheatKey);
+    EIC->BindAction(Cheat2KeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleCheat2Key);
 }
 
 void APlayerCharacter::BeginPlay()
@@ -160,6 +162,9 @@ void APlayerCharacter::ValidateEssentialReferences()
     if (BKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : BKeyAction is not set!"));
     if (ESCKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ESCKeyAction is not set!"));
     if (FKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : FKeyAction is not set!"));
+
+    if (CheatKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : CheatKeyAction is not set!"));
+    if (Cheat2KeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : Cheat2KeyAction is not set!"));
 }
 
 
@@ -662,4 +667,24 @@ void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
         false
     );
 }
+void APlayerCharacter::HandleCheatKey(const FInputActionValue& Value)
+{
+    // 1번 키 할당
+    APCController_GamePlay* PlayerController_GamePlay = GetController<APCController_GamePlay>();
+    if (IsValid(PlayerController_GamePlay))
+    {
+        if (PlayerController_GamePlay->IsLocalController() || PlayerController_GamePlay->LobbyWidget)
+        {
+            PlayerController_GamePlay->Server_TriggerRandomPlayerWin();
+        }
+    }
+}
 
+void APlayerCharacter::HandleCheat2Key(const FInputActionValue& Value)
+{
+    // 2번 키 할당
+    // 테스트용으로 사용
+    // 넣어야 될 내용 공유하고 지우고 커밋하기
+
+    UE_LOG(LogTemp, Log, TEXT("Cheat2"));
+}

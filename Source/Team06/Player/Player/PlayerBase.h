@@ -49,6 +49,12 @@ public:
 	APlayerBase();
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerProcessDeath(FVector RespawnLocation);
+
+	UFUNCTION(Server, Reliable)
+	void RespawnCharacter(FVector RespawnLocation);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetEquippedItemName(FName NewItemName);
 
 	virtual void BeginPlay() override;
@@ -84,7 +90,7 @@ public:
 	void SetbIsStunned(bool NewbIsStunned) { bIsStunned = NewbIsStunned; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void SetEquippedItemName(FName NewItemName) { CurrentEquippedItemName = NewItemName; }
-	void SetEquipItemMeshStatic(UStaticMesh* NewMesh);
+	//void SetEquipItemMeshStatic(UStaticMesh* NewMesh);
 
 	UFUNCTION()
 	void OnRep_CurrentEquippedItemName();

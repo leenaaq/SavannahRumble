@@ -275,3 +275,33 @@ bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)
 //	}
 //}
 
+
+// 사망 로직
+void APlayerBase::ServerProcessDeath_Implementation(FVector RespawnLocation)
+{
+	if (GetLifeCount() > 0)
+	{
+		SetLifeCount(GetLifeCount() - 1);
+		UE_LOG(LogTemp, Log, TEXT("[PlayerBase] Character LifeCount %d. Respawn..."), GetLifeCount());
+
+		// 레벨별 GetRespawnLocation 필요
+		RespawnCharacter(RespawnLocation);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("[PlayerBase] Character LifeCount X. Death."));
+	}
+}
+
+bool APlayerBase::ServerProcessDeath_Validate(FVector RespawnLocation)
+{
+	return true;
+}
+
+
+// 리스폰
+void APlayerBase::RespawnCharacter_Implementation(FVector RespawnLocation)
+{
+	SetActorLocation(RespawnLocation);
+	UE_LOG(LogTemp, Log, TEXT("[PlayerBase] Character Respawn : %s"), *RespawnLocation.ToString());
+}

@@ -64,6 +64,9 @@ private:
 
 	void HandleFKey(const FInputActionValue& Value);
 
+	void HandleCheatKey(const FInputActionValue& Value);
+	void HandleCheat2Key(const FInputActionValue& Value);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -91,6 +94,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputAction> FKeyAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
+	TObjectPtr<UInputAction> CheatKeyAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
+	TObjectPtr<UInputAction> Cheat2KeyAction;
 
 #pragma endregion
 
