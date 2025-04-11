@@ -42,7 +42,7 @@ public:
 #pragma region Ready
 
 public:
-	void SetPlayerReady(APCController_GamePlay* PlayerController, bool bIsReady);
+	virtual void SetPlayerReady(APCController_GamePlay* PlayerController, bool bIsReady) override;
 	bool IsMajorityReady() const;
 	// bool IsAllReady() const;
 protected:

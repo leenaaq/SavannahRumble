@@ -70,7 +70,15 @@ void AT6GameModeBase_GameLevel::HandleRandomPlayerGameWin()
 					}
 				}
 			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid PlayerController in This GameMode, No one can win!!!"));
+			}
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GameLevel donesn't finish yet!!!"));
 	}
 }
 

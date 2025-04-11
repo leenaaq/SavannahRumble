@@ -99,10 +99,10 @@ void APCController_GamePlay::ServerSetReady_Implementation()
 {
 	this->bIsReady = !this->bIsReady;
 
-	AT6GameModeBase_Lobby* LobbyGM = GetWorld()->GetAuthGameMode<AT6GameModeBase_Lobby>();
-	if (IsValid(LobbyGM))
+	AT6GameModeBase* GM = GetWorld()->GetAuthGameMode<AT6GameModeBase>();
+	if (IsValid(GM))
 	{
-		LobbyGM->SetPlayerReady(this, bIsReady);
+		GM->SetPlayerReady(this, bIsReady);
 	}
 	else
 	{
@@ -124,5 +124,9 @@ void APCController_GamePlay::Server_TriggerRandomPlayerWin_Implementation()
 	if (GM)
 	{
 		GM->HandleRandomPlayerGameWin();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Wrong GameModeBase Called in Title PCController_GamePlay"));
 	}
 }
