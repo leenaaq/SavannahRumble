@@ -7,7 +7,7 @@
 #include "System/UI/UW_LobbyUI.h"
 #include "Components/TextBlock.h"
 #include "System/GameSystem/T6GameModeBase_Lobby.h"
-
+#include "System/GameSystem/T6GameModeBase_GameLevel.h"
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -115,5 +115,14 @@ void APCController_GamePlay::OnRep_bIsReady()
 	if (IsLocalController() && IsValid(LobbyWidget))
 	{
 		LobbyWidget->UpdateReadyButtonState(bIsReady);
+	}
+}
+
+void APCController_GamePlay::Server_TriggerRandomPlayerWin_Implementation()
+{
+	AT6GameModeBase_GameLevel* GM = GetWorld() ? Cast<AT6GameModeBase_GameLevel>(GetWorld()->GetAuthGameMode()) : nullptr;
+	if (GM)
+	{
+		GM->HandleRandomPlayerGameWin();
 	}
 }
