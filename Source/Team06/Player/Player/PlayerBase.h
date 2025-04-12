@@ -49,7 +49,7 @@ public:
 	APlayerBase();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerProcessDeath(FVector RespawnLocation);
+	virtual void ServerProcessDeath(FVector RespawnLocation);
 
 	UFUNCTION(Server, Reliable)
 	void RespawnCharacter(FVector RespawnLocation);
@@ -66,7 +66,9 @@ public:
 	void UpdateStatsFromDataTable();
 
 	// 기절
+	UFUNCTION(BlueprintCallable, Category = "Player")
 	virtual void OnStunned();
+	virtual void OnStunned(float StunTime);
 
 	// Getters
 	float GetHealth() const { return PlayerStats.Health; }
@@ -108,6 +110,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FDataTableRowHandle StatsRowHandle;
 
+	void ActiveRagdoll();
+	void DeactivateActiveRagdoll();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UItemManagerComponent* ItemManager;
@@ -137,4 +142,7 @@ private:
 	FPlayerStats PlayerStats;
 	FTimerHandle RecoveryTimerHandle;
 	bool bPlayerNameInitialized = false;
+	FPhysicalAnimationData PhysAnimData;
+	FTimerHandle RecoveryRagdollTimerHandle;
+
 };

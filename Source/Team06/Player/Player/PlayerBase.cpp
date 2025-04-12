@@ -9,6 +9,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "TimerManager.h"
 #include "System/UI/UW_PlayerNameText.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
 
 APlayerBase::APlayerBase()
@@ -32,30 +33,24 @@ APlayerBase::APlayerBase()
 	PlayerNameWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 	PlayerNameWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-
 	PhysicalAnimationComponent = CreateDefaultSubobject<UPhysicalAnimationComponent>(TEXT("PhysicalAnimationComponent"));
+	PhysAnimData.bIsLocalSimulation = true;
+	PhysAnimData.OrientationStrength = 5000.f;
+	PhysAnimData.AngularVelocityStrength = 500.f;
+	PhysAnimData.PositionStrength = 5000.f;
+	PhysAnimData.VelocityStrength = 500.f;
+	PhysAnimData.MaxLinearForce = 500.f;
+	PhysAnimData.MaxAngularForce = 500.f;
+
 }
 
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (USkeletalMeshComponent* MeshComp = GetMesh())
-	{
-		FPhysicalAnimationData PhysAnimData;
-		PhysAnimData.bIsLocalSimulation = true;
-		PhysAnimData.OrientationStrength = 5000.f;
-		PhysAnimData.AngularVelocityStrength = 500.f;
-		PhysAnimData.PositionStrength = 5000.f;
-		PhysAnimData.VelocityStrength = 500.f;
-		PhysAnimData.MaxLinearForce = 500.f;
-		PhysAnimData.MaxAngularForce = 500.f;
-		PhysicalAnimationComponent->SetSkeletalMeshComponent(MeshComp);
-		PhysicalAnimationComponent->ApplyPhysicalAnimationSettingsBelow(TEXT("pelvis"), PhysAnimData, true);
-		MeshComp->SetAllBodiesBelowSimulatePhysics(TEXT("pelvis"), true, false);
-	}
-
 	ValidateEssentialReferences();
+	ActiveRagdoll();
+	//DeactivateActiveRagdoll();
 	UpdateStatsFromDataTable();
 
 	if (PlayerNameWidgetComponent)
@@ -171,6 +166,13 @@ float APlayerBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 // 스턴 시 레그돌
 void APlayerBase::OnStunned()
 {
+	DeactivateActiveRagdoll();
+	OnStunned(PlayerStats.StunDuration);
+}
+
+void APlayerBase::OnStunned(float StunTime)
+{
+	DeactivateActiveRagdoll();
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
 		if (UAnimInstance* AnimInstance = MeshComp->GetAnimInstance())
@@ -185,7 +187,19 @@ void APlayerBase::OnStunned()
 		MeshComp->bBlendPhysics = true;
 	}
 
-	RemainingStunTime = PlayerStats.StunDuration;
+	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+	{
+		Movement->StopMovementImmediately();
+		Movement->DisableMovement();
+	}
+
+	if (UCapsuleComponent* CapsuleComp = GetCapsuleComponent())
+	{
+		CapsuleComp->SetPhysicsLinearVelocity(FVector::ZeroVector);
+		CapsuleComp->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+	}
+
+	RemainingStunTime = StunTime;
 	if (HasAuthority())
 	{
 		GetWorld()->GetTimerManager().SetTimer(
@@ -206,7 +220,6 @@ void APlayerBase::MulticastRecoverFromStun_Implementation()
 void APlayerBase::RecoverFromStun()
 {
 	bIsStunned = false;
-
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
 		MeshComp->SetSimulatePhysics(false);
@@ -217,9 +230,9 @@ void APlayerBase::RecoverFromStun()
 		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 		MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	}
+	ActiveRagdoll();
 	SetHealth(GetMaxHealth());
 }
-
 
 void APlayerBase::OnRep_bIsStunned()
 {
@@ -279,13 +292,18 @@ bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)
 // 사망 로직
 void APlayerBase::ServerProcessDeath_Implementation(FVector RespawnLocation)
 {
+	bIsStunned = true;
+	DeactivateActiveRagdoll();
+	OnStunned();
+
 	if (GetLifeCount() > 0)
 	{
 		SetLifeCount(GetLifeCount() - 1);
 		UE_LOG(LogTemp, Log, TEXT("[PlayerBase] Character LifeCount %d. Respawn..."), GetLifeCount());
 
+		ActiveRagdoll();
 		// 레벨별 GetRespawnLocation 필요
-		RespawnCharacter(RespawnLocation);
+		//RespawnCharacter(RespawnLocation);
 	}
 	else
 	{
@@ -305,3 +323,38 @@ void APlayerBase::RespawnCharacter_Implementation(FVector RespawnLocation)
 	SetActorLocation(RespawnLocation);
 	UE_LOG(LogTemp, Log, TEXT("[PlayerBase] Character Respawn : %s"), *RespawnLocation.ToString());
 }
+
+void APlayerBase::ActiveRagdoll()
+{
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		PhysicalAnimationComponent->SetSkeletalMeshComponent(MeshComp);
+		PhysicalAnimationComponent->ApplyPhysicalAnimationSettingsBelow(TEXT("pelvis"), PhysAnimData, true);
+		MeshComp->SetAllBodiesBelowSimulatePhysics(TEXT("pelvis"), true, false);
+	}
+}
+
+
+void APlayerBase::DeactivateActiveRagdoll()
+{
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		MeshComp->SetSimulatePhysics(false);
+		MeshComp->SetCollisionProfileName(TEXT("CharacterMesh"));
+
+		PhysicalAnimationComponent->SetSkeletalMeshComponent(nullptr);
+
+		MeshComp->SetAllBodiesSimulatePhysics(false);
+		MeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+
+		MeshComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+		MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+
+		if (UAnimInstance* AnimInstance = MeshComp->GetAnimInstance())
+		{
+			AnimInstance->InitializeAnimation();
+		}
+	}
+}
+

@@ -178,5 +178,6 @@ private:
 	FTimerHandle LeftAttackTimerHandle;
 
 	FVector PendingAttackOffset;
+	virtual void ServerProcessDeath(FVector RespawnLocation) override;
 #pragma endregion
 };

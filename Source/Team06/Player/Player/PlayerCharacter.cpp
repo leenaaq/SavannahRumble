@@ -688,3 +688,15 @@ void APlayerCharacter::HandleCheat2Key(const FInputActionValue& Value)
 
     UE_LOG(LogTemp, Log, TEXT("Cheat2"));
 }
+
+
+void APlayerCharacter::ServerProcessDeath(FVector RespawnLocation)
+{
+    if (APlayerController* PC = Cast<APlayerController>(GetController()))
+    {
+        PC->UnPossess();
+        PC->ChangeState(NAME_Spectating);
+    }
+
+    Super::ServerProcessDeath_Implementation(RespawnLocation);
+}
