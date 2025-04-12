@@ -19,7 +19,7 @@ void AT6GameModeBase::NotifyToAllPlayer(const FString& NotificationString)
 
 AT6GameModeBase::AT6GameModeBase()
 {
-	bUseSeamlessTravel = true;
+	// bUseSeamlessTravel = true;
 }
 
 void AT6GameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -110,6 +110,10 @@ FString AT6GameModeBase::InitNewPlayer(APlayerController* NewPlayerController, c
 	}
 
 	return Result;
+}
+
+void AT6GameModeBase::SetPlayerReady(APCController_GamePlay* PlayerController, bool bIsReady)
+{
 }
 
 void AT6GameModeBase::ChangeGameLevel()

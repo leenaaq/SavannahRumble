@@ -34,7 +34,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<TObjectPtr<APCController_GamePlay>> SessionPlayerControllers;
 #pragma region Level
-
+public:
+	virtual void SetPlayerReady(APCController_GamePlay* PlayerController, bool bIsReady);
 public:
 	void ChangeGameLevel();
 	void OnShowingLoadingScreen();
