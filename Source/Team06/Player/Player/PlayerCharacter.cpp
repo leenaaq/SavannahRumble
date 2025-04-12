@@ -115,65 +115,88 @@ void APlayerCharacter::ValidateEssentialReferences()
 {
     Super::ValidateEssentialReferences();
 
-    if (ItemRightMeleeAttackMontage == nullptr)
-    {
-        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemRightMeleeAttackMontage is not set!"));
-    }
 
-    if (ItemRightRangedAttackMontage == nullptr)
+    if (!ItemManager)
     {
-        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemRightRangedAttackMontage is not set!"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemManagerComponent 확인"));
     }
-
-    if (RightMeleeAttackMontage == nullptr)
+    if (!ItemManager || !ItemManager->ItemDataTable)
     {
-        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : RightMeleeAttackMontage is not set!"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemDataTable 확인"));
     }
-
-    if (LeftMeleeAttackMontage == nullptr)
+    if (!ItemRightMeleeAttackMontage)
     {
-        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : LeftMeleeAttackMontage is not set!"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemRightMeleeAttackMontage 확인"));
     }
-
-    if (ItemShortRangedAttackMontage == nullptr)
+    if (!ItemRightRangedAttackMontage)
     {
-        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemShortRangedAttackMontage is not set!"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemRightRangedAttackMontage 확인"));
     }
-
-    if (ItemManager == nullptr)
+    if (!RightMeleeAttackMontage)
     {
-        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemManagerComponent is missing!"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : RightMeleeAttackMontage 확인"));
     }
-    else if (ItemManager->ItemDataTable == nullptr)
+    if (!LeftMeleeAttackMontage)
     {
-        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ItemDataTable is not set in ItemManagerComponent!"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : LeftMeleeAttackMontage 확인"));
     }
-
-    if (InputMappingContext == nullptr)
+    if (!ItemShortRangedAttackMontage)
     {
-        UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : InputMappingContext is not set!"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemShortRangedAttackMontage 확인"));
     }
-
-    if (MoveAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : MoveAction is not set!"));
-    if (LookAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : LookAction is not set!"));
-    if (JumpAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : JumpAction is not set!"));
-    if (LeftHandAttackAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : LeftHandAttackAction is not set!"));
-    if (RightHandAttackAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : RightHandAttackAction is not set!"));
-    if (BKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : BKeyAction is not set!"));
-    if (ESCKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : ESCKeyAction is not set!"));
-    if (FKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : FKeyAction is not set!"));
-
-    if (CheatKeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : CheatKeyAction is not set!"));
-    if (Cheat2KeyAction == nullptr) UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : Cheat2KeyAction is not set!"));
+    if (!InputMappingContext)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : InputMappingContext 확인"));
+    }
+    if (!MoveAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : MoveAction 확인"));
+    }
+    if (!LookAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : LookAction 확인"));
+    }
+    if (!JumpAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : JumpAction 확인"));
+    }
+    if (!LeftHandAttackAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : LeftHandAttackAction 확인"));
+    }
+    if (!RightHandAttackAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : RightHandAttackAction 확인"));
+    }
+    if (!BKeyAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : BKeyAction 확인"));
+    }
+    if (!ESCKeyAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ESCKeyAction 확인"));
+    }
+    if (!FKeyAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : FKeyAction 확인"));
+    }
+    if (!CheatKeyAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : CheatKeyAction 확인"));
+    }
+    if (!Cheat2KeyAction)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : Cheat2KeyAction 확인"));
+    }
 }
 
 
 
 void APlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 {
-    if (!IsValid(Controller))
+    if (!Controller)
     {
-        UE_LOG(LogTemp, Error, TEXT("Controller is invalid."));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : Controller 확인"));
         return;
     }
 
@@ -274,6 +297,7 @@ bool APlayerCharacter::ServerRPCItemMeleeAttack_Validate(float InStartTime)
 
 void APlayerCharacter::ServerRPCItemRangedAttack_Implementation(float InStartTime)
 {
+    bRightCanAttack = false;
     PerformRangedAttack(ItemRightRangedAttackMontage);
     MulticastPlayMeleeAttackMontage(ItemRightRangedAttackMontage);
 
@@ -575,51 +599,74 @@ void APlayerCharacter::HandleESCKey(const FInputActionValue& Value)
 
 void APlayerCharacter::SpawnProjectileFromItem()
 {
-    UE_LOG(LogTemp, Log, TEXT("CurrentEquippedItemName: %s"), *CurrentEquippedItemName.ToString());
-    if (ItemManager == nullptr || ItemManager->ItemDataTable == nullptr)
+    if (!ItemManager)
     {
-        UE_LOG(LogTemp, Error, TEXT("SpawnProjectileFromItem: ItemManager or DataTable is null"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemManagerComponent 값이 null"));
         return;
     }
-
+    if (!ItemManager->ItemDataTable)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemDataTable 값이 null"));
+        return;
+    }
     const FName EquippedItem = CurrentEquippedItemName;
-    if (EquippedItem == "DEFAULT")
+    if (EquippedItem.IsNone() || EquippedItem == FName("DEFAULT"))
     {
-        UE_LOG(LogTemp, Error, TEXT("SpawnProjectileFromItem: No equipped item"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : CurrentEquippedItemName 확인"));
         return;
     }
-
     static const FString Context = TEXT("ProjectileSpawn");
-    if (const FEquipItemDataRow* Row = ItemManager->ItemDataTable->FindRow<FEquipItemDataRow>(EquippedItem, Context))
+    const FEquipItemDataRow* Row = ItemManager->ItemDataTable->FindRow<FEquipItemDataRow>(EquippedItem, Context);
+    if (!Row)
     {
-        if (Row->ProjectileBlueprint == nullptr)
-        {
-            UE_LOG(LogTemp, Error, TEXT("ProjectileBlueprint is not set for item %s"), *EquippedItem.ToString());
-            return;
-        }
-        const FTransform MuzzleTransform = MuzzleComponent->GetComponentTransform();
-        FActorSpawnParameters SpawnParams;
-        SpawnParams.Owner = this;
-        SpawnParams.Instigator = this;
-
-        AActor* Projectile = GetWorld()->SpawnActor<AActor>(Row->ProjectileBlueprint, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator(), SpawnParams);
-        if (Projectile)
-        {
-            if (UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Projectile->GetComponentByClass(UPrimitiveComponent::StaticClass())))
-            {
-                if (PrimitiveComp->IsSimulatingPhysics())
-                {
-                    const FVector ForwardVector = MuzzleTransform.GetRotation().GetForwardVector();
-                    const FVector LaunchVelocity = ForwardVector * Row->ProjectileSpeed;
-                    const FVector LaunchForce = ForwardVector * Row->ProjectileForce;
-
-                    PrimitiveComp->SetPhysicsLinearVelocity(LaunchVelocity, true);
-                    PrimitiveComp->AddImpulse(LaunchForce, NAME_None, true);
-                }
-            }
-        }
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : %s 행 확인"), *EquippedItem.ToString());
+        return;
     }
+    if (!Row->ProjectileBlueprint)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ProjectileBlueprint 값이 null"));
+        return;
+    }
+    if (!MuzzleComponent)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : MuzzleComponent 값이 null"));
+        return;
+    }
+    const FTransform MuzzleTransform = MuzzleComponent->GetComponentTransform();
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = this;
+    SpawnParams.Instigator = this;
+    AActor* Projectile = GetWorld()->SpawnActor<AActor>(
+        Row->ProjectileBlueprint,
+        MuzzleTransform.GetLocation(),
+        MuzzleTransform.GetRotation().Rotator(),
+        SpawnParams
+    );
+    if (!Projectile)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : Projectile 값이 null"));
+        return;
+    }
+    UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(
+        Projectile->GetComponentByClass(UPrimitiveComponent::StaticClass())
+    );
+    if (!PrimitiveComp)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter.cpp : PrimitiveComponent 확인"));
+        return;
+    }
+    if (!PrimitiveComp->IsSimulatingPhysics())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter.cpp : 물리 시뮬레이션 확인"));
+        return;
+    }
+    const FVector ForwardVector = MuzzleTransform.GetRotation().GetForwardVector();
+    const FVector LaunchVelocity = ForwardVector * Row->ProjectileSpeed;
+    const FVector LaunchForce = ForwardVector * Row->ProjectileForce;
+    PrimitiveComp->SetPhysicsLinearVelocity(LaunchVelocity, true);
+    PrimitiveComp->AddImpulse(LaunchForce, NAME_None, true);
 }
+
 
 void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
 {

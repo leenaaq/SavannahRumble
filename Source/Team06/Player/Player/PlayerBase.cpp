@@ -18,11 +18,8 @@ APlayerBase::APlayerBase()
 
 	ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
 
-	//EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
-	//EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
-	//EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
-
-	//EquipItemMesh->SetVisibility(false);
+	EquipItemMeshActorComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemMeshActorComponent"));
+	EquipItemMeshActorComponent->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
 
 	MuzzleComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("MuzzleComponent"));
 	MuzzleComponent->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
@@ -104,26 +101,18 @@ void APlayerBase::Tick(float DeltaTime)
 
 void APlayerBase::ValidateEssentialReferences()
 {
-	//if (EquipItemChildActor == nullptr)
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : EquipItemChildActor is missing!"));
-	//}
-
-	if (ItemManager == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : ItemManagerComponent is missing!"));
-	}
-
-	if (StatsRowHandle.DataTable == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : StatsRowHandle.DataTable is not assigned!"));
-	}
-
-	if (MuzzleComponent == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : MuzzleComponent is not set!"));
-	}
-
+    if (!ItemManager)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerBase.cpp : ItemManagerComponent 확인"));
+    }
+    if (!StatsRowHandle.DataTable)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerBase.cpp : StatsRowHandle.DataTable 확인"));
+    }
+    if (!MuzzleComponent)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerBase.cpp : MuzzleComponent 확인"));
+    }
 }
 
 // 데이터 테이블 업데이트
@@ -252,21 +241,25 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void APlayerBase::OnRep_CurrentEquippedItemName()
 {
-	if (ItemManager)
+	if (!ItemManager)
 	{
-		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+		UE_LOG(LogTemp, Warning, TEXT("PlayerBase.cpp : ItemManagerComponent 확인"));
+		return;
 	}
+	ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
 }
 
 void APlayerBase::ServerSetEquippedItemName_Implementation(FName NewItemName)
 {
 	CurrentEquippedItemName = NewItemName;
 
-	if (ItemManager)
+	if (!ItemManager)
 	{
-		ItemManager->ServerEquipItem(NewItemName);
-		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+		UE_LOG(LogTemp, Warning, TEXT("PlayerBase.cpp : ItemManagerComponent 확인"));
+		return;
 	}
+	ItemManager->ServerEquipItem(NewItemName);
+	ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
 }
 
 bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)

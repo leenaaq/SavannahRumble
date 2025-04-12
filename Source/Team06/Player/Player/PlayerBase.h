@@ -110,6 +110,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FDataTableRowHandle StatsRowHandle;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setting|Component")
+	UChildActorComponent* EquipItemMeshActorComponent;
+
 	void ActiveRagdoll();
 	void DeactivateActiveRagdoll();
 
@@ -122,9 +125,6 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentEquippedItemName, BlueprintReadWrite)
 	FName CurrentEquippedItemName = "DEFAULT";
-
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-	//class UChildActorComponent* EquipItemChildActor;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	float RemainingStunTime = 0.0f;
