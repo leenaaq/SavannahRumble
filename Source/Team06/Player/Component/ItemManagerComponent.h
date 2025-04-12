@@ -22,6 +22,9 @@ struct FEquipItemDataRow : public FTableRowBase
     FName ItemName = "DEFAULT";
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<class AItemBase> ItemActorClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EEquipItemType ItemType = EEquipItemType::Invalid;
 
     // 원거리 공격 시 스폰 아이템
