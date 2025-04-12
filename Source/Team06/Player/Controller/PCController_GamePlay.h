@@ -60,4 +60,13 @@ public:
 
 #pragma endregion
 
+#pragma region MountainLevelGoal
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerNotifyGoalReached();
+	UFUNCTION(Server, Reliable)
+	void ServerTeleportToCheckpoint();
+#pragma endregion
+
+
 };

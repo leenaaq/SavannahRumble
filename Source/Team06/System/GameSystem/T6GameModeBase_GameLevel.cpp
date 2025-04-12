@@ -34,6 +34,10 @@ void AT6GameModeBase_GameLevel::HandlePlayerGameWin(APlayerController* Winner)
 		}
 		
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Game AlreayFinished"));
+	}
 
 }
 
@@ -115,6 +119,12 @@ void AT6GameModeBase_GameLevel::BeginPlay()
 	OnGameWinHandled.BindUObject(this, &ThisClass::InitiatedGameLevelEnding);
     GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &ThisClass::OnMainTimerElapsed, 1.f, true);
     RemainGameStartTimeForEnding = GameStartCountDown;
+
+	UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+	if (GI&&HasAuthority())
+	{
+		GI->PrintScoreBoardLog();
+	}
 }
 
 void AT6GameModeBase_GameLevel::OnMainTimerElapsed()
@@ -132,7 +142,7 @@ void AT6GameModeBase_GameLevel::OnMainTimerElapsed()
 	case EMatchState::Waiting:
 	{
 		FString NotificationString = FString::Printf(TEXT(""));
-		RemainGameLevelWaitingTimeForPlaying = GameLevelWaitingTime;
+		// RemainGameLevelWaitingTimeForPlaying = GameLevelWaitingTime;
 
 
 		// 최소인원 넘기기
