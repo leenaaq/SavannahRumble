@@ -8,6 +8,8 @@
 #include "Components/TextBlock.h"
 #include "System/GameSystem/T6GameModeBase_Lobby.h"
 #include "System/GameSystem/T6GameModeBase_GameLevel.h"
+#include "System/GameSystem/MyT6GSB_GL_Mountain.h"
+#include "Player/Player/PlayerCharacter.h"
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -127,6 +129,32 @@ void APCController_GamePlay::Server_TriggerRandomPlayerWin_Implementation()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Wrong GameModeBase Called in Title PCController_GamePlay"));
+		UE_LOG(LogTemp, Error, TEXT("Wrong GameModeBase Called in PCController_GamePlay"));
+	}
+}
+void APCController_GamePlay::ServerNotifyGoalReached_Implementation()
+{
+	AT6GameModeBase_GameLevel* GM = GetWorld()->GetAuthGameMode<AT6GameModeBase_GameLevel>();
+	if (GM)
+	{
+		GM->HandlePlayerGameWin(this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Wrong GameModeBase Called in PCController_GamePlay"));
+	}
+}
+
+void APCController_GamePlay::ServerTeleportToCheckpoint_Implementation()
+{
+	AMyT6GSB_GL_Mountain* GSM = GetWorld()->GetGameState<AMyT6GSB_GL_Mountain>();
+
+	ACharacter* MyChar = GetCharacter();
+
+
+	if (GSM && MyChar)
+	{
+		FVector TargetLoc = GSM->GetCheckpointLocationForPlayer(this);
+		MyChar->SetActorLocation(TargetLoc);
 	}
 }

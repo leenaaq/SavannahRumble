@@ -18,9 +18,21 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+public:
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    class UBoxComponent* CollisionBox;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    int32 CheckPointIndex;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FVector CheckPointLocation;
+
+    UFUNCTION()
+    void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+        bool bFromSweep, const FHitResult& SweepResult);
+
+    UFUNCTION(Server, Reliable)
+    void ServerHandleCheckpoint(APlayerController* PC, int32 ThisCheckpointIndex);
 };

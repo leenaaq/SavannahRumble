@@ -685,6 +685,18 @@ void APlayerCharacter::HandleCheat2Key(const FInputActionValue& Value)
     // 2번 키 할당
     // 테스트용으로 사용
     // 넣어야 될 내용 공유하고 지우고 커밋하기
-
-    UE_LOG(LogTemp, Log, TEXT("Cheat2"));
+    /*
+        플레이어 mountainlevel에서 이동할 기능 필요
+    
+    */
+    APCController_GamePlay* PlayerController_GamePlay = GetController<APCController_GamePlay>();
+    if (IsValid(PlayerController_GamePlay))
+    {
+        if (PlayerController_GamePlay->IsLocalController() || PlayerController_GamePlay->LobbyWidget)
+        {
+            PlayerController_GamePlay->ServerTeleportToCheckpoint();
+        }
+    }
+    
+    //UE_LOG(LogTemp, Log, TEXT("Cheat2"));
 }

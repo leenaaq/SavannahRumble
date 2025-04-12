@@ -34,6 +34,10 @@ void AT6GameModeBase_GameLevel::HandlePlayerGameWin(APlayerController* Winner)
 		}
 		
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Game AlreayFinished"));
+	}
 
 }
 
@@ -132,7 +136,7 @@ void AT6GameModeBase_GameLevel::OnMainTimerElapsed()
 	case EMatchState::Waiting:
 	{
 		FString NotificationString = FString::Printf(TEXT(""));
-		RemainGameLevelWaitingTimeForPlaying = GameLevelWaitingTime;
+		// RemainGameLevelWaitingTimeForPlaying = GameLevelWaitingTime;
 
 
 		// 최소인원 넘기기
