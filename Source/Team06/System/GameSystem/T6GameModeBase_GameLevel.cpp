@@ -119,6 +119,12 @@ void AT6GameModeBase_GameLevel::BeginPlay()
 	OnGameWinHandled.BindUObject(this, &ThisClass::InitiatedGameLevelEnding);
     GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &ThisClass::OnMainTimerElapsed, 1.f, true);
     RemainGameStartTimeForEnding = GameStartCountDown;
+
+	UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+	if (GI&&HasAuthority())
+	{
+		GI->PrintScoreBoardLog();
+	}
 }
 
 void AT6GameModeBase_GameLevel::OnMainTimerElapsed()
