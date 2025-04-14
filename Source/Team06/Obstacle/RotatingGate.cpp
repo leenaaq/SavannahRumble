@@ -23,7 +23,6 @@ ARotatingGate::ARotatingGate()
 void ARotatingGate::BeginPlay()
 {
     Super::BeginPlay();
-    UE_LOG(LogTemp, Warning, TEXT("BeginPlay called"));
     if (HasAuthority())
     {
         if (ObstacleDataTable)
@@ -50,7 +49,6 @@ void ARotatingGate::ApplyObstacleData(const FObstacleDataRow* Row)
 {
     if (!Row)
     {
-        UE_LOG(LogTemp, Error, TEXT("🚫 DataTable에서 Row '%s'를 찾을 수 없습니다."), *ObstacleRowName.ToString());
         return;
     }
 
@@ -60,10 +58,6 @@ void ARotatingGate::ApplyObstacleData(const FObstacleDataRow* Row)
         DoorRotationSpeed = Row->DoorRotationSpeed;
         DoorTargetRotation = Row->DoorRotationAngle;
         DoorStartRotation = GetActorRotation();
-
-        UE_LOG(LogTemp, Warning, TEXT("Row Loaded: Type=%s Cycle=%.2f Speed=%.2f Angle=%s"),
-            *Row->ObstacleType.ToString(), Row->DoorCycle, Row->DoorRotationSpeed, *Row->DoorRotationAngle.ToString());
-
     }
 }
 
@@ -75,7 +69,6 @@ void ARotatingGate::StartGateRotation()
 void ARotatingGate::Multicast_StartGateRotation_Implementation()
 {
     bIsRotating = true;
-    UE_LOG(LogTemp, Warning, TEXT("✅ 회전 시작됨 (Multicast_StartGateRotation)"));
 }
 
 void ARotatingGate::Tick(float DeltaTime)
