@@ -16,6 +16,11 @@
 #include "Player/Controller/PCController_GamePlay.h"
 #include "Player/Component/ItemManagerComponent.h"
 #include "Player/Component/EquipItemMeshActor.h" 
+#include "Player/Component/GrabActor.h" 
+#include "Components/SphereComponent.h"
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Player/Component/SkinManagerComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -38,6 +43,19 @@ APlayerCharacter::APlayerCharacter()
     Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
     Camera->bUsePawnControlRotation = false;
     Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+
+    GrabSphere = CreateDefaultSubobject<USphereComponent>(TEXT("GrabSphere"));
+    GrabSphere->SetupAttachment(GetMesh(), TEXT("hand_l_socket"));
+    GrabSphere->InitSphereRadius(100.f);
+    GrabSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    GrabSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+    GrabSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+    HandConstraint = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("HandConstraint"));
+    if (HandConstraint)
+    {
+        HandConstraint->SetupAttachment(GetMesh(), TEXT("hand_l_socket"));
+    }
 }
 
 //void APlayerCharacter::Tick(float DeltaTime)
@@ -88,6 +106,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     EIC->BindAction(ESCKeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleESCKey);
     EIC->BindAction(FKeyAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleFKey);
 
+    EIC->BindAction(GrabAction, ETriggerEvent::Triggered, this, &APlayerCharacter::HandleGrabKey);
+    EIC->BindAction(GrabAction, ETriggerEvent::Completed, this, &APlayerCharacter::HandleGrabKey);
+
     EIC->BindAction(CheatKeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleCheatKey);
     EIC->BindAction(Cheat2KeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleCheat2Key);
 }
@@ -105,6 +126,19 @@ void APlayerCharacter::BeginPlay()
         checkf(IsValid(EILPS), TEXT("EnhancedInputLocalPlayerSubsystem is invalid."));
 
         EILPS->AddMappingContext(InputMappingContext, 0);
+    }
+
+    if (HasAuthority())
+    {
+        FActorSpawnParameters Params;
+        Params.Owner = this;
+        Params.Instigator = this;
+        GrabActorInstance = GetWorld()->SpawnActor<AGrabActor>(
+            GrabActorClass,
+            GetActorLocation(),
+            GetActorRotation(),
+            Params
+        );
     }
 
     ValidateEssentialReferences();
@@ -568,7 +602,7 @@ void APlayerCharacter::RecoverFromStun()
     {
         EnableInput(PC);
         if (ULocalPlayer* LP = PC->GetLocalPlayer())
-    {
+        {
             if (UEnhancedInputLocalPlayerSubsystem* Subsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
             {
                 Subsys->AddMappingContext(InputMappingContext, 0);
@@ -727,28 +761,6 @@ void APlayerCharacter::HandleCheatKey(const FInputActionValue& Value)
     }
 }
 
-void APlayerCharacter::HandleCheat2Key(const FInputActionValue& Value)
-{
-    // 2번 키 할당
-    // 테스트용으로 사용
-    // 넣어야 될 내용 공유하고 지우고 커밋하기
-    /*
-        플레이어 mountainlevel에서 이동할 기능 필요
-    
-    */
-    APCController_GamePlay* PlayerController_GamePlay = GetController<APCController_GamePlay>();
-    if (IsValid(PlayerController_GamePlay))
-    {
-        if (PlayerController_GamePlay->IsLocalController() || PlayerController_GamePlay->LobbyWidget)
-        {
-            PlayerController_GamePlay->ServerTeleportToCheckpoint();
-        }
-    }
-    
-    //UE_LOG(LogTemp, Log, TEXT("Cheat2"));
-}
-
-
 void APlayerCharacter::ServerProcessDeath(FVector RespawnLocation)
 {
     if (APlayerController* PC = Cast<APlayerController>(GetController()))
@@ -758,4 +770,92 @@ void APlayerCharacter::ServerProcessDeath(FVector RespawnLocation)
     }
 
     Super::ServerProcessDeath_Implementation(RespawnLocation);
+}
+
+void APlayerCharacter::HandleCheat2Key(const FInputActionValue& Value)
+{
+    // 2번 키 할당
+    // 테스트용으로 사용
+    // 넣어야 될 내용 공유하고 지우고 커밋하기
+    /*
+        플레이어 mountainlevel에서 이동할 기능 필요
+
+    */
+    APCController_GamePlay* PlayerController_GamePlay = GetController<APCController_GamePlay>();
+    if (IsValid(PlayerController_GamePlay))
+    {
+        if (PlayerController_GamePlay->IsLocalController() || PlayerController_GamePlay->LobbyWidget)
+        {
+            PlayerController_GamePlay->ServerTeleportToCheckpoint();
+        }
+    }
+
+    //UE_LOG(LogTemp, Log, TEXT("Cheat2"));
+}
+
+void APlayerCharacter::HandleGrabKey(const FInputActionValue& Value)
+{
+    bool bPressed = Value.Get<bool>();
+    if (bPressed)
+    {
+        ServerStartGrab();
+    }
+    else
+    {
+        ServerStopGrab();
+    }
+}
+
+void APlayerCharacter::ServerStartGrab_Implementation()
+{
+    if (GrabActorInstance)
+    {
+        GrabActorInstance->ActivateGrab();
+        MulticastActivateGrab();
+    }
+}
+
+
+void APlayerCharacter::ServerStopGrab_Implementation()
+{
+    if (GrabActorInstance)
+    {
+        GrabActorInstance->ReleaseGrab();
+        MulticastReleaseGrab();
+    }
+}
+
+
+void APlayerCharacter::MulticastActivateGrab_Implementation()
+{
+    if (!HasAuthority() && GrabActorInstance)
+    {
+        GrabActorInstance->ActivateGrab();
+    }
+}
+
+void APlayerCharacter::MulticastReleaseGrab_Implementation()
+{
+    if (!HasAuthority() && GrabActorInstance)
+    {
+        GrabActorInstance->ReleaseGrab();
+    }
+}
+
+void APlayerCharacter::GrabTarget(USkeletalMeshComponent* TargetMesh, const FName& TargetBone)
+{
+    if (!HandConstraint || !TargetMesh) return;
+
+    HandConstraint->SetConstrainedComponents(GetMesh(), TEXT("hand_l"),
+        TargetMesh, TargetBone);
+
+    HandConstraint->ConstraintInstance.SetLinearXLimit(ELinearConstraintMotion::LCM_Locked, 0.f);
+    HandConstraint->ConstraintInstance.SetLinearYLimit(ELinearConstraintMotion::LCM_Locked, 0.f);
+    HandConstraint->ConstraintInstance.SetLinearZLimit(ELinearConstraintMotion::LCM_Locked, 0.f);
+
+    HandConstraint->ConstraintInstance.SetAngularSwing1Limit(EAngularConstraintMotion::ACM_Limited, 45.f);
+    HandConstraint->ConstraintInstance.SetAngularSwing2Limit(EAngularConstraintMotion::ACM_Limited, 45.f);
+    HandConstraint->ConstraintInstance.SetAngularTwistLimit(EAngularConstraintMotion::ACM_Limited, 45.f);
+
+    UE_LOG(LogTemp, Warning, TEXT("GrabTarget: 본 [%s]와 연결"), *TargetBone.ToString());
 }

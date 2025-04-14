@@ -32,9 +32,18 @@ void UPlayerAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 void UPlayerAnimInstanceBase::AnimNotify_CheckMeleeAttackHit()
 {
     APlayerCharacter* OwnerPlayerCharacter = Cast<APlayerCharacter>(OwnerCharacter);
-    if (IsValid(OwnerPlayerCharacter) && OwnerPlayerCharacter->HasAuthority())
+    if (IsValid(OwnerPlayerCharacter))
     {
-        OwnerPlayerCharacter->CheckMeleeAttackHit(OwnerPlayerCharacter->GetPendingAttackOffset());
+        if (OwnerPlayerCharacter->HasAuthority())
+        {
+            OwnerPlayerCharacter->CheckMeleeAttackHit(OwnerPlayerCharacter->GetPendingAttackOffset());
+        }
+
+        //UAnimMontage* CurrentMontage = GetCurrentActiveMontage();
+        //if (IsValid(CurrentMontage))
+        //{
+        //    Montage_SetPlayRate(CurrentMontage, 0.f);
+        //}
     }
 }
 
