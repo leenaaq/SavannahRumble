@@ -7,10 +7,29 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+// ---------- Blackboard Key Declaration ----------
 const FName AAIC_Enemy::GoalLocationKey(TEXT("GoalLocation"));
 const FName AAIC_Enemy::BuffItemLocationKey(TEXT("BuffItemLocation"));
 const FName AAIC_Enemy::UseItemLocationKey(TEXT("UesItemLocation"));
 const FName AAIC_Enemy::OtherPlayerLocationKey(TEXT("OtherPlayerLocation"));
+
+const FName AAIC_Enemy::ShouldChaseKey(TEXT("ShouldChase"));
+const FName AAIC_Enemy::ShouldAttackKey(TEXT("ShouldAttack"));
+const FName AAIC_Enemy::HaveWeaponKey(TEXT("HaveWeapon"));
+
+const FName AAIC_Enemy::TargetNameKey(TEXT("TargetName"));
+// ---------- ////////////////////////// ----------
+
+// ---------- Generat Debug Function ----------
+int32 AAIC_Enemy::ShowAIDebug(0);
+
+FAutoConsoleVariableRef CVarShowAIDebug(
+	TEXT("AI_System_Minjae.ShowAIDebug"),
+	AAIC_Enemy::ShowAIDebug,
+	TEXT(""),
+	ECVF_Cheat
+);
+// ---------- ///////////////////// ----------
 
 AAIC_Enemy::AAIC_Enemy()
 {
@@ -56,3 +75,12 @@ void AAIC_Enemy::EndAI()
 		BehaviorTreeComponent->StopTree();
 	}
 }
+
+// ---------- AI Character State Check ----------
+bool AAIC_Enemy::bIsEquip()
+{
+	// Check AI Character has Equip an item
+
+	return false;
+}
+// ---------- //////////////////////// ----------

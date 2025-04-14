@@ -5,34 +5,32 @@
 #include "AI/System/AIC_Enemy.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Item/TriggerItem.h"
 
 UBTT_AI_GetBuffLocation::UBTT_AI_GetBuffLocation()
 {
-	NodeName = TEXT("GetEndPatrolPosition");
+	NodeName = TEXT("GetBuffLocation");
 }
 
 EBTNodeResult::Type UBTT_AI_GetBuffLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 
-	if (EBTNodeResult::Failed == Result)
-	{
-		return Result;
-	}
-
 	AAIC_Enemy* AIController = Cast<AAIC_Enemy>(OwnerComp.GetAIOwner());
 	if (IsValid(AIController))
 	{
-		/*ABuffItemBase* BuffItem = Cast<AUseItemBase>(UGameplayStatics::GetActorOfClass(GetWorld(), ABuffItemBase::StaticClass()));
+		TArray<AActor*> BuffActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATriggerItem::StaticClass(), BuffActors);
 
-		if (BuffItem)
+		if (BuffActors.Num() > 0)
 		{
-			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::BuffItemLocationKey, BuffItem);
-			return Result = EBTNodeResult::Succeeded;
-		}*/
+			int32 BuffIndex = FMath::RandRange(0, BuffActors.Num() - 1);
+			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::UseItemLocationKey, BuffActors[BuffIndex]);
 
-		return Result;
+			return Result;
+		}
 	}
 
+	Result = EBTNodeResult::Failed;
 	return Result;
 }

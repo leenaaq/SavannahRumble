@@ -8,31 +8,26 @@
 
 UBTT_AI_GetIGoalLocation::UBTT_AI_GetIGoalLocation()
 {
-	NodeName = TEXT("GetEndPatrolPosition");
+	NodeName = TEXT("GetGoalLocation");
 }
 
 EBTNodeResult::Type UBTT_AI_GetIGoalLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 
-	if (EBTNodeResult::Failed == Result)
-	{
-		return Result;
-	}
-
 	AAIC_Enemy* AIController = Cast<AAIC_Enemy>(OwnerComp.GetAIOwner());
 	if (IsValid(AIController))
 	{
-		/*AGoalItemBase* GoalItem = Cast<AUseItemBase>(UGameplayStatics::GetActorOfClass(GetWorld(), AGoalItemBase::StaticClass()));
+		/*AActor* GoalActor = UGameplayStatics::GetActorOfClass(GetWorld(), AGoalActor::StaticClass());
 
-		if (GoalItem)
+		if (GoalActor)
 		{
-			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::GoalLocationKey, GoalItem);
-			return Result = EBTNodeResult::Succeeded;
+			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::UseItemLocationKey, GoalActor);
+
+			return Result;
 		}*/
-		
-		return Result;
 	}
 
+	Result = EBTNodeResult::Failed;
 	return Result;
 }

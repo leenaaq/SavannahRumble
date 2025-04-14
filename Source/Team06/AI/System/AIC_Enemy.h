@@ -29,12 +29,29 @@ protected:
 
 	void EndAI();
 
+	// ---------- AI Character State Check ----------
+public:
+	bool bIsEquip();
+
+	// ---------- Generat Debug Function ----------
+public:
+	static int32 ShowAIDebug;
+
 	// ---------- Blackboard Key Declaration ----------
 public:
+	// Vector
 	static const FName GoalLocationKey;
 	static const FName BuffItemLocationKey;
 	static const FName UseItemLocationKey;
 	static const FName OtherPlayerLocationKey;
+
+	// Bool
+	static const FName ShouldChaseKey;
+	static const FName ShouldAttackKey;
+	static const FName HaveWeaponKey;
+
+	// Name
+	static const FName TargetNameKey;
 
 	// ---------- Behavior Asset ----------
 private:

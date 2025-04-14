@@ -16,4 +16,5 @@ class TEAM06_API AAICharacter : public APlayerBase
 	
 public:
 	AAICharacter();
+
 };
