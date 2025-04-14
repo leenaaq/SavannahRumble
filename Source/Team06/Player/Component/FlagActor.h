@@ -7,7 +7,7 @@
 class USphereComponent;
 class UCapsuleComponent;
 class UStaticMeshComponent;
-
+class AController;
 UENUM(BlueprintType)
 enum class EFlagState : uint8
 {
@@ -39,11 +39,17 @@ protected:
 	UFUNCTION()
 	void ResetSwapCooldown();
 
+	UFUNCTION(Server,WithValidation,Reliable)
+	void OnServerFlagTriggered(APawn* NewOwnerPawn,AController* NewOwner);
+
 protected:
 
 	EFlagState FlagState = EFlagState::Idle;
-	FString CurrentOwnerName;
+
+	UPROPERTY(Replicated)
 	bool bCanSwap = true;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	FTimerHandle CooldownTimerHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

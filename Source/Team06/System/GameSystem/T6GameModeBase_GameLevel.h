@@ -41,16 +41,16 @@ public:
 
 private:
 	UFUNCTION()
-	void OnMainTimerElapsed();
+	virtual void OnMainTimerElapsed();
 public:
 	FTimerHandle MainTimerHandle;
 	FGameWinCallback OnGameWinHandled;
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	int32 GameStartCountDown = 5;
+	int32 GameStartCountDown = 10;
 
-	int32 RemainGameStartTimeForEnding = 5;
+	int32 RemainGameStartTimeForEnding = 10;
 
 
 #pragma region Ready

@@ -10,6 +10,8 @@
 #include "System/GameSystem/T6GameModeBase_GameLevel.h"
 #include "System/GameSystem/MyT6GSB_GL_Mountain.h"
 #include "Player/Player/PlayerCharacter.h"
+
+
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

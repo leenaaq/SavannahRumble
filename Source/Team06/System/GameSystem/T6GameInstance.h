@@ -37,7 +37,7 @@ public:
 	TMap<FString, FPlayerScore> PlayerScoreBoard;
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	int32 GameOverScoreToWin = 1;
+	int32 GameOverScoreToWin = 3;
 private:
 	TArray<FString> LevelList;
 

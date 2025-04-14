@@ -7,6 +7,9 @@
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 
+#include "System/GameSystem/T6GSB_GL_FlagMap.h"
+#include "Player/Controller/PCController_GamePlay.h"
+
 AFlagActor::AFlagActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -70,12 +73,21 @@ void AFlagActor::OnIdleTriggerBegin(UPrimitiveComponent* OverlappedComp, AActor*
 {
 	if (!HasAuthority() || FlagState != EFlagState::Idle || !OtherActor) return;
 
-	ACharacter* Character = Cast<ACharacter>(OtherActor);
-	if (!Character || !Character->GetPlayerState()) return;
+	APawn* Character = Cast<APawn>(OtherActor);
 
-	CurrentOwnerName = Character->GetPlayerState()->GetPlayerName();
-	AttachToPlayer(Character);
-	SetFlagState(EFlagState::Active);
+	AController* NewController = Character->GetController();
+	
+	if (NewController)
+	{
+		OnServerFlagTriggered(Character,NewController);
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid Controller"));
+	}
+
+
 }
 
 void AFlagActor::OnGameTriggerBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -83,17 +95,17 @@ void AFlagActor::OnGameTriggerBegin(UPrimitiveComponent* OverlappedComp, AActor*
 {
 	if (!HasAuthority() || FlagState != EFlagState::Active || !bCanSwap || !OtherActor) return;
 
-	ACharacter* NewChar = Cast<ACharacter>(OtherActor);
-	if (!NewChar || !NewChar->GetPlayerState()) return;
+	APawn* NewChar = Cast<APawn>(OtherActor);
+	AController* NewController = NewChar->GetController();
+	if (NewController)
+	{
+		OnServerFlagTriggered(NewChar, NewController);
 
-	const FString& NewName = NewChar->GetPlayerState()->GetPlayerName();
-	if (NewName == CurrentOwnerName) return;
-
-	CurrentOwnerName = NewName;
-	AttachToPlayer(NewChar);
-
-	bCanSwap = false;
-	GetWorld()->GetTimerManager().SetTimer(CooldownTimerHandle, this, &AFlagActor::ResetSwapCooldown, 1.0f, false);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid Controller"));
+	}	
 }
 
 void AFlagActor::AttachToPlayer(AActor* NewOwner)
@@ -109,4 +121,36 @@ void AFlagActor::AttachToPlayer(AActor* NewOwner)
 void AFlagActor::ResetSwapCooldown()
 {
 	bCanSwap = true;
+}
+
+void AFlagActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, bCanSwap);
+}
+
+bool AFlagActor::OnServerFlagTriggered_Validate(APawn* NewOwnerPawn, AController* NewOwner)
+{
+	return (IsValid(NewOwnerPawn) && IsValid(NewOwner));
+}
+
+void AFlagActor::OnServerFlagTriggered_Implementation(APawn* NewOwnerPawn, AController* NewOwner)
+{
+	AT6GSB_GL_FlagMap* GSB_F = GetWorld()->GetGameState<AT6GSB_GL_FlagMap>();
+
+	if (IsValid(GSB_F))
+	{
+		GSB_F->ServerChangeFlagOwner(NewOwner);
+
+		AttachToPlayer(NewOwnerPawn);
+		SetFlagState(EFlagState::Active);
+
+		bCanSwap = false;
+		GetWorld()->GetTimerManager().SetTimer(CooldownTimerHandle, this, &AFlagActor::ResetSwapCooldown, 1.0f, false);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("No GSB Founded at FlagActor"));
+	}
 }
