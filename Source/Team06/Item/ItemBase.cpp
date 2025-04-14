@@ -80,3 +80,15 @@ void AItemBase::Multicast_StopLoopEffect_Implementation()
 		UE_LOG(LogTemp, Log, TEXT("[ItemBase] 루프 이펙트 중단 (Multicast)"));
 	}
 }
+
+void AItemBase::OnItemPickedUp_Implementation(AActor* OtherActor)
+{
+	if (HasAuthority())
+	{
+		if (APlayerBase* Player = Cast<APlayerBase>(OtherActor))
+		{
+			Player->ServerSetEquippedItemName(ItemID);
+			UE_LOG(LogTemp, Log, TEXT("[ItemBase] %s 아이템 획득 (ID: %s)"), *Player->GetName(), *ItemID.ToString());
+		}
+	}
+}

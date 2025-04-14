@@ -72,6 +72,10 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_StopLoopEffect();
 
+	UFUNCTION(BlueprintNativeEvent, Category = "Item|Interaction")
+	void OnItemPickedUp(AActor* OtherActor);
+	virtual void OnItemPickedUp_Implementation(AActor* OtherActor);
+
 	// 상호작용 캐릭터 처리용 함수 (오버라이딩 가능)
 	UFUNCTION(BlueprintNativeEvent, Category = "Item|Interaction")
 	void ApplyToCharacter(APlayerBase* Character);

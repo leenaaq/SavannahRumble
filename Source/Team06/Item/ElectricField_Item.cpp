@@ -1,119 +1,99 @@
 #include "Item/ElectricField_Item.h"
+#include "Player/Player/PlayerBase.h"
 #include "NiagaraFunctionLibrary.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "TimerManager.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 AElectricField_Item::AElectricField_Item()
 {
-	PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = false;
+    bReplicates = true;
 
-	ItemMesh->SetSimulatePhysics(true);
-	ItemMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	ItemMesh->SetCollisionResponseToAllChannels(ECR_Block);
-	ItemMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); // 캐릭터 충돌 무시
-
-	FieldArea = CreateDefaultSubobject<USphereComponent>(TEXT("FieldArea"));
-	FieldArea->SetupAttachment(RootComponent);
-	FieldArea->InitSphereRadius(250.f);
-	FieldArea->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 처음엔 비활성화
-	FieldArea->SetCollisionResponseToAllChannels(ECR_Ignore);
-	FieldArea->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap); // 캐릭터만 감지
+    ItemID = "BP_ElectricField_Item";
 }
 
 void AElectricField_Item::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
-	// 충돌 감지 바인딩
-	if (FieldArea)
-	{
-		FieldArea->OnComponentBeginOverlap.AddDynamic(this, &AElectricField_Item::OnOverlapBegin);
-	}
+    UE_LOG(LogTemp, Warning, TEXT("[ElectricField] BeginPlay 호출됨"));
+}
+
+void AElectricField_Item::OnItemPickedUp(AActor* OtherActor)
+{
+    if (HasAuthority())
+    {
+        if (APlayerBase* Player = Cast<APlayerBase>(OtherActor))
+        {
+            Player->ServerSetEquippedItemName(ItemID);
+            UE_LOG(LogTemp, Warning, TEXT("[ElectricField] 아이템 습득: %s"), *Player->GetName());
+        }
+    }
 }
 
 void AElectricField_Item::ServerUseItem_Implementation(AActor* Target)
 {
-	// 사용되었다고 표시
-	if (!bIsActivated)
-	{
-		bIsActivated = true;
-		UE_LOG(LogTemp, Warning, TEXT("[ElectricField] 아이템 사용됨 → 착지 대기 상태"));
-	}
-}
+    if (!HasAuthority() || bFieldActivated) return;
 
-void AElectricField_Item::OnItemLanded_Implementation()
-{
-	Super::OnItemLanded_Implementation();
+    bFieldActivated = true;
+    UE_LOG(LogTemp, Warning, TEXT("[ElectricField] 아이템 사용됨 → %f초 뒤 발동 대기"), ActivationDelay);
 
-	ItemMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap); // 이제 캐릭터 반응 가능
-	FieldArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-
-	if (!bIsActivated || bHasLanded) return;
-
-	UE_LOG(LogTemp, Warning, TEXT("[ElectricField] 착지 감지됨 → 자기장 발동 시작"));
-
-	ActivateElectricField();
+    GetWorld()->GetTimerManager().SetTimer(ActivationTimerHandle, this, &AElectricField_Item::ActivateElectricField, ActivationDelay, false);
 }
 
 void AElectricField_Item::ActivateElectricField()
 {
-	// 이펙트 실행
-	if (FieldEffect)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FieldEffect, GetActorLocation(), GetActorRotation());
-		UE_LOG(LogTemp, Log, TEXT("[ElectricField] 나이아가라 이펙트 실행됨"));
-	}
+    if (!HasAuthority()) return;
 
-	// 메시 감추고 충돌 제거 (던진 아이템 비활성화)
-	if (ItemMesh)
-	{
-		ItemMesh->SetVisibility(false, true);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
+    UE_LOG(LogTemp, Warning, TEXT("[ElectricField] 자기장 발동 시작"));
 
-	// 자기장 영역 활성화
-	FieldArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    ApplyFieldEffect();
+    Multicast_PlayFieldEffect();
 
-	// 디버그 구체
-	DrawDebugSphere(GetWorld(), GetActorLocation(), FieldArea->GetScaledSphereRadius(), 16, FColor::Yellow, false, FieldDuration);
-
-	// 일정 시간 후 제거
-	GetWorld()->GetTimerManager().SetTimer(ActivationTimerHandle, this, &AElectricField_Item::DestroySelf, FieldDuration, false);
-
-	UE_LOG(LogTemp, Warning, TEXT("[ElectricField] 자기장 활성화 완료 → %f초 후 제거 예정"), FieldDuration);
+    GetWorld()->GetTimerManager().SetTimer(DurationTimerHandle, this, &AElectricField_Item::DestroyItem, FieldDuration, false);
 }
 
-void AElectricField_Item::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AElectricField_Item::ApplyFieldEffect()
 {
-	ACharacter* Character = Cast<ACharacter>(OtherActor);
-	if (Character)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[ElectricField] %s → Ragdoll 적용"), *Character->GetName());
+    TArray<AActor*> OverlappingActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerBase::StaticClass(), OverlappingActors);
 
-		Character->GetMesh()->SetSimulatePhysics(true);
-		Character->GetCharacterMovement()->DisableMovement();
+    for (AActor* Actor : OverlappingActors)
+    {
+        APlayerBase* Player = Cast<APlayerBase>(Actor);
+        if (Player && Player->GetHealth() > 0 && FVector::Dist(Player->GetActorLocation(), GetActorLocation()) <= FieldRadius)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[ElectricField] %s → Ragdoll 적용"), *Player->GetName());
 
-		// 일정 시간 후 복구
-		FTimerHandle RagdollTimer;
-		FTimerDelegate RagdollRestore;
-		RagdollRestore.BindLambda([Character]()
-			{
-				if (Character)
-				{
-					Character->GetMesh()->SetSimulatePhysics(false);
-					Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-					UE_LOG(LogTemp, Warning, TEXT("[ElectricField] %s Ragdoll 해제됨"), *Character->GetName());
-				}
-			});
-		GetWorld()->GetTimerManager().SetTimer(RagdollTimer, RagdollRestore, RagdollTime, false);
-	}
+            Player->OnStunned(true); // APlayerBase 함수 필요
+            FTimerHandle RestoreHandle;
+            FTimerDelegate RestoreDelegate;
+
+            RestoreDelegate.BindLambda([Player]()
+                {
+                    if (Player) Player->OnStunned(false);
+                });
+
+            GetWorld()->GetTimerManager().SetTimer(RestoreHandle, RestoreDelegate, FieldDuration, false);
+        }
+    }
+
+    DrawDebugSphere(GetWorld(), GetActorLocation(), FieldRadius, 16, FColor::Blue, false, FieldDuration);
 }
 
-void AElectricField_Item::DestroySelf()
+void AElectricField_Item::Multicast_PlayFieldEffect_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[ElectricField] 자기장 제거"));
-	Destroy();
+    if (FieldEffect)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), FieldEffect, GetActorLocation(), GetActorRotation(), FVector(1), true, true);
+    }
+}
+
+void AElectricField_Item::DestroyItem()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[ElectricField] 자기장 종료 → 아이템 제거"));
+    Destroy();
 }

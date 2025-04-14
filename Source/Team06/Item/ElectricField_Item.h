@@ -2,44 +2,51 @@
 
 #include "CoreMinimal.h"
 #include "Item/EquipableItem.h"
-#include "NiagaraComponent.h"
-#include "Components/SphereComponent.h"
 #include "ElectricField_Item.generated.h"
+
+class UNiagaraSystem;
+class USphereComponent;
 
 UCLASS()
 class TEAM06_API AElectricField_Item : public AEquipableItem
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 public:
-	AElectricField_Item();
+    AElectricField_Item();
 
 protected:
-	virtual void BeginPlay() override;
-    virtual void OnItemLanded_Implementation() override; // 착지 후 발동 오버라이드
+    virtual void BeginPlay() override;
+
+public:
+    virtual void OnItemPickedUp(AActor* OtherActor);
     virtual void ServerUseItem_Implementation(AActor* Target) override;
 
-    /** 자기장 발동 */
-    void ActivateElectricField();
+    void ActivateElectricField(); // 서버에서 실행됨
+    void ApplyFieldEffect();      // 실제 효과 적용
+    void DestroyItem();           // 아이템 제거
 
-    /** 자기장 제거 */
-    void DestroySelf();
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_PlayFieldEffect();
 
-    UFUNCTION()
-    void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+protected:
+    UPROPERTY(EditDefaultsOnly, Category = "ElectricField")
+    float FieldRadius = 400.f;
 
-    UPROPERTY(VisibleAnywhere, Category = "Components")
-    USphereComponent* FieldArea;
-
-    UPROPERTY(EditDefaultsOnly, Category = "ElectricEffect")
+    UPROPERTY(EditDefaultsOnly, Category = "ElectricField")
     float FieldDuration = 5.0f;
 
-    UPROPERTY(EditDefaultsOnly, Category = "ElectricEffect")
-    float RagdollTime = 2.0f;
+    UPROPERTY(EditDefaultsOnly, Category = "ElectricField")
+    float ActivationDelay = 5.0f;
 
-    UPROPERTY(EditDefaultsOnly, Category = "ElectricEffect")
-    UNiagaraSystem* FieldEffect; // Niagara 이펙트
+    UPROPERTY(EditDefaultsOnly, Category = "ElectricField")
+    float RagdollTime = 5.0f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "ElectricField")
+    UNiagaraSystem* FieldEffect;
+
+    FTimerHandle ActivationTimerHandle;
+    FTimerHandle DurationTimerHandle;
+
+    bool bFieldActivated = false;
 };
-
-

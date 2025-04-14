@@ -97,7 +97,15 @@ void AExplosive_Item::Multicast_ExplodeEffect_Implementation()
 {
     if (ExplosionEffect)
     {
-        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            GetWorld(),
+            ExplosionEffect,
+            GetActorLocation(),
+            FRotator::ZeroRotator,
+            FVector(1.0f),
+            true,   // bAutoDestroy = true
+            true    // bAutoActivate = true
+        );
     }
 
     if (ExplosionSound)
