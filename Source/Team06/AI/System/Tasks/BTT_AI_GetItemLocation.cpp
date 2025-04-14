@@ -4,7 +4,7 @@
 #include "AI/System/Tasks/BTT_AI_GetItemLocation.h"
 #include "AI/System/AIC_Enemy.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "kismet/GameplayStatics.h"
 #include "Item/EquipableItem.h"
 
 UBTT_AI_GetItemLocation::UBTT_AI_GetItemLocation()
@@ -27,7 +27,7 @@ EBTNodeResult::Type UBTT_AI_GetItemLocation::ExecuteTask(UBehaviorTreeComponent&
 			int32 ItemIndex = FMath::RandRange(0, ItemActors.Num() - 1);
 			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::UseItemLocationKey, ItemActors[ItemIndex]);
 
-			return Result;
+			return EBTNodeResult::Succeeded;
 		}
 	}
 

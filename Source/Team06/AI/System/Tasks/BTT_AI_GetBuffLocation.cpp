@@ -4,7 +4,7 @@
 #include "AI/System/Tasks/BTT_AI_GetBuffLocation.h"
 #include "AI/System/AIC_Enemy.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "kismet/GameplayStatics.h"
 #include "Item/TriggerItem.h"
 
 UBTT_AI_GetBuffLocation::UBTT_AI_GetBuffLocation()
@@ -25,9 +25,9 @@ EBTNodeResult::Type UBTT_AI_GetBuffLocation::ExecuteTask(UBehaviorTreeComponent&
 		if (BuffActors.Num() > 0)
 		{
 			int32 BuffIndex = FMath::RandRange(0, BuffActors.Num() - 1);
-			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::UseItemLocationKey, BuffActors[BuffIndex]);
+			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::BuffItemLocationKey, BuffActors[BuffIndex]);
 
-			return Result;
+			return EBTNodeResult::Succeeded;
 		}
 	}
 

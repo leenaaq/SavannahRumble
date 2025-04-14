@@ -4,7 +4,8 @@
 #include "AI/System/Tasks/BTT_AI_GetIGoalLocation.h"
 #include "AI/System/AIC_Enemy.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "kismet/GameplayStatics.h"
+#include "Player/Component/FlagActor.h"
 
 UBTT_AI_GetIGoalLocation::UBTT_AI_GetIGoalLocation()
 {
@@ -18,14 +19,14 @@ EBTNodeResult::Type UBTT_AI_GetIGoalLocation::ExecuteTask(UBehaviorTreeComponent
 	AAIC_Enemy* AIController = Cast<AAIC_Enemy>(OwnerComp.GetAIOwner());
 	if (IsValid(AIController))
 	{
-		/*AActor* GoalActor = UGameplayStatics::GetActorOfClass(GetWorld(), AGoalActor::StaticClass());
+		AActor* GoalActor = UGameplayStatics::GetActorOfClass(GetWorld(), AFlagActor::StaticClass());
 
 		if (GoalActor)
 		{
-			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::UseItemLocationKey, GoalActor);
+			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::GoalLocationKey, GoalActor);
 
 			return Result;
-		}*/
+		}
 	}
 
 	Result = EBTNodeResult::Failed;
