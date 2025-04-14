@@ -2,6 +2,7 @@
 
 #include "PlayerBase.h"
 #include "InputActionValue.h"
+#include "Player/Component/GrabActor.h" 
 #include "PlayerCharacter.generated.h"
 
 class UCameraComponent;
@@ -9,6 +10,7 @@ class USpringArmComponent;
 class UInputMappingContext;
 class UInputAction;
 class UAnimMontage;
+class USphereComponent;
 
 UCLASS()
 class TEAM06_API APlayerCharacter : public APlayerBase
@@ -67,6 +69,8 @@ private:
 	void HandleCheatKey(const FInputActionValue& Value);
 	void HandleCheat2Key(const FInputActionValue& Value);
 
+	void HandleGrabKey(const FInputActionValue& Value);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -94,6 +98,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputAction> FKeyAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
+	TObjectPtr<UInputAction> GrabAction;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Input")
 	TObjectPtr<UInputAction> CheatKeyAction;
@@ -179,5 +186,34 @@ private:
 
 	FVector PendingAttackOffset;
 	virtual void ServerProcessDeath(FVector RespawnLocation) override;
+#pragma endregion
+
+#pragma region Grab
+	protected:
+		UPROPERTY(EditDefaultsOnly, Category = "Grab")
+		TSubclassOf<AGrabActor> GrabActorClass;
+
+		UPROPERTY(VisibleAnywhere, Category = "Grab")
+		USphereComponent* GrabSphere;
+
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grab", meta = (AllowPrivateAccess = "true"))
+		UPhysicsConstraintComponent* HandConstraint;
+
+		UPROPERTY()
+		AGrabActor* GrabActorInstance = nullptr;
+
+		UFUNCTION(Server, Reliable)
+		void ServerStartGrab();
+
+		UFUNCTION(Server, Reliable)
+		void ServerStopGrab();
+
+		UFUNCTION(NetMulticast, Unreliable)
+		void MulticastActivateGrab();
+
+		UFUNCTION(NetMulticast, Unreliable)
+		void MulticastReleaseGrab();
+
+		void GrabTarget(USkeletalMeshComponent* TargetMesh, const FName& TargetBone);
 #pragma endregion
 };

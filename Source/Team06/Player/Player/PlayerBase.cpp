@@ -2,7 +2,6 @@
 #include "Net/UnrealNetwork.h"
 #include "Player/Component/ItemManagerComponent.h"
 #include "Components/ChildActorComponent.h"
-//#include "Player/Component/EquipItemMeshActor.h"
 #include "Components/ArrowComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -11,6 +10,7 @@
 #include "System/UI/UW_PlayerNameText.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
+#include "Player/Component/SkinManagerComponent.h"
 
 APlayerBase::APlayerBase()
 {
@@ -38,6 +38,8 @@ APlayerBase::APlayerBase()
 	PhysAnimData.VelocityStrength = 500.f;
 	PhysAnimData.MaxLinearForce = 500.f;
 	PhysAnimData.MaxAngularForce = 500.f;
+
+	SkinManagerComponent = CreateDefaultSubobject<USkinManagerComponent>(TEXT("SkinManager"));
 
 }
 
@@ -350,4 +352,3 @@ void APlayerBase::DeactivateActiveRagdoll()
 		}
 	}
 }
-

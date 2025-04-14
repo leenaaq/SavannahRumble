@@ -8,6 +8,8 @@
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
 #include "PlayerBase.generated.h"
 
+class USkinManagerComponent;
+
 USTRUCT(BlueprintType)
 struct FPlayerStats : public FTableRowBase
 {
@@ -80,6 +82,8 @@ public:
 	int32 GetLifeCount() const { return PlayerStats.LifeCount; }
 	bool GetbIsStunned() const { return bIsStunned; }
 	FName GetCurrentEquippedItemName() const { return CurrentEquippedItemName; }
+	const FPlayerStats& GetStats() const { return PlayerStats; }
+	bool GetbHasFlag() const { return bHasFlag; }
 
 	// Setters
 	void SetHealth(float NewHealth) { PlayerStats.Health = NewHealth; }
@@ -92,6 +96,7 @@ public:
 	void SetbIsStunned(bool NewbIsStunned) { bIsStunned = NewbIsStunned; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void SetEquippedItemName(FName NewItemName) { CurrentEquippedItemName = NewItemName; }
+	void SetbHasFlag(bool NewbHasFlag) { bHasFlag = NewbHasFlag; }
 	//void SetEquipItemMeshStatic(UStaticMesh* NewMesh);
 
 	UFUNCTION()
@@ -138,11 +143,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UPlayerTextWidgetComponent> PlayerNameWidgetComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
+	USkinManagerComponent* SkinManagerComponent;
+
 private:
 	FPlayerStats PlayerStats;
 	FTimerHandle RecoveryTimerHandle;
-	bool bPlayerNameInitialized = false;
 	FPhysicalAnimationData PhysAnimData;
 	FTimerHandle RecoveryRagdollTimerHandle;
+	bool bPlayerNameInitialized = false;
+	bool bHasFlag = false;
 
 };
