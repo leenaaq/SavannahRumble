@@ -1,88 +1,114 @@
 #include "Item/Explosive_Item.h"
 #include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
-#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "TimerManager.h"
-#include "Net/UnrealNetwork.h"
+#include "Player/Player/PlayerBase.h"
+#include "Engine/DamageEvents.h"
+#include "Engine/OverlapResult.h"
 
 AExplosive_Item::AExplosive_Item()
 {
-	PrimaryActorTick.bCanEverTick = false;
-	bReplicates = true;
+    PrimaryActorTick.bCanEverTick = false;
+    bReplicates = true;
 
-	// 폭발 영역 콜리전 추가
-	ExplosionArea = CreateDefaultSubobject<USphereComponent>(TEXT("ExplosionArea"));
-	ExplosionArea->SetupAttachment(RootComponent);
-	ExplosionArea->SetSphereRadius(ExplosionRadius);
-	ExplosionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	ExplosionArea->SetCollisionResponseToAllChannels(ECR_Ignore);
-	ExplosionArea->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+    ItemID = "BP_Explosive_Item";
 
-	UE_LOG(LogTemp, Warning, TEXT("[Explosive_Item] 생성됨 (Constructor)"));
+    ExplosionArea = CreateDefaultSubobject<USphereComponent>(TEXT("ExplosionArea"));
+    RootComponent = ExplosionArea;
+    ExplosionArea->SetSphereRadius(ExplosionRadius);
+    ExplosionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    ExplosionArea->SetCollisionResponseToAllChannels(ECR_Ignore);
+    ExplosionArea->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 }
 
 void AExplosive_Item::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
+    if (HasAuthority())
+    {
+        GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &AExplosive_Item::Explode, ExplosionDelay, false);
+        UE_LOG(LogTemp, Warning, TEXT("[Explosive_Item] %.1f초 후 폭발 예정"), ExplosionDelay);
+    }
 }
 
-void AExplosive_Item::OnItemLanded_Implementation()
+void AExplosive_Item::OnItemPickedUp(AActor* OtherActor)
 {
-	Super::OnItemLanded_Implementation();
-
-	if (!HasAuthority() || bIsActivated) return;
-
-	bIsActivated = true;
-
-	ExplosionArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-
-	UE_LOG(LogTemp, Log, TEXT("[Explosive_Item] 착지 감지됨 → %.1f초 후 폭발 예정"), ExplosionDelay);
-
-	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &AExplosive_Item::Explode, ExplosionDelay, false);
+    if (HasAuthority())
+    {
+        if (APlayerBase* Player = Cast<APlayerBase>(OtherActor))
+        {
+            Player->ServerSetEquippedItemName(ItemID);
+        }
+    }
 }
 
 void AExplosive_Item::Explode()
 {
-	if (!HasAuthority()) return;
+    if (!HasAuthority()) return;
 
-	Multicast_ExplodeEffect();
+    UE_LOG(LogTemp, Warning, TEXT("[Explosive_Item] 폭발 실행 (서버)"));
 
-	TArray<AActor*> OverlappedActors;
-	ExplosionArea->GetOverlappingActors(OverlappedActors, ACharacter::StaticClass());
+    ApplyExplosionEffect();
+    Multicast_ExplodeEffect();
 
-	for (AActor* Actor : OverlappedActors)
-	{
-		ACharacter* Character = Cast<ACharacter>(Actor);
-		if (Character)
-		{
-			FVector KnockDir = (Character->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-			FVector Force = KnockDir * KnockbackStrength;
+    GetWorld()->GetTimerManager().SetTimer(DestroyHandle, this, &AExplosive_Item::DestroyItem, 0.2f, false);
+}
 
-			Character->LaunchCharacter(Force, true, true);
-			UGameplayStatics::ApplyDamage(Character, Damage, GetInstigatorController(), this, nullptr);
+void AExplosive_Item::ApplyExplosionEffect()
+{
+    TArray<FOverlapResult> OverlapResults;
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(this);
 
-			UE_LOG(LogTemp, Log, TEXT("[Explosive_Item] %s 넉백 및 데미지 %.0f 적용됨"), *Character->GetName(), Damage);
-		}
-	}
+    bool bHit = GetWorld()->OverlapMultiByChannel(
+        OverlapResults,
+        GetActorLocation(),
+        FQuat::Identity,
+        ECC_Pawn,
+        FCollisionShape::MakeSphere(ExplosionRadius),
+        QueryParams
+    );
 
-	Destroy();
+    UE_LOG(LogTemp, Warning, TEXT("[Explosive_Item] 감지된 플레이어 수: %d"), OverlapResults.Num());
+
+    for (const FOverlapResult& Result : OverlapResults)
+    {
+        APlayerBase* Player = Cast<APlayerBase>(Result.GetActor());
+        if (Player && Player->GetHealth() > 0)
+        {
+            FVector KnockDir = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+            FVector LaunchVelocity = KnockDir * KnockbackStrength;
+
+            Player->LaunchCharacter(LaunchVelocity, true, true);
+            Player->TakeDamage(Damage, FDamageEvent(), GetInstigatorController(), this);
+            Player->OnStunned();
+            UE_LOG(LogTemp, Warning, TEXT("[Explosive_Item] %s 데미지: %.1f | 넉백: %.0f"),
+                *Player->GetName(), Damage, KnockbackStrength);
+        }
+    }
+
+    DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 16, FColor::Red, false, 2.0f);
 }
 
 void AExplosive_Item::Multicast_ExplodeEffect_Implementation()
 {
-	// 이펙트
-	if (ExplosionEffect)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
-	}
-	// 사운드
-	if (ExplosionSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
-	}
+    if (ExplosionEffect)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
+    }
 
-	DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 16, FColor::Red, false, 2.0f);
+    if (ExplosionSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
+    }
+
+    DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 16, FColor::Red, false, 2.0f);
+}
+
+void AExplosive_Item::DestroyItem()
+{
+    Destroy();
 }

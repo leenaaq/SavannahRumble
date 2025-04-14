@@ -1,3 +1,4 @@
+// Explosive_Item.h
 #pragma once
 
 #include "CoreMinimal.h"
@@ -5,51 +6,56 @@
 #include "Explosive_Item.generated.h"
 
 class USphereComponent;
+class UNiagaraSystem;
+class USoundBase;
 
 UCLASS()
 class TEAM06_API AExplosive_Item : public AEquipableItem
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 public:
-	AExplosive_Item();
+    AExplosive_Item();
 
 protected:
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
-	virtual void OnItemLanded_Implementation() override; // 착지 후 폭발 예약|
+    virtual void OnItemPickedUp(AActor* OtherActor);
 
-	UFUNCTION()
-	void Explode();
+    UFUNCTION()
+    void Explode();
 
-	/** 클라이언트에 폭발 이펙트 보여주기 */
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_ExplodeEffect();
+    UFUNCTION()
+    void ApplyExplosionEffect();
 
-	// 폭발 기능
-	UPROPERTY(EditDefaultsOnly, Category = "Explosion")
-	float ExplosionDelay = 3.0f;
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_ExplodeEffect();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Explosion")
-	float ExplosionRadius = 400.0f;
+    void DestroyItem();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Explosion")
-	float Damage = 40.0f;
+protected:
+    UPROPERTY(VisibleAnywhere, Category = "Component")
+    TObjectPtr<USphereComponent> ExplosionArea;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Explosion")
-	float KnockbackStrength = 1200.0f;
+    UPROPERTY(EditDefaultsOnly, Category = "Explosion")
+    float ExplosionDelay = 3.0f;
 
-	// 폭발 범위 콜리전만 특화로 유지
-	UPROPERTY(VisibleAnywhere, Category = "Explosion")
-	USphereComponent* ExplosionArea;
+    UPROPERTY(EditDefaultsOnly, Category = "Explosion")
+    float ExplosionRadius = 400.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Explosion|Effect")
-	UNiagaraSystem* ExplosionEffect;
+    UPROPERTY(EditDefaultsOnly, Category = "Explosion")
+    float Damage = 100.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Explosion|Sound")
-	USoundBase* ExplosionSound;
+    UPROPERTY(EditDefaultsOnly, Category = "Explosion")
+    float KnockbackStrength = 1200.0f;
 
+    UPROPERTY(EditAnywhere, Category = "Explosion|Effect")
+    TObjectPtr<UNiagaraSystem> ExplosionEffect;
+
+    UPROPERTY(EditAnywhere, Category = "Explosion|Sound")
+    TObjectPtr<USoundBase> ExplosionSound;
 
 private:
-	FTimerHandle ExplosionTimerHandle;
+    FTimerHandle ExplosionTimerHandle;
+    FTimerHandle DestroyHandle;
 };

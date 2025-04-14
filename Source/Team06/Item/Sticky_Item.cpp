@@ -25,7 +25,7 @@ ASticky_Item::ASticky_Item()
 void ASticky_Item::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	if (SlowArea)
 	{
 		SlowArea->OnComponentBeginOverlap.AddDynamic(this, &ASticky_Item::OnOverlapBegin);
@@ -35,6 +35,7 @@ void ASticky_Item::BeginPlay()
 	{
 		DrawDebugSphere(GetWorld(), GetActorLocation(), SlowArea->GetScaledSphereRadius(), 16, FColor::Cyan, true, 9999.f, 0, 1.5f);
 	}
+	OnItemLanded();
 }
 
 void ASticky_Item::ServerUseItem_Implementation(AActor* Target)
