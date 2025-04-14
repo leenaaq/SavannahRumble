@@ -1,16 +1,13 @@
 #include "Item/ElectricField_Item.h"
 #include "NiagaraFunctionLibrary.h"
-#include "Player/Player/PlayerBase.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "DrawDebugHelpers.h"
-#include "TimerManager.h"
 
 AElectricField_Item::AElectricField_Item()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
-	ItemID = "BP_ElectricField_Item";
 
 	ItemMesh->SetSimulatePhysics(true);
 	ItemMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -34,7 +31,6 @@ void AElectricField_Item::BeginPlay()
 	{
 		FieldArea->OnComponentBeginOverlap.AddDynamic(this, &AElectricField_Item::OnOverlapBegin);
 	}
-	OnItemLanded();
 }
 
 void AElectricField_Item::ServerUseItem_Implementation(AActor* Target)
@@ -51,12 +47,10 @@ void AElectricField_Item::OnItemLanded_Implementation()
 {
 	Super::OnItemLanded_Implementation();
 
-	if (!bIsActivated || bHasLanded) return;
-
-	bHasLanded = true;
-
-	ItemMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	ItemMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap); // 이제 캐릭터 반응 가능
 	FieldArea->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	if (!bIsActivated || bHasLanded) return;
 
 	UE_LOG(LogTemp, Warning, TEXT("[ElectricField] 착지 감지됨 → 자기장 발동 시작"));
 
@@ -94,13 +88,27 @@ void AElectricField_Item::ActivateElectricField()
 void AElectricField_Item::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	APlayerBase* Player = Cast<APlayerBase>(OtherActor);
-	if (Player && !Player->GetbIsStunned() && !AffectedPlayers.Contains(Player))
+	ACharacter* Character = Cast<ACharacter>(OtherActor);
+	if (Character)
 	{
-		AffectedPlayers.Add(Player);
-		Player->OnStunned(FieldDuration);
+		UE_LOG(LogTemp, Warning, TEXT("[ElectricField] %s → Ragdoll 적용"), *Character->GetName());
 
-		UE_LOG(LogTemp, Warning, TEXT("[ElectricField] %s → OnStunned(%f) 호출됨"), *Player->GetName(), FieldDuration);
+		Character->GetMesh()->SetSimulatePhysics(true);
+		Character->GetCharacterMovement()->DisableMovement();
+
+		// 일정 시간 후 복구
+		FTimerHandle RagdollTimer;
+		FTimerDelegate RagdollRestore;
+		RagdollRestore.BindLambda([Character]()
+			{
+				if (Character)
+				{
+					Character->GetMesh()->SetSimulatePhysics(false);
+					Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+					UE_LOG(LogTemp, Warning, TEXT("[ElectricField] %s Ragdoll 해제됨"), *Character->GetName());
+				}
+			});
+		GetWorld()->GetTimerManager().SetTimer(RagdollTimer, RagdollRestore, RagdollTime, false);
 	}
 }
 

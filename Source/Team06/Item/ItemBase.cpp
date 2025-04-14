@@ -18,14 +18,6 @@ void AItemBase::BeginPlay()
 	
 }
 
-void AItemBase::OnItemPickedUp(AActor* OtherActor)
-{
-	if (APlayerBase* Player = Cast<APlayerBase>(OtherActor))
-	{
-		Player->ServerSetEquippedItemName(ItemID);  // ← this->ItemID 또는 그냥 ItemID 사용
-	}
-}
-
 void AItemBase::PlayItemEffects(FVector Location)
 {
 	if (NiagaraEffect)

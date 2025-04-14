@@ -60,7 +60,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void ValidateEssentialReferences();
-	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
 	// 데이터 테이블 적용
 	void UpdateStatsFromDataTable();
@@ -116,9 +116,6 @@ public:
 	void ActiveRagdoll();
 	void DeactivateActiveRagdoll();
 
-	const FPlayerStats& GetStats() const { return PlayerStats; }
-
-	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UItemManagerComponent* ItemManager;
