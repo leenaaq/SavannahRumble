@@ -6,9 +6,6 @@
 #include "Components/SphereComponent.h"
 #include "ElectricField_Item.generated.h"
 
-class APlayerBase;
-class UNiagaraSystem;
-
 UCLASS()
 class TEAM06_API AElectricField_Item : public AEquipableItem
 {
@@ -43,9 +40,6 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "ElectricEffect")
     UNiagaraSystem* FieldEffect; // Niagara 이펙트
-
-    UPROPERTY()
-    TSet<APlayerBase*> AffectedPlayers;
 };
 
 
