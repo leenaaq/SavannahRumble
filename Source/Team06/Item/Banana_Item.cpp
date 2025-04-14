@@ -1,4 +1,5 @@
 #include "Item/Banana_Item.h"
+#include "Player/Player/PlayerBase.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -9,38 +10,45 @@ void ABanana_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 {
 	Super::TriggerEffect_Implementation(OverlappedActor);
 
-	ACharacter* Character = Cast<ACharacter>(OverlappedActor);
-	if (Character && Character->GetMesh())
+	APlayerBase* Player = Cast<APlayerBase>(OverlappedActor);
+	if (!Player || !Player->GetMesh()) return;
+
+	// 사운드
+	if (SlipSound)
 	{
-		//효과음 재생 (모든 클라이언트에서 들림)
-		if (SlipSound)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SlipSound, GetActorLocation());
+	}
+
+	// 로그
+	UE_LOG(LogTemp, Warning, TEXT("[Banana_Item] %s slipped on banana!"), *Player->GetName());
+
+	// 기절 처리
+	Player->OnStunned(Player->GetStats().StunDuration); // or 직접 값 지정
+	Player->SetbIsStunned(true);
+
+	// 물리
+	USkeletalMeshComponent* Mesh = Player->GetMesh();
+	Mesh->SetSimulatePhysics(true);
+	Mesh->SetCollisionProfileName(FName("Ragdoll"));
+
+	// Impulse 적용
+	const FVector Impulse = Player->GetActorForwardVector() * SlideForce;
+	Mesh->AddImpulse(Impulse, NAME_None, true);
+	UE_LOG(LogTemp, Warning, TEXT("[Banana_Item] Impulse applied: %s"), *Impulse.ToString());
+
+	// 일정 시간 후 복구
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [Player]()
 		{
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), SlipSound, GetActorLocation());
-		}
-
-		// 로그
-		UE_LOG(LogTemp, Log, TEXT("[Banana_Item] %s 캐릭터가 바나나에 의해 랙돌 상태로 전환됨. 슬라이드 힘: %f"), *Character->GetName(), SlideForce);
-
-		// 랙돌
-		Character->GetMesh()->SetSimulatePhysics(true);
-
-		// 앞으로 밀기
-		FVector Forward = Character->GetActorForwardVector();
-		Character->GetMesh()->AddImpulse(Forward * SlideForce, NAME_None, true);
-
-		// 일정 시간 뒤 원상 복귀
-		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, [Character]()
+			if (Player && Player->GetMesh())
 			{
-				if (IsValid(Character) && Character->GetMesh())
-				{
-					Character->GetMesh()->SetSimulatePhysics(false);
-					UE_LOG(LogTemp, Log, TEXT("[Banana_Item] %s 캐릭터 랙돌 해제됨"), *Character->GetName());
-				}
-			}, RagdollDuration, false);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Banana_Item] 랙돌 적용 실패 - 유효하지 않은 캐릭터 또는 메시."));
-	}
+				Player->GetMesh()->SetSimulatePhysics(false);
+				Player->GetMesh()->SetCollisionProfileName(FName("CharacterMesh"));
+
+				Player->SetbIsStunned(false);
+				Player->MulticastRecoverFromStun_Implementation(); // 상태 복구 (모든 클라)
+
+				UE_LOG(LogTemp, Warning, TEXT("[Banana_Item] %s 랙돌 복구됨"), *Player->GetName());
+			}
+		}, RagdollDuration, false);
 }

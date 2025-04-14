@@ -31,8 +31,13 @@ public:
 	// 외부에서 안전하게 접근 가능하도록 Getter 제공
 	FName GetItemID() const { return ItemID; }
 
+	
+
 protected:
 	
+	UFUNCTION(BlueprintCallable)
+	virtual void OnItemPickedUp(AActor* OtherActor);
+
 	// 이펙트 & 사운드 공통 속성
 	UPROPERTY(EditAnywhere, Category = "Effect")
 	UNiagaraSystem* NiagaraEffect;
