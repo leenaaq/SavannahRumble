@@ -116,8 +116,6 @@ void AFallingGround::Multicast_StartFalling_Implementation()
 
 void AFallingGround::ScheduleDestroy()
 {
-    UE_LOG(LogTemp, Warning, TEXT("💣 ScheduleDestroy Called on: %s (HasAuthority: %d)"), *GetName(), HasAuthority());
-
     if (HasAuthority())
     {
         Destroy();
