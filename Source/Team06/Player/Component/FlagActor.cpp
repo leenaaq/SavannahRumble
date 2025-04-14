@@ -77,7 +77,7 @@ void AFlagActor::OnIdleTriggerBegin(UPrimitiveComponent* OverlappedComp, AActor*
 
 	AController* NewController = Character->GetController();
 	
-	if (NewController)
+	if (IsValid(Character)||IsValid(NewController))
 	{
 		OnServerFlagTriggered(Character,NewController);
 
@@ -97,7 +97,7 @@ void AFlagActor::OnGameTriggerBegin(UPrimitiveComponent* OverlappedComp, AActor*
 
 	APawn* NewChar = Cast<APawn>(OtherActor);
 	AController* NewController = NewChar->GetController();
-	if (NewController)
+	if (IsValid(NewChar) || IsValid(NewController))
 	{
 		OnServerFlagTriggered(NewChar, NewController);
 
