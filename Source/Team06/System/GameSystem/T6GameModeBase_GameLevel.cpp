@@ -188,7 +188,15 @@ void AT6GameModeBase_GameLevel::OnMainTimerElapsed()
 		// 누가 이겼다면
 		if(bIsGameLevelFinished)
 		{
-			MPGameState->MatchState = EMatchState::Ending;
+			if (!bIsGameFinallyFinished)
+			{
+				MPGameState->MatchState = EMatchState::Ending;
+			}
+			else
+			{
+				MPGameState->MatchState = EMatchState::End;
+			}
+			
 		}
 		break;
 	}
@@ -217,7 +225,27 @@ void AT6GameModeBase_GameLevel::OnMainTimerElapsed()
 		break;
 	}
 	case EMatchState::End:
+	{
+		FString NotificationString = FString::Printf(TEXT("Loading GameResult in %d"), RemainGameStartTimeForEnding);
+
+		NotifyToAllPlayer(NotificationString);
+
+		--RemainGameStartTimeForEnding;
+
+		if (RemainGameStartTimeForEnding <= 0)
+		{
+			// Gameover
+			MainTimerHandle.Invalidate();
+			MPGameState->MatchState = EMatchState::Loading;
+			OnShowingLoadingScreen();
+			GetWorld()->ServerTravel(GameOvermap, true);
+			return;
+		}
+
+
 		break;
+	}
+
 	default:
 		break;
 	}
@@ -276,8 +304,18 @@ void AT6GameModeBase_GameLevel::InitiatedGameLevelEnding(APlayerController* Winn
 	{
 		return;
 	}
-	MPGameState->MatchState = EMatchState::Ending;
 	bIsGameLevelFinished = true;
+
+	if (!bIsGameFinallyFinished)
+	{
+		MPGameState->MatchState = EMatchState::Ending;
+	}
+	else
+	{
+		MPGameState->MatchState = EMatchState::End;
+	}
+
+
 
 	if (Winner)
 	{

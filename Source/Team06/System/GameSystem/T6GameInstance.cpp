@@ -5,7 +5,8 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
 #include "AssetRegistry/AssetData.h"
-
+#include "System/GameSystem/T6GameModeBase.h"
+#include "System/GameSystem/T6GameStateBase.h"
 void UT6GameInstance::Init()
 {
 	Super::Init();
@@ -71,7 +72,15 @@ void UT6GameInstance::CheckWinScore()
 		if (PlayerScore.Value.TotalWins == GameOverScoreToWin)
 		{
 			FString WinnerName = PlayerScore.Value.PlayerName;
+			FinalWinnerController = WinnerName;
 			UE_LOG(LogTemp, Error, TEXT("%s has Win This Game!!!  % s has Win This Game!!! Game is Over Now!!!!!!!"), *WinnerName,*WinnerName);
+
+			AT6GameModeBase* GMB = GetWorld()->GetAuthGameMode<AT6GameModeBase>();
+			if (GMB)
+			{
+				GMB->bIsGameFinallyFinished = true;
+				GMB->GetGameState<AT6GameStateBase>()->MatchState = EMatchState::End;
+			}
 		}
 	}
 }

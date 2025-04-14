@@ -35,7 +35,12 @@ public:
 public:
 	UPROPERTY()
 	TMap<FString, FPlayerScore> PlayerScoreBoard;
+protected:
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	int32 GameOverScoreToWin = 1;
 private:
 	TArray<FString> LevelList;
-	int32 GameOverScoreToWin = 3;
+
+public:
+	FString FinalWinnerController = TEXT("NoOne");
 };

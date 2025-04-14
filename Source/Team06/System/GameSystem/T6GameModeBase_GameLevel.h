@@ -67,8 +67,11 @@ protected:
 
 public:
 	bool bIsGameLevelFinished = false;
+
 protected:
 	void InitiatedGameLevelEnding(APlayerController* Winner);
+	void HandleGameOverEnding();
+
 #pragma endregion
 
 };
