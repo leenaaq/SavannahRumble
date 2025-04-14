@@ -39,6 +39,10 @@ public:
 public:
 	void ChangeGameLevel();
 	void OnShowingLoadingScreen();
-#pragma endregion
 
+protected:
+	FString GameOvermap = TEXT("/Game/Team6/GameSystem/GS_Level/GameResultMap");
+#pragma endregion
+public:
+	bool bIsGameFinallyFinished = false;
 };
