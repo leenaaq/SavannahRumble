@@ -51,5 +51,22 @@ public:
 	UFUNCTION()
 	void OnRep_bIsReady();
 
-#pragma region
+#pragma endregion
+
+#pragma region CheatWin
+public:
+	UFUNCTION(Server, Reliable)
+	void Server_TriggerRandomPlayerWin();
+
+#pragma endregion
+
+#pragma region MountainLevelGoal
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerNotifyGoalReached();
+	UFUNCTION(Server, Reliable)
+	void ServerTeleportToCheckpoint();
+#pragma endregion
+
+
 };

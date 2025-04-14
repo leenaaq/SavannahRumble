@@ -49,6 +49,12 @@ public:
 	APlayerBase();
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	virtual void ServerProcessDeath(FVector RespawnLocation);
+
+	UFUNCTION(Server, Reliable)
+	void RespawnCharacter(FVector RespawnLocation);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetEquippedItemName(FName NewItemName);
 
 	virtual void BeginPlay() override;
@@ -60,7 +66,9 @@ public:
 	void UpdateStatsFromDataTable();
 
 	// 기절
+	UFUNCTION(BlueprintCallable, Category = "Player")
 	virtual void OnStunned();
+	virtual void OnStunned(float StunTime);
 
 	// Getters
 	float GetHealth() const { return PlayerStats.Health; }
@@ -84,7 +92,7 @@ public:
 	void SetbIsStunned(bool NewbIsStunned) { bIsStunned = NewbIsStunned; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void SetEquippedItemName(FName NewItemName) { CurrentEquippedItemName = NewItemName; }
-	void SetEquipItemMeshStatic(UStaticMesh* NewMesh);
+	//void SetEquipItemMeshStatic(UStaticMesh* NewMesh);
 
 	UFUNCTION()
 	void OnRep_CurrentEquippedItemName();
@@ -102,6 +110,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FDataTableRowHandle StatsRowHandle;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setting|Component")
+	UChildActorComponent* EquipItemMeshActorComponent;
+
+	void ActiveRagdoll();
+	void DeactivateActiveRagdoll();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UItemManagerComponent* ItemManager;
@@ -112,9 +126,12 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentEquippedItemName, BlueprintReadWrite)
 	FName CurrentEquippedItemName = "DEFAULT";
 
+<<<<<<< HEAD
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
 	class UChildActorComponent* EquipItemChildActor;
 
+=======
+>>>>>>> ItemNew
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	float RemainingStunTime = 0.0f;
 
@@ -131,4 +148,7 @@ private:
 	FPlayerStats PlayerStats;
 	FTimerHandle RecoveryTimerHandle;
 	bool bPlayerNameInitialized = false;
+	FPhysicalAnimationData PhysAnimData;
+	FTimerHandle RecoveryRagdollTimerHandle;
+
 };

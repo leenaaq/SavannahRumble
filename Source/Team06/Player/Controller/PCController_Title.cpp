@@ -38,7 +38,7 @@ void APCController_Title::JoinServer(const FString& InIPAddress, const FString& 
 	//UGameplayStatics::OpenLevel(GetWorld(), NextLevelName, true, Options);
 
 	FString EncodedName = FGenericPlatformHttp::UrlEncode(InUserName);// 공백제거로 URL화
-	FString TravelURL = FString::Printf(TEXT("%s?Name=%s"), *InIPAddress, *EncodedName);
+	FString TravelURL = FString::Printf(TEXT("%s?TName=%s?Client=true"), *InIPAddress, *EncodedName);
 	this->PlayerState->SetPlayerName(InUserName);
 	ClientTravel(TravelURL, TRAVEL_Absolute);
 

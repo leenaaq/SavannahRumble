@@ -9,6 +9,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "TimerManager.h"
 #include "System/UI/UW_PlayerNameText.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
 
 APlayerBase::APlayerBase()
@@ -17,11 +18,16 @@ APlayerBase::APlayerBase()
 
 	ItemManager = CreateDefaultSubobject<UItemManagerComponent>(TEXT("ItemManager"));
 
+<<<<<<< HEAD
 	EquipItemChildActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemChildActor"));
 	EquipItemChildActor->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
 	EquipItemChildActor->SetChildActorClass(AEquipItemMeshActor::StaticClass());
 
 	//EquipItemMesh->SetVisibility(false);
+=======
+	EquipItemMeshActorComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("EquipItemMeshActorComponent"));
+	EquipItemMeshActorComponent->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
+>>>>>>> ItemNew
 
 	MuzzleComponent = CreateDefaultSubobject<UArrowComponent>(TEXT("MuzzleComponent"));
 	MuzzleComponent->SetupAttachment(GetMesh(), TEXT("hand_r_socket"));
@@ -32,14 +38,27 @@ APlayerBase::APlayerBase()
 	PlayerNameWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 	PlayerNameWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+<<<<<<< HEAD
 
 	PhysicalAnimationComponent = CreateDefaultSubobject<UPhysicalAnimationComponent>(TEXT("PhysicalAnimationComponent"));
+=======
+	PhysicalAnimationComponent = CreateDefaultSubobject<UPhysicalAnimationComponent>(TEXT("PhysicalAnimationComponent"));
+	PhysAnimData.bIsLocalSimulation = true;
+	PhysAnimData.OrientationStrength = 5000.f;
+	PhysAnimData.AngularVelocityStrength = 500.f;
+	PhysAnimData.PositionStrength = 5000.f;
+	PhysAnimData.VelocityStrength = 500.f;
+	PhysAnimData.MaxLinearForce = 500.f;
+	PhysAnimData.MaxAngularForce = 500.f;
+
+>>>>>>> ItemNew
 }
 
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+<<<<<<< HEAD
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
 		FPhysicalAnimationData PhysAnimData;
@@ -55,7 +74,11 @@ void APlayerBase::BeginPlay()
 		MeshComp->SetAllBodiesBelowSimulatePhysics(TEXT("pelvis"), true, false);
 	}
 
+=======
+>>>>>>> ItemNew
 	ValidateEssentialReferences();
+	ActiveRagdoll();
+	//DeactivateActiveRagdoll();
 	UpdateStatsFromDataTable();
 
 	if (PlayerNameWidgetComponent)
@@ -109,26 +132,18 @@ void APlayerBase::Tick(float DeltaTime)
 
 void APlayerBase::ValidateEssentialReferences()
 {
-	//if (EquipItemChildActor == nullptr)
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : EquipItemChildActor is missing!"));
-	//}
-
-	if (ItemManager == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : ItemManagerComponent is missing!"));
-	}
-
-	if (StatsRowHandle.DataTable == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[CHECK] BPCP or BPAI : StatsRowHandle.DataTable is not assigned!"));
-	}
-
-	if (MuzzleComponent == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[CHECK] BP_PlayerCharacter : MuzzleComponent is not set!"));
-	}
-
+    if (!ItemManager)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerBase.cpp : ItemManagerComponent 확인"));
+    }
+    if (!StatsRowHandle.DataTable)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerBase.cpp : StatsRowHandle.DataTable 확인"));
+    }
+    if (!MuzzleComponent)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerBase.cpp : MuzzleComponent 확인"));
+    }
 }
 
 // 데이터 테이블 업데이트
@@ -171,6 +186,13 @@ float APlayerBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 // 스턴 시 레그돌
 void APlayerBase::OnStunned()
 {
+	DeactivateActiveRagdoll();
+	OnStunned(PlayerStats.StunDuration);
+}
+
+void APlayerBase::OnStunned(float StunTime)
+{
+	DeactivateActiveRagdoll();
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
 		if (UAnimInstance* AnimInstance = MeshComp->GetAnimInstance())
@@ -185,7 +207,19 @@ void APlayerBase::OnStunned()
 		MeshComp->bBlendPhysics = true;
 	}
 
-	RemainingStunTime = PlayerStats.StunDuration;
+	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+	{
+		Movement->StopMovementImmediately();
+		Movement->DisableMovement();
+	}
+
+	if (UCapsuleComponent* CapsuleComp = GetCapsuleComponent())
+	{
+		CapsuleComp->SetPhysicsLinearVelocity(FVector::ZeroVector);
+		CapsuleComp->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+	}
+
+	RemainingStunTime = StunTime;
 	if (HasAuthority())
 	{
 		GetWorld()->GetTimerManager().SetTimer(
@@ -206,7 +240,6 @@ void APlayerBase::MulticastRecoverFromStun_Implementation()
 void APlayerBase::RecoverFromStun()
 {
 	bIsStunned = false;
-
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
 		MeshComp->SetSimulatePhysics(false);
@@ -217,9 +250,9 @@ void APlayerBase::RecoverFromStun()
 		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 		MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 	}
+	ActiveRagdoll();
 	SetHealth(GetMaxHealth());
 }
-
 
 void APlayerBase::OnRep_bIsStunned()
 {
@@ -239,21 +272,25 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void APlayerBase::OnRep_CurrentEquippedItemName()
 {
-	if (ItemManager)
+	if (!ItemManager)
 	{
-		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+		UE_LOG(LogTemp, Warning, TEXT("PlayerBase.cpp : ItemManagerComponent 확인"));
+		return;
 	}
+	ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
 }
 
 void APlayerBase::ServerSetEquippedItemName_Implementation(FName NewItemName)
 {
 	CurrentEquippedItemName = NewItemName;
 
-	if (ItemManager)
+	if (!ItemManager)
 	{
-		ItemManager->ServerEquipItem(NewItemName);
-		ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
+		UE_LOG(LogTemp, Warning, TEXT("PlayerBase.cpp : ItemManagerComponent 확인"));
+		return;
 	}
+	ItemManager->ServerEquipItem(NewItemName);
+	ItemManager->UpdateItemVisibility(CurrentEquippedItemName);
 }
 
 bool APlayerBase::ServerSetEquippedItemName_Validate(FName NewItemName)
@@ -271,6 +308,76 @@ void APlayerBase::SetEquipItemMeshStatic(UStaticMesh* NewMesh)
 			EquipMeshActor->MeshComp->SetStaticMesh(NewMesh);
 			EquipMeshActor->MeshComp->SetVisibility(NewMesh != nullptr);
 			EquipMeshActor->MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+		}
+	}
+}
+
+
+// 사망 로직
+void APlayerBase::ServerProcessDeath_Implementation(FVector RespawnLocation)
+{
+	bIsStunned = true;
+	DeactivateActiveRagdoll();
+	OnStunned();
+
+	if (GetLifeCount() > 0)
+	{
+		SetLifeCount(GetLifeCount() - 1);
+		UE_LOG(LogTemp, Log, TEXT("[PlayerBase] Character LifeCount %d. Respawn..."), GetLifeCount());
+
+		ActiveRagdoll();
+		// 레벨별 GetRespawnLocation 필요
+		//RespawnCharacter(RespawnLocation);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("[PlayerBase] Character LifeCount X. Death."));
+	}
+}
+
+bool APlayerBase::ServerProcessDeath_Validate(FVector RespawnLocation)
+{
+	return true;
+}
+
+
+// 리스폰
+void APlayerBase::RespawnCharacter_Implementation(FVector RespawnLocation)
+{
+	SetActorLocation(RespawnLocation);
+	UE_LOG(LogTemp, Log, TEXT("[PlayerBase] Character Respawn : %s"), *RespawnLocation.ToString());
+}
+
+void APlayerBase::ActiveRagdoll()
+{
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		PhysicalAnimationComponent->SetSkeletalMeshComponent(MeshComp);
+		PhysicalAnimationComponent->ApplyPhysicalAnimationSettingsBelow(TEXT("pelvis"), PhysAnimData, true);
+		MeshComp->SetAllBodiesBelowSimulatePhysics(TEXT("pelvis"), true, false);
+	}
+}
+
+
+void APlayerBase::DeactivateActiveRagdoll()
+{
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		MeshComp->SetSimulatePhysics(false);
+		MeshComp->SetCollisionProfileName(TEXT("CharacterMesh"));
+
+		PhysicalAnimationComponent->SetSkeletalMeshComponent(nullptr);
+
+		MeshComp->SetAllBodiesSimulatePhysics(false);
+		MeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+
+		MeshComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
+		MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+
+		if (UAnimInstance* AnimInstance = MeshComp->GetAnimInstance())
+		{
+			AnimInstance->InitializeAnimation();
 		}
 	}
 }

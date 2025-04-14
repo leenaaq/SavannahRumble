@@ -70,7 +70,8 @@ void UT6GameInstance::CheckWinScore()
 	{
 		if (PlayerScore.Value.TotalWins == GameOverScoreToWin)
 		{
-
+			FString WinnerName = PlayerScore.Value.PlayerName;
+			UE_LOG(LogTemp, Error, TEXT("%s has Win This Game!!!  % s has Win This Game!!! Game is Over Now!!!!!!!"), *WinnerName,*WinnerName);
 		}
 	}
 }
@@ -83,6 +84,10 @@ void UT6GameInstance::RegisterPlayer(const FString& PlayerName)
 		NewEntry.PlayerName = PlayerName;
 		PlayerScoreBoard.Add(PlayerName, NewEntry);
 	}
+	else
+	{// 이미 있는 플레이어
+
+	}
 }
 
 void UT6GameInstance::AddWinForPlayer(const FString& PlayerName)
@@ -90,5 +95,15 @@ void UT6GameInstance::AddWinForPlayer(const FString& PlayerName)
 	if (FPlayerScore* Entry = PlayerScoreBoard.Find(PlayerName))
 	{
 		Entry->TotalWins++;
+		CheckWinScore();
+	}
+}
+
+void UT6GameInstance::PrintScoreBoardLog()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Current Scoreboard"));
+	for (auto PS : PlayerScoreBoard)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player %s : %d "),*PS.Key,PS.Value.TotalWins);
 	}
 }

@@ -16,6 +16,7 @@ class TEAM06_API AT6GameModeBase : public AGameModeBase
 protected:
 	virtual void NotifyToAllPlayer(const FString& NotificationString);
 public:
+	AT6GameModeBase();
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage);
 
 	virtual void GameWelcomePlayer(UNetConnection* Connection, FString& RedirectURL);
@@ -33,7 +34,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<TObjectPtr<APCController_GamePlay>> SessionPlayerControllers;
 #pragma region Level
-
+public:
+	virtual void SetPlayerReady(APCController_GamePlay* PlayerController, bool bIsReady);
 public:
 	void ChangeGameLevel();
 	void OnShowingLoadingScreen();

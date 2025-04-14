@@ -22,19 +22,34 @@ struct FEquipItemDataRow : public FTableRowBase
     FName ItemName = "DEFAULT";
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    EEquipItemType ItemType = EEquipItemType::Invalid;
+    TSubclassOf<class AItemBase> ItemActorClass;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UStaticMesh* StaticMesh = nullptr;
+    EEquipItemType ItemType = EEquipItemType::Invalid;
 
+    // 원거리 공격 시 스폰 아이템
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<AActor> ProjectileBlueprint;
 
+    // 발사체 초기 속도
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float ProjectileSpeed = 0.0f;
 
+    // 발사체 힘
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float ProjectileForce = 0.0f;
+
+    // 들고 있는 아이템 메시
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UStaticMesh* StaticMesh = nullptr;
+
+    // 들고 있는 아이템 메시 스케일 조절
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FVector MeshScale = FVector(.0f, .0f, .0f);
+
+    // 들고 있는 아이템 메시 위치 조절
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FVector MeshOffset = FVector::ZeroVector;
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))

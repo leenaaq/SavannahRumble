@@ -11,6 +11,7 @@ class TEAM06_API AEquipItemMeshActor : public AActor
 
 public:
 	AEquipItemMeshActor();
+<<<<<<< HEAD
 	virtual void BeginPlay() override;
 	void ValidateEssentialReferences() const;
 
@@ -19,4 +20,16 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "EquipItem")
 	UStaticMeshComponent* MeshComp;
+=======
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UStaticMeshComponent* MeshComponent;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateMesh(UStaticMesh* NewMesh);
+>>>>>>> ItemNew
 };

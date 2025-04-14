@@ -7,7 +7,9 @@
 #include "System/UI/UW_LobbyUI.h"
 #include "Components/TextBlock.h"
 #include "System/GameSystem/T6GameModeBase_Lobby.h"
-
+#include "System/GameSystem/T6GameModeBase_GameLevel.h"
+#include "System/GameSystem/MyT6GSB_GL_Mountain.h"
+#include "Player/Player/PlayerCharacter.h"
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -99,10 +101,10 @@ void APCController_GamePlay::ServerSetReady_Implementation()
 {
 	this->bIsReady = !this->bIsReady;
 
-	AT6GameModeBase_Lobby* LobbyGM = GetWorld()->GetAuthGameMode<AT6GameModeBase_Lobby>();
-	if (IsValid(LobbyGM))
+	AT6GameModeBase* GM = GetWorld()->GetAuthGameMode<AT6GameModeBase>();
+	if (IsValid(GM))
 	{
-		LobbyGM->SetPlayerReady(this, bIsReady);
+		GM->SetPlayerReady(this, bIsReady);
 	}
 	else
 	{
@@ -115,5 +117,44 @@ void APCController_GamePlay::OnRep_bIsReady()
 	if (IsLocalController() && IsValid(LobbyWidget))
 	{
 		LobbyWidget->UpdateReadyButtonState(bIsReady);
+	}
+}
+
+void APCController_GamePlay::Server_TriggerRandomPlayerWin_Implementation()
+{
+	AT6GameModeBase_GameLevel* GM = GetWorld() ? Cast<AT6GameModeBase_GameLevel>(GetWorld()->GetAuthGameMode()) : nullptr;
+	if (GM)
+	{
+		GM->HandleRandomPlayerGameWin();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Wrong GameModeBase Called in PCController_GamePlay"));
+	}
+}
+void APCController_GamePlay::ServerNotifyGoalReached_Implementation()
+{
+	AT6GameModeBase_GameLevel* GM = GetWorld()->GetAuthGameMode<AT6GameModeBase_GameLevel>();
+	if (GM)
+	{
+		GM->HandlePlayerGameWin(this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Wrong GameModeBase Called in PCController_GamePlay"));
+	}
+}
+
+void APCController_GamePlay::ServerTeleportToCheckpoint_Implementation()
+{
+	AMyT6GSB_GL_Mountain* GSM = GetWorld()->GetGameState<AMyT6GSB_GL_Mountain>();
+
+	ACharacter* MyChar = GetCharacter();
+
+
+	if (GSM && MyChar)
+	{
+		FVector TargetLoc = GSM->GetCheckpointLocationForPlayer(this);
+		MyChar->SetActorLocation(TargetLoc);
 	}
 }

@@ -14,4 +14,6 @@ class TEAM06_API AT6GameModeBase_Title : public AT6GameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void SetPlayerReady(APCController_GamePlay* PlayerController, bool bIsReady) override;
 };

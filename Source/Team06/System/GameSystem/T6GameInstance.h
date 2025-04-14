@@ -30,6 +30,8 @@ public:
 	void CheckWinScore();
 	void RegisterPlayer(const FString& PlayerName);
 	void AddWinForPlayer(const FString& PlayerName);
+
+	void PrintScoreBoardLog();
 public:
 	UPROPERTY()
 	TMap<FString, FPlayerScore> PlayerScoreBoard;
