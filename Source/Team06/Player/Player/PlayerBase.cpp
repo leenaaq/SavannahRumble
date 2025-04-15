@@ -48,7 +48,7 @@ void APlayerBase::BeginPlay()
 	Super::BeginPlay();
 
 	ValidateEssentialReferences();
-	//ActiveRagdoll();
+	ActiveRagdoll();
 	//DeactivateActiveRagdoll();
 	UpdateStatsFromDataTable();
 
@@ -180,8 +180,8 @@ void APlayerBase::OnStunned(float StunTime)
 
 	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
 	{
-		Movement->StopMovementImmediately();
-		Movement->DisableMovement();
+		//Movement->StopMovementImmediately();
+		//Movement->DisableMovement();
 	}
 
 	if (UCapsuleComponent* CapsuleComp = GetCapsuleComponent())

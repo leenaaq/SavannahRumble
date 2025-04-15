@@ -39,4 +39,18 @@ struct FRangeItemDataRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Balance")
 	float ExpansionTime = 0.0f;
 
+	//-----------------------끈끈이---------------------
+
+	// [끈끈이] 끈끈이 지속 시간
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Balance")
+	float SlowDuration = 0.0f;
+
+	// [끈끈이] 속도 감소 배율
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Balance")
+	float SpeedMultiplier = 1.0f;
+
+	// [끈끈이] 점프력 감소 배율
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Balance")
+	float JumpMultiplier = 1.0f;
+
 };
