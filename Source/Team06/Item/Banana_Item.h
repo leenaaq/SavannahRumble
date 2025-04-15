@@ -14,7 +14,7 @@ protected:
 	virtual void TriggerEffect_Implementation(AActor* OverlappedActor) override;
 
 	UPROPERTY(EditAnywhere, Category = "Effect")
-	float SlideForce = 150000.0f;
+	float SlideForce = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Effect")
 	float RagdollDuration = 2.0f;
