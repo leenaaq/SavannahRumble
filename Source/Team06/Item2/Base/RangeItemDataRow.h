@@ -9,6 +9,7 @@ struct FRangeItemDataRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
+	//-----------------------폭탄---------------------
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Balance")
 	float Damage = 0.0f;
 
@@ -23,4 +24,19 @@ struct FRangeItemDataRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Balance")
 	float KnockBackMultiplier = 0.0f;
+
+	//-----------------------자기장---------------------
+
+	// [자기장] 초당 데미지
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Balance")
+	float DamagePerSecond = 0.0f;
+
+	// [자기장] 원 최대 반경
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Balance")
+	float MaxRadius = 0.0f;
+
+	// [자기장] 최대 반경까지 시간
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Balance")
+	float ExpansionTime = 0.0f;
+
 };
