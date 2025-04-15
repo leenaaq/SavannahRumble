@@ -95,4 +95,9 @@ void AAIC_Enemy::SetTargetPlayer(AActor* Player)
 		TargetPlayer = Player;
 	}
 }
+
+void AAIC_Enemy::SetChaseMode(bool value)
+{
+	GetBlackboardComponent()->SetValueAsBool(AAIC_Enemy::ShouldChaseKey, value);
+}
 // ---------- //////////////////////// ----------

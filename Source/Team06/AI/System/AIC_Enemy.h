@@ -35,6 +35,8 @@ public:
 
 	void SetTargetPlayer(AActor* Player);
 
+	void SetChaseMode(bool value);
+
 	// ---------- Generat Debug Function ----------
 public:
 	static int32 ShowAIDebug;
@@ -67,7 +69,4 @@ private:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	AActor* TargetPlayer;
-
-	UPROPERTY(BlueprintReadOnly)
-	bool bAIHasFlag;
 };

@@ -61,10 +61,8 @@ EBTNodeResult::Type UBTT_GetPlayerLocation::ExecuteTask(UBehaviorTreeComponent& 
 
 void UBTT_GetPlayerLocation::TaskFinished(EBTNodeResult::Type TaskResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnTaskFinished: Function Start!"));
 	if (CachedAIController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnTaskFinished: CachedAIController is valid"));
 		CachedAIController->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
 		CachedAIController->GetWorldTimerManager().ClearTimer(TimeoutHandle);
 
