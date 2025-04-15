@@ -48,7 +48,7 @@ void APlayerBase::BeginPlay()
 	Super::BeginPlay();
 
 	ValidateEssentialReferences();
-	ActiveRagdoll();
+	//ActiveRagdoll();
 	//DeactivateActiveRagdoll();
 	UpdateStatsFromDataTable();
 
