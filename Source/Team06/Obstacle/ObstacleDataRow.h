@@ -51,7 +51,7 @@ struct FObstacleDataRow : public FTableRowBase
     // ------------------------------낙하 땅------------------------------
     // 낙하 지연 시간
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float FallDelayTime = 2.0f;
+    float FallDelayTime = 0.0f;
 
     // 낙하 속도
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -60,5 +60,23 @@ struct FObstacleDataRow : public FTableRowBase
     // 파괴 시간
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float FallDestroyAfter = 0.0f;
+
+    // ------------------------------눈보라------------------------------
+    // 눈보라 데미지 주기(초)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float BlizzardTickInterval = 0.0f;
+
+    // 눈보라 데미지
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float BlizzardDamage = 0.0f;
+
+    // ------------------------------모닥불------------------------------
+    // 모닥불 힐 주기(초)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float HealInterval = 0.0f;
+
+    // 모닥불 힐
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float HealAmount = 0.0f;
 
 };
