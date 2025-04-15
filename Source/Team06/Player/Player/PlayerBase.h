@@ -147,7 +147,9 @@ protected:
 	USkinManagerComponent* SkinManagerComponent;
 
 private:
+	UPROPERTY(Replicated)
 	FPlayerStats PlayerStats;
+
 	FTimerHandle RecoveryTimerHandle;
 	FPhysicalAnimationData PhysAnimData;
 	FTimerHandle RecoveryRagdollTimerHandle;

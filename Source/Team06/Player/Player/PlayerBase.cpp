@@ -239,6 +239,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, bIsStunned);
 	DOREPLIFETIME(APlayerBase, CurrentEquippedItemName);
 	DOREPLIFETIME(APlayerBase, RemainingStunTime);
+	DOREPLIFETIME(APlayerBase, PlayerStats);
 }
 
 void APlayerBase::OnRep_CurrentEquippedItemName()
