@@ -781,29 +781,30 @@ void APlayerCharacter::HandleCheat2Key(const FInputActionValue& Value)
         플레이어 mountainlevel에서 이동할 기능 필요
 
     */
-    APCController_GamePlay* PlayerController_GamePlay = GetController<APCController_GamePlay>();
-    if (IsValid(PlayerController_GamePlay))
-    {
-        if (PlayerController_GamePlay->IsLocalController() || PlayerController_GamePlay->LobbyWidget)
-        {
-            PlayerController_GamePlay->ServerTeleportToCheckpoint();
-        }
-    }
+    //APCController_GamePlay* PlayerController_GamePlay = GetController<APCController_GamePlay>();
+    //if (IsValid(PlayerController_GamePlay))
+    //{
+    //    if (PlayerController_GamePlay->IsLocalController() || PlayerController_GamePlay->LobbyWidget)
+    //    {
+    //        PlayerController_GamePlay->ServerTeleportToCheckpoint();
+    //    }
+    //}
 
     //UE_LOG(LogTemp, Log, TEXT("Cheat2"));
+    if (!SkinManagerComponent)
+    {
+        return;
+    }
+    SkinManagerComponent->ApplySkinByName(FName("Skin2"));
 }
 
 void APlayerCharacter::HandleGrabKey(const FInputActionValue& Value)
 {
-    bool bPressed = Value.Get<bool>();
-    if (bPressed)
+    if (!SkinManagerComponent)
     {
-        ServerStartGrab();
+        return;
     }
-    else
-    {
-        ServerStopGrab();
-    }
+    SkinManagerComponent->ApplySkinByName(FName("Skin1"));
 }
 
 void APlayerCharacter::ServerStartGrab_Implementation()
