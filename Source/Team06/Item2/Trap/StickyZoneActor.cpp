@@ -87,7 +87,7 @@ void AStickyZoneActor::ApplySlowEffect(APlayerBase* Player)
         MoveComp->MaxWalkSpeed *= SpeedMultiplier;
         MoveComp->JumpZVelocity *= JumpMultiplier;
 
-            *Player->GetName(), MoveComp->MaxWalkSpeed, MoveComp->JumpZVelocity);
+//            *Player->GetName(), MoveComp->MaxWalkSpeed, MoveComp->JumpZVelocity);
 
         float EffectiveDuration = 0.f;
         if (DataRowHandle.DataTable)
