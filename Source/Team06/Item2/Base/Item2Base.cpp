@@ -11,8 +11,7 @@ AItem2Base::AItem2Base()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetUsingAbsoluteScale(false);
-	SetRootComponent(MeshComp);
+	RootComponent = MeshComp;
 
 	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
 	ProjectileMovementComp->InitialSpeed = 0.f;
