@@ -23,12 +23,7 @@ protected:
 private:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
-	UPROPERTY(EditAnywhere, Category = "TargetName")
 	FName Name_Player = "Player";
-
-	UPROPERTY(EditAnywhere, Category = "TargetName")
 	FName Name_Item = "Item";
-
-	UPROPERTY(EditAnywhere, Category = "TargetName")
 	FName Name_Goal = "Goal";
 };

@@ -10,7 +10,7 @@
 // ---------- Blackboard Key Declaration ----------
 const FName AAIC_Enemy::GoalLocationKey(TEXT("GoalLocation"));
 const FName AAIC_Enemy::BuffItemLocationKey(TEXT("BuffItemLocation"));
-const FName AAIC_Enemy::UseItemLocationKey(TEXT("UesItemLocation"));
+const FName AAIC_Enemy::UseItemLocationKey(TEXT("UseItemLocation"));
 const FName AAIC_Enemy::OtherPlayerLocationKey(TEXT("OtherPlayerLocation"));
 
 const FName AAIC_Enemy::ShouldChaseKey(TEXT("ShouldChase"));
@@ -82,5 +82,22 @@ bool AAIC_Enemy::bIsEquip()
 	// Check AI Character has Equip an item
 
 	return false;
+}
+
+void AAIC_Enemy::SetTargetPlayer(AActor* Player)
+{
+	if (!Player)
+	{
+		TargetPlayer = nullptr;
+	}
+	else
+	{
+		TargetPlayer = Player;
+	}
+}
+
+void AAIC_Enemy::SetChaseMode(bool value)
+{
+	GetBlackboardComponent()->SetValueAsBool(AAIC_Enemy::ShouldChaseKey, value);
 }
 // ---------- //////////////////////// ----------

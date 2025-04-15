@@ -33,6 +33,10 @@ protected:
 public:
 	bool bIsEquip();
 
+	void SetTargetPlayer(AActor* Player);
+
+	void SetChaseMode(bool value);
+
 	// ---------- Generat Debug Function ----------
 public:
 	static int32 ShowAIDebug;
@@ -60,4 +64,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (AllowPrivateAccess))
 	TObjectPtr<UBehaviorTree> BehaviorTree;
+
+	// ---------- Other Property ----------
+protected:
+	UPROPERTY(BlueprintReadOnly)
+	AActor* TargetPlayer;
 };
