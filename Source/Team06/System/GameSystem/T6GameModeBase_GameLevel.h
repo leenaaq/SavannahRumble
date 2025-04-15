@@ -6,7 +6,7 @@
 #include "System/GameSystem/T6GameModeBase.h"
 #include "T6GameModeBase_GameLevel.generated.h"
 
-DECLARE_DELEGATE_OneParam(FGameWinCallback, APlayerController*);
+DECLARE_DELEGATE_OneParam(FGameWinCallback, AController*);
 
 class APlayerController;
 
@@ -18,15 +18,15 @@ protected:
 	void NotifyToAllPlayer(const FString& NotificationString) override;
 public:
 	UFUNCTION(BlueprintCallable)
-	void HandlePlayerGameWin(APlayerController* Winner);
+	void HandlePlayerGameWin(AController* Winner);
 
 	UFUNCTION(BlueprintCallable)
 	void HandleRandomPlayerGameWin();
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	int32 RespawnWaitingTime = 10;
+	int32 RespawnWaitingTime = 5;
 
-	int32 RemainRespawnWaitingTimeForPlaying = 10;
+	int32 RemainRespawnWaitingTimeForPlaying = 5;
 
 	int32 MinimumPlayerCountForPlaying = 2;
 
@@ -69,8 +69,7 @@ public:
 	bool bIsGameLevelFinished = false;
 
 protected:
-	void InitiatedGameLevelEnding(APlayerController* Winner);
-	void HandleGameOverEnding();
+	void InitiatedGameLevelEnding(AController* Winner);
 
 #pragma endregion
 

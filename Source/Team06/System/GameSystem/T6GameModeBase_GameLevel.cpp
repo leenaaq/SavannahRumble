@@ -13,7 +13,7 @@ void AT6GameModeBase_GameLevel::NotifyToAllPlayer(const FString& NotificationStr
     Super::NotifyToAllPlayer(NotificationString);
 }
 
-void AT6GameModeBase_GameLevel::HandlePlayerGameWin(APlayerController* Winner)
+void AT6GameModeBase_GameLevel::HandlePlayerGameWin(AController* Winner)
 {
     if (!Winner || !Winner->PlayerState) return;
 
@@ -297,7 +297,7 @@ bool AT6GameModeBase_GameLevel::IsMajorityReady() const
 	return ReadyCount > (SessionPlayerControllers.Num() / 2);
 }
 
-void AT6GameModeBase_GameLevel::InitiatedGameLevelEnding(APlayerController* Winner)
+void AT6GameModeBase_GameLevel::InitiatedGameLevelEnding(AController* Winner)
 {
 	AT6GameStateBase_GameLevel* MPGameState = GetGameState<AT6GameStateBase_GameLevel>();
 	if (IsValid(MPGameState) == false)
