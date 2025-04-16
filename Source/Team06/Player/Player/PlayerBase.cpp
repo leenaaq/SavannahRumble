@@ -157,6 +157,12 @@ void APlayerBase::UpdateStatsFromDataTable()
 		if (Stats)
 		{
 			PlayerStats = *Stats;
+
+			if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+			{
+				Movement->MaxWalkSpeed = PlayerStats.WalkSpeed;
+				Movement->JumpZVelocity = PlayerStats.JumpHigh;
+			}
 		}
 	}
 }
