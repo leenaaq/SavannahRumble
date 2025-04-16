@@ -12,6 +12,8 @@ void UT6GameInstance::Init()
 	Super::Init();
 
 	LoadLevelsFromFolder();
+
+	InitAIPlayer();
 }
 
 FString UT6GameInstance::GetRandomLevel()
@@ -117,4 +119,26 @@ void UT6GameInstance::PrintScoreBoardLog()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Player %s : %d "),*PS.Key,PS.Value.TotalWins);
 	}
+}
+
+void UT6GameInstance::InitAIPlayer()
+{
+	// AI 두 명 하드코딩
+	FPlayerScore NewEntry1;
+	NewEntry1.PlayerName = "Bixby";
+	AIScoreBoard.Add(FString("Bixby"), NewEntry1);
+	FPlayerScore NewEntry2;
+	NewEntry2.PlayerName = "Siri";
+	AIScoreBoard.Add(FString("Siri"), NewEntry2);
+}
+
+void UT6GameInstance::AddAIPlayer()
+{
+	if (CurrentAINum >= MaxAIAllow)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No More AIControllers Allowed"));
+		return;
+	}
+	CurrentAINum+=2;
+	bIsAISpawned = true;
 }
