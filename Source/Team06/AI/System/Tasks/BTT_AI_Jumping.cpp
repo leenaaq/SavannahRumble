@@ -5,6 +5,7 @@
 #include "AI/System/AIC_Enemy.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AI/Character/AICharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 UBTT_AI_Jumping::UBTT_AI_Jumping()
 {
@@ -23,8 +24,26 @@ EBTNodeResult::Type UBTT_AI_Jumping::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 	AAIC_Enemy* AIController = Cast<AAIC_Enemy>(OwnerComp.GetAIOwner());
 	if (IsValid(AIController))
 	{
-		return Result;
+		AAICharacter* AICharacter = Cast<AAICharacter>(AIController->GetPawn());
+		if (IsValid(AICharacter))
+		{
+			UCharacterMovementComponent* MovementComp = AICharacter->GetCharacterMovement();
+
+			if (MovementComp && !MovementComp->IsFalling())
+			{
+				const FVector LaunchVelocity(0.0f, 0.0f, 600.0f);
+				AICharacter->LaunchCharacter(LaunchVelocity, false, true);
+
+				return EBTNodeResult::Succeeded;
+			}
+			else
+			{
+				return EBTNodeResult::Failed;
+			}
+		}
+
+		return EBTNodeResult::Failed;
 	}
 
-	return Result;
+	return EBTNodeResult::Failed;
 }

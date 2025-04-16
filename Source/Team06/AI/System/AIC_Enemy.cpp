@@ -6,12 +6,14 @@
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "AI/Character/AICharacter.h"
 
 // ---------- Blackboard Key Declaration ----------
 const FName AAIC_Enemy::GoalLocationKey(TEXT("GoalLocation"));
 const FName AAIC_Enemy::BuffItemLocationKey(TEXT("BuffItemLocation"));
 const FName AAIC_Enemy::UseItemLocationKey(TEXT("UseItemLocation"));
 const FName AAIC_Enemy::OtherPlayerLocationKey(TEXT("OtherPlayerLocation"));
+const FName AAIC_Enemy::ClosePlayerKey(TEXT("ClosePlayer"));
 
 const FName AAIC_Enemy::ShouldChaseKey(TEXT("ShouldChase"));
 const FName AAIC_Enemy::ShouldAttackKey(TEXT("ShouldAttack"));
@@ -35,6 +37,8 @@ AAIC_Enemy::AAIC_Enemy()
 {
 	Blackboard = CreateDefaultSubobject<UBlackboardComponent>(TEXT("Blackboard"));
 	BrainComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BrainComponent"));
+
+	bWantsPlayerState = true;
 }
 
 void AAIC_Enemy::BeginPlay()
@@ -80,6 +84,19 @@ void AAIC_Enemy::EndAI()
 bool AAIC_Enemy::bIsEquip()
 {
 	// Check AI Character has Equip an item
+	AAICharacter* AICharacter = Cast<AAICharacter>(GetPawn());
+	if (AICharacter)
+	{
+		const FName EquippedItem = AICharacter->GetCurrentEquippedItemName();
+		if (EquippedItem.IsNone() || EquippedItem == FName("DEFAULT"))
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
 
 	return false;
 }

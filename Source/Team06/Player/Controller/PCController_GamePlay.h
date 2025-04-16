@@ -76,4 +76,17 @@ public:
 	FTimerHandle RespawnHandle;
 #pragma endregion
 
+
+#pragma region AIAdd
+public:
+	UFUNCTION(Server, Reliable,WithValidation)
+	void ServerRequestAddingAI();
+
+#pragma endregion
+#pragma region ItemRPC
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerApplyLifeItem();
+
+#pragma endregion
 };

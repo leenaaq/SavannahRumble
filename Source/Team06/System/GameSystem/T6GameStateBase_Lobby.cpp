@@ -11,6 +11,7 @@ void AT6GameStateBase_Lobby::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 
 	DOREPLIFETIME(ThisClass, AlivePlayerContrReadyCountollerCount);
 	DOREPLIFETIME(ThisClass, ReadyPlayerCount);
+
 }
 
 void AT6GameStateBase_Lobby::OnRep_ReadyCount()

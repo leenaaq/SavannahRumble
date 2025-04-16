@@ -43,11 +43,12 @@ public:
 
 	// ---------- Blackboard Key Declaration ----------
 public:
-	// Vector
+	// Object
 	static const FName GoalLocationKey;
 	static const FName BuffItemLocationKey;
 	static const FName UseItemLocationKey;
 	static const FName OtherPlayerLocationKey;
+	static const FName ClosePlayerKey;
 
 	// Bool
 	static const FName ShouldChaseKey;
@@ -69,4 +70,6 @@ private:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	AActor* TargetPlayer;
+
+	FName NoEquip = "DEFAULT";
 };

@@ -5,7 +5,7 @@
 #include "AI/System/AIC_Enemy.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "kismet/GameplayStatics.h"
-#include "Item/TriggerItem.h"
+#include "Item/TriggerItem.h"        
 
 UBTT_AI_GetBuffLocation::UBTT_AI_GetBuffLocation()
 {

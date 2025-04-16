@@ -7,7 +7,6 @@
 #include "kismet/GameplayStatics.h"
 #include "Player/Player/PlayerCharacter.h"
 #include "GameFramework/Actor.h"
-#include "TimerManager.h"
 
 UBTT_GetPlayerLocation::UBTT_GetPlayerLocation()
 {
@@ -17,12 +16,6 @@ UBTT_GetPlayerLocation::UBTT_GetPlayerLocation()
 EBTNodeResult::Type UBTT_GetPlayerLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
-
-	bTaskFinished = false;
-
-	CachedOwnerComp = &OwnerComp;
-	CachedAIController = OwnerComp.GetAIOwner();
-	if (!CachedAIController) return EBTNodeResult::Failed;
 
 	AAIC_Enemy* AIController = Cast<AAIC_Enemy>(OwnerComp.GetAIOwner());
 	if (IsValid(AIController))
@@ -35,67 +28,10 @@ EBTNodeResult::Type UBTT_GetPlayerLocation::ExecuteTask(UBehaviorTreeComponent& 
 			int32 PlayerIndex = FMath::RandRange(0, PlayerActors.Num() - 1);
 			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::OtherPlayerLocationKey, PlayerActors[PlayerIndex]);
 
-			FAIRequestID RequestID = CachedAIController->MoveToActor(PlayerActors[PlayerIndex], AcceptRadius, true, true, false, nullptr, true);
-			if (RequestID.IsValid())
-			{
-				AIController->SetTargetPlayer(PlayerActors[PlayerIndex]);
-
-				CachedAIController->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &UBTT_GetPlayerLocation::OnMoveCompleted);
-
-				float FinalTimeoutDuration = TimeoutDuration + FMath::FRandRange(-ExtraTimeoutDuration, ExtraTimeoutDuration);
-				CachedAIController->GetWorldTimerManager().SetTimer(TimeoutHandle, this, &UBTT_GetPlayerLocation::HandleTimeout, FinalTimeoutDuration, false);
-				return EBTNodeResult::InProgress;
-			}
-			else
-			{
-				AIController->SetTargetPlayer(nullptr);
-				Result = EBTNodeResult::Failed;
-				return Result;
-			}
+			AIController->SetTargetPlayer(PlayerActors[PlayerIndex]);
 		}
 	}
 
-	Result = EBTNodeResult::Failed;
+	Result = EBTNodeResult::Succeeded;
 	return Result;
-}
-
-void UBTT_GetPlayerLocation::TaskFinished(EBTNodeResult::Type TaskResult)
-{
-	if (CachedAIController)
-	{
-		CachedAIController->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
-		CachedAIController->GetWorldTimerManager().ClearTimer(TimeoutHandle);
-
-		FinishLatentTask(*CachedOwnerComp, TaskResult);
-	}
-}
-
-void UBTT_GetPlayerLocation::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
-{
-	if (CachedOwnerComp && CachedAIController)
-	{
-		CachedAIController->GetWorldTimerManager().ClearTimer(TimeoutHandle);
-		CachedAIController->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
-
-		if (bTaskFinished == false)
-		{
-			bTaskFinished = true;
-			TaskFinished(EBTNodeResult::Succeeded);
-		}
-	}
-}
-
-void UBTT_GetPlayerLocation::HandleTimeout()
-{
-	if (CachedOwnerComp && CachedAIController)
-	{
-		CachedAIController->GetPathFollowingComponent()->AbortMove(*this, FPathFollowingResultFlags::ForcedScript);
-		CachedAIController->GetPathFollowingComponent()->OnRequestFinished.RemoveAll(this);
-
-		if (bTaskFinished == false)
-		{
-			bTaskFinished = true;
-			TaskFinished(EBTNodeResult::Succeeded);
-		}
-	}
 }

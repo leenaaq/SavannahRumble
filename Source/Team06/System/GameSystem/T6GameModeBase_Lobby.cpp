@@ -44,7 +44,11 @@ void AT6GameModeBase_Lobby::Logout(AController* Exiting)
 void AT6GameModeBase_Lobby::BeginPlay()
 {
 	Super::BeginPlay();
-
+	AT6GameStateBase * GS = GetGameState<AT6GameStateBase>();
+	if (GS)
+	{
+		GS->bIsLobbyMode = true;
+	}
 	GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &ThisClass::OnMainTimerElapsed, 1.f, true);
 	RemainWaitingTimeForEnding = LobbyEndingTime;
 }
