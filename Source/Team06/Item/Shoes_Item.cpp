@@ -9,7 +9,7 @@ AShoes_Item::AShoes_Item()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	DebugMessage = TEXT("신발 아이템 작동!");
+	
 }
 
 void AShoes_Item::BeginPlay()
@@ -24,7 +24,7 @@ void AShoes_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 	APlayerBase* Player = Cast<APlayerBase>(OverlappedActor);
 	if (!Player || !Player->GetCharacterMovement())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Shoes_Item] TriggerEffect 실패 - APlayerBase 캐스팅 실패"));
+		
 		return;
 	}
 
@@ -37,8 +37,7 @@ void AShoes_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 	Move->JumpZVelocity += JumpBoost;
 
 
-	UE_LOG(LogTemp, Log, TEXT("[Shoes_Item] %s → 부스트 적용 (속도 +%.1f, 점프력 +%.1f)"),
-		*Player->GetName(), SpeedBoost, JumpBoost);
+	
 
 	if (LoopSound)
 	{
@@ -65,7 +64,6 @@ void AShoes_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 				Player->GetCharacterMovement()->MaxWalkSpeed = OriginalSpeed;
 				Player->GetCharacterMovement()->JumpZVelocity = OriginalJump;
 
-				UE_LOG(LogTemp, Log, TEXT("[Shoes_Item] %s → 부스트 종료"), *Player->GetName());
 			}
 
 			StopLoopSound();

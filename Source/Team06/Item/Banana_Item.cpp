@@ -13,14 +13,14 @@ void ABanana_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
     ACharacter* Character = Cast<ACharacter>(OverlappedActor);
     if (Character == nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[Banana_Item] 캐릭터 캐스팅 실패"));
+    
         return;
     }
 
     UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement();
     if (MoveComp == nullptr)
     {
-        UE_LOG(LogTemp, Warning, TEXT("[Banana_Item] 이동 컴포넌트 없음"));
+     
         return;
     }
 

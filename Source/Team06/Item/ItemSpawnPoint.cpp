@@ -36,7 +36,7 @@ void AItemSpawnPoint::SpawnItem()
 		break;
 		
 	default:
-		//UE_LOG(LogTemp, Warning, TEXT("아이템 타입이 지정되지 않았습니다."));
+		
 		break;
 	}
 
@@ -45,11 +45,10 @@ void AItemSpawnPoint::SpawnItem()
 		FActorSpawnParameters SpawnParams;
 		GetWorld()->SpawnActor<AActor>(ItemToSpawn, GetActorLocation() + SpawnOffset, GetActorRotation(), SpawnParams);
 
-		//UE_LOG(LogTemp, Log, TEXT("아이템이 성공적으로 스폰되었습니다: %s"), *ItemToSpawn->GetName());
 	}
 	else
 	{
-		//UE_LOG(LogTemp, Error, TEXT("스폰할 아이템이 없습니다."));
+		
 	}
 }
 
