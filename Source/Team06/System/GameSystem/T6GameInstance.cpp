@@ -112,6 +112,19 @@ void UT6GameInstance::AddWinForPlayer(const FString& PlayerName)
 	}
 }
 
+void UT6GameInstance::SetPlayerSkinName(FString PlayerName, FName SkinName)
+{
+	
+	if (PlayerScoreBoard.Contains(PlayerName))
+	{
+		PlayerScoreBoard[PlayerName].SkinName = SkinName;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't Set PlayerSkinName"));
+	}
+}
+
 void UT6GameInstance::PrintScoreBoardLog()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Current Scoreboard"));

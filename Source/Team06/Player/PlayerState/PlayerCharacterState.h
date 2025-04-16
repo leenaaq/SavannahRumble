@@ -14,9 +14,9 @@ class TEAM06_API APlayerCharacterState : public APlayerState
 	
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	virtual void BeginPlay() override;
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerSkinName, BlueprintReadOnly, Category = "Character|Skin")
-	FName PlayerSkinName = "Pig";
+	FName PlayerSkinName;
 
 	UFUNCTION()
 	void OnRep_PlayerSkinName();

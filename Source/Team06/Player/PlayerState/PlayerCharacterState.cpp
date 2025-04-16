@@ -11,6 +11,13 @@ void APlayerCharacterState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(ThisClass, PlayerSkinName);
 }
 
+void APlayerCharacterState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	UE_LOG(LogTemp, Warning, TEXT("BeginPlay: PlayerSkinName = %s"), *PlayerSkinName.ToString());
+}
+
 void APlayerCharacterState::OnRep_PlayerSkinName()
 {
 	
@@ -19,5 +26,10 @@ void APlayerCharacterState::OnRep_PlayerSkinName()
 	if (PlayerPawn)
 	{
 		PlayerPawn->SetSkinName(PlayerSkinName);
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacterState PlayerSkinName Changed: %s"), *PlayerSkinName.ToString());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't Get Access To Pawn"));
 	}
 }

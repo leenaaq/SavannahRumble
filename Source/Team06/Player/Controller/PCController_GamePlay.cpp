@@ -238,5 +238,13 @@ void APCController_GamePlay::ServerChangePSPlayerSkinName_Implementation(FName S
 	if (IsValid(PCS)&& HasAuthority())
 	{
 		PCS->PlayerSkinName = SkinMeshName;
+
+		UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+
+		UE_LOG(LogTemp, Warning, TEXT("PCS PlayerSkinName is now %s "),*PCS->PlayerSkinName.ToString());
+		if (GI)
+		{
+			GI->SetPlayerSkinName(PCS->GetPlayerName(), PCS->PlayerSkinName);
+		}
 	}
 }
