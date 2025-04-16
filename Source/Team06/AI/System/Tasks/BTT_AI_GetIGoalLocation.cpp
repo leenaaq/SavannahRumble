@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "kismet/GameplayStatics.h"
 #include "Player/Component/FlagActor.h"
+#include "System/GameSystem/FinishGoalActor.h"
 
 UBTT_AI_GetIGoalLocation::UBTT_AI_GetIGoalLocation()
 {
@@ -20,10 +21,17 @@ EBTNodeResult::Type UBTT_AI_GetIGoalLocation::ExecuteTask(UBehaviorTreeComponent
 	if (IsValid(AIController))
 	{
 		AActor* GoalActor = UGameplayStatics::GetActorOfClass(GetWorld(), AFlagActor::StaticClass());
-
 		if (GoalActor)
 		{
 			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::GoalLocationKey, GoalActor);
+
+			return Result;
+		}
+
+		AActor* MountainGoal = UGameplayStatics::GetActorOfClass(GetWorld(), AFinishGoalActor::StaticClass());
+		if (MountainGoal)
+		{
+			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::GoalLocationKey, MountainGoal);
 
 			return Result;
 		}

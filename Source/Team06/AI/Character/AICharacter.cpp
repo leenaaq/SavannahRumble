@@ -107,7 +107,7 @@ void AAICharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AAct
 		{
 			if (IsValid(OtherPlayer->GetMesh()))
 			{
-				AAIC_Enemy* AIC = Cast<AAIC_Enemy>(AIControllerClass);
+				AAIC_Enemy* AIC = Cast<AAIC_Enemy>(GetController());
 				if (AIC)
 				{
 					MyFlag->AttachToComponent(OtherPlayer->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, AttachSocketName);

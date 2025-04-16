@@ -31,7 +31,7 @@ EBTNodeResult::Type UBTT_ChoiceTarget::ExecuteTask(UBehaviorTreeComponent& Owner
 	if (IsValid(AIC) == true)
 	{
 		int32 RandomNum = FMath::RandRange(1, 100);
-		if (RandomNum <= 40)
+		if (RandomNum <= 70)
 		{
 			OwnerComp.GetBlackboardComponent()->SetValueAsName(AAIC_Enemy::TargetNameKey, Name_Goal);
 			return Result;
@@ -40,12 +40,12 @@ EBTNodeResult::Type UBTT_ChoiceTarget::ExecuteTask(UBehaviorTreeComponent& Owner
 		{
 			if (AIC->bIsEquip())
 			{
-				TargetChoseFromEquip(OwnerComp, RandomNum, 75);
+				TargetChoseFromEquip(OwnerComp, RandomNum, 90);
 				return Result;
 			}
 			else
 			{
-				TargetChoseFromEquip(OwnerComp, RandomNum, 65);
+				TargetChoseFromEquip(OwnerComp, RandomNum, 80);
 				return Result;
 			}
 		}
