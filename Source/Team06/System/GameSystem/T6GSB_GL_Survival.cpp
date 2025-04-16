@@ -81,10 +81,11 @@ void AT6GSB_GL_Survival::RespawnPlayer(AController* Player)
                 UE_LOG(LogTemp, Error, TEXT("Controller Pawn Possed faild!!!!!!"));
                 return;
             }
-
+            FVector NewLocation = SpawnPoints[0]->GetActorLocation();
+            NewLocation += FVector(FMath::FRandRange(0, 50.f), FMath::FRandRange(0, 50.f), FMath::FRandRange(0, 10.f));
 
             // Pawn 위치 이동 후 복원
-            StoredPawn->SetActorLocation(SpawnPoints[0]->GetActorLocation());
+            StoredPawn->SetActorLocation(NewLocation);
             StoredPawn->SetActorRotation(SpawnPoints[0]->GetActorRotation());
 
             // Pawn 복구
