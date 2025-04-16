@@ -12,6 +12,15 @@ class UInputAction;
 class UAnimMontage;
 class USphereComponent;
 
+UENUM(BlueprintType)
+enum class EGamePhase : uint8
+{
+	Lobby,
+	InGame,
+	Result
+};
+
+
 UCLASS()
 class TEAM06_API APlayerCharacter : public APlayerBase
 {
@@ -228,5 +237,19 @@ private:
 		void MulticastReleaseGrab();
 
 		void GrabTarget(USkeletalMeshComponent* TargetMesh, const FName& TargetBone);
+#pragma endregion
+
+#pragma region State
+	private:
+		void UpdateGamePhase();
+		void PlayResultMontage();
+
+	protected:
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		EGamePhase CurrentPhase = EGamePhase::Lobby;
+
+		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		UAnimMontage* ResultMontage = nullptr;
+
 #pragma endregion
 };
