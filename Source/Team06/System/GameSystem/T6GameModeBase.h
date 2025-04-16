@@ -28,6 +28,8 @@ public:
 	virtual void Logout(AController* Exiting) override;
 	virtual void BeginPlay() override;
 
+	virtual void RestartPlayer(AController* Player) override;
+
 	virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId,
 		const FString& Options, const FString& Portal = TEXT(""));
 protected:
@@ -55,4 +57,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AAICharacter> AICharacterClass;
 #pragma endregion
+
+public:
+
+	void ApplyPlayerSkinMesh();
 };

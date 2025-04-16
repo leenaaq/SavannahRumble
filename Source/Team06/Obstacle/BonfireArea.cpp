@@ -30,7 +30,7 @@ ABonfireArea::ABonfireArea()
     FireAudio->SetSound(FireSound);
 
     // 거리 감쇠 설정
-    static ConstructorHelpers::FObjectFinder<USoundAttenuation> AttenuationAsset(TEXT("/Game/Audio/YourAttenuationAsset")); // 필요시 경로 수정
+    static ConstructorHelpers::FObjectFinder<USoundAttenuation> AttenuationAsset(TEXT("/Game/Team06/Obstacle")); // 필요시 경로 수정
     if (AttenuationAsset.Succeeded())
     {
         FireAudio->AttenuationSettings = AttenuationAsset.Object;

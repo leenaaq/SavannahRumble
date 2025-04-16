@@ -89,4 +89,8 @@ public:
 	void ServerApplyLifeItem();
 
 #pragma endregion
+
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerChangePSPlayerSkinName(FName SkinMeshName);
 };

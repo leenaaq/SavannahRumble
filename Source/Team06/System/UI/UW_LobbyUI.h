@@ -35,6 +35,29 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = LobbyWidget, Meta = (AllowPrivateAccess, BindWidget))
 	TObjectPtr<class UButton> AddAIButton;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = LobbyWidget, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<class UButton> PigMeshChangeButton;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = LobbyWidget, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<class UButton> FoxMeshChangeButton;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = LobbyWidget, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<class UButton> WolfMeshChangeButton;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = LobbyWidget, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<class UButton> DeerMeshChangeButton;
+
+	UFUNCTION()
+	void OnPigMeshChangeButtonClicked();
+
+	UFUNCTION()
+	void OnFoxMeshChangeButtonClicked();
+
+	UFUNCTION()
+	void OnWolfMeshChangeButtonClicked();
+
+	UFUNCTION()
+	void OnDeerMeshChangeButtonClicked();
+
+	void DisableCharacterButtons();
+
 	UPROPERTY()
 	TObjectPtr<APCController_GamePlay> OwnerPlayerController;
 };

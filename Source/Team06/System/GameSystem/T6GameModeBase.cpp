@@ -6,11 +6,13 @@
 #include "System/GameSystem/T6GameStateBase.h"
 #include "Player/Controller/PCController_GamePlay.h"
 #include "Kismet/GameplayStatics.h"
-#include "Player/PlayerState/T6PlayerCharacterState_GamePlay.h"
+#include "Player/PlayerState/PlayerCharacterState.h"
 #include "AI/System/AIC_Enemy.h"
 #include "AI/Character/AICharacter.h"
 #include "Engine/PlayerStartPIE.h"
 #include "EngineUtils.h"
+#include "Player/Player/PlayerBase.h"
+#include "System/GameSystem/T6GameInstance.h"
 
 void AT6GameModeBase::NotifyToAllPlayer(const FString& NotificationString)
 {
@@ -95,6 +97,38 @@ void AT6GameModeBase::BeginPlay()
 	if (GSB)
 	{
 		GSB->InitAISpawnPoint();
+	}
+}
+
+void AT6GameModeBase::RestartPlayer(AController* Player)
+{
+	Super::RestartPlayer(Player); // 맵의 PlayerStart를 받아서 Pawn을 소환시킨 함수, 이걸 실행한 다음 수행
+	UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+	if (!GI) return;
+
+	if (Player->IsPlayerController())
+	{
+		APlayerCharacterState* PCS = Player->GetPlayerState<APlayerCharacterState>();
+
+		if (PCS)
+		{
+			APlayerBase* PB = Player->GetPawn<APlayerBase>();
+
+			if (GI->PlayerScoreBoard.Contains(PCS->GetPlayerName()))
+			{
+				FName CurrentSkinName = GI->PlayerScoreBoard[PCS->GetPlayerName()].SkinName;
+				PCS->PlayerSkinName = CurrentSkinName;
+			}
+			UE_LOG(LogTemp, Warning, TEXT("Restart Player %s "),*PCS->GetPlayerName());
+			UE_LOG(LogTemp, Warning, TEXT("PlayerState SkinName: %s"),*PCS->PlayerSkinName.ToString());
+
+			PB->ServerSetSkinName(PCS->PlayerSkinName);
+			UE_LOG(LogTemp, Warning, TEXT("Player MeshChanged at T6GameModeBase ay RestartPlayer"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("This is not PlayerController"));
 	}
 }
 
@@ -229,4 +263,8 @@ void AT6GameModeBase::SpawnAIControllers()
 			}
 		}
 	}
+}
+
+void AT6GameModeBase::ApplyPlayerSkinMesh()
+{
 }
