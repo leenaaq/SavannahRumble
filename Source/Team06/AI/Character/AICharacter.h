@@ -59,9 +59,7 @@ public:
 
 	FVector GetPendingAttackOffset() const { return PendingAttackOffset; }
 private:
-	UFUNCTION(BlueprintCallable)
 	void HandleLeftHandMeleeAttack();
-	UFUNCTION(BlueprintCallable)
 	void HandleRightHandMeleeAttack();
 	void PerformMeleeAttack(const FVector& Offset, UAnimMontage* Montage, bool bIsLeftHand);
 	void PerformRangedAttack(UAnimMontage* AttackMontage);
@@ -127,4 +125,6 @@ private:
 	FVector PendingAttackOffset;
 	virtual void ServerProcessDeath(FVector RespawnLocation) override;
 #pragma endregion
+
+
 };

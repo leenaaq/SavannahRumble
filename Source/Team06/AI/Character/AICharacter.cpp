@@ -491,14 +491,9 @@ void AAICharacter::SpawnProjectileFromItem()
 	PrimitiveComp->AddImpulse(LaunchForce, NAME_None, true);
 }
 
+#pragma endregion
+
 void AAICharacter::ServerProcessDeath(FVector RespawnLocation)
 {
-	if (AAIC_Enemy* AIC = Cast<AAIC_Enemy>(GetController()))
-	{
-		AIC->UnPossess();
-		AIC->ChangeState(NAME_Spectating);
-	}
-
 	Super::ServerProcessDeath_Implementation(RespawnLocation);
 }
-#pragma endregion
