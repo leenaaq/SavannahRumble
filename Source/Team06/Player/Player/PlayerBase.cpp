@@ -10,7 +10,6 @@
 #include "System/UI/UW_PlayerNameText.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
-#include "Player/Component/SkinManagerComponent.h"
 
 APlayerBase::APlayerBase()
 {
@@ -39,8 +38,29 @@ APlayerBase::APlayerBase()
 	PhysAnimData.MaxLinearForce = 500.f;
 	PhysAnimData.MaxAngularForce = 500.f;
 
-	SkinManagerComponent = CreateDefaultSubobject<USkinManagerComponent>(TEXT("SkinManager"));
+	PigMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("PigMesh"));
+	PigMeshComponent->SetupAttachment(GetMesh());
+	PigMeshComponent->SetRelativeLocation(FVector::ZeroVector);
+	PigMeshComponent->SetRelativeRotation(FRotator::ZeroRotator);
+	PigMeshComponent->SetRelativeScale3D(FVector(1.f));
 
+	FoxMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FoxMesh"));
+	FoxMeshComponent->SetupAttachment(GetMesh());
+	FoxMeshComponent->SetRelativeLocation(FVector::ZeroVector);
+	FoxMeshComponent->SetRelativeRotation(FRotator::ZeroRotator);
+	FoxMeshComponent->SetRelativeScale3D(FVector(1.f));
+
+	WolfMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WolfMesh"));
+	WolfMeshComponent->SetupAttachment(GetMesh());
+	WolfMeshComponent->SetRelativeLocation(FVector::ZeroVector);
+	WolfMeshComponent->SetRelativeRotation(FRotator::ZeroRotator);
+	WolfMeshComponent->SetRelativeScale3D(FVector(1.f));
+
+	DeerMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DeerMesh"));
+	DeerMeshComponent->SetupAttachment(GetMesh());
+	DeerMeshComponent->SetRelativeLocation(FVector::ZeroVector);
+	DeerMeshComponent->SetRelativeRotation(FRotator::ZeroRotator);
+	DeerMeshComponent->SetRelativeScale3D(FVector(1.f));
 }
 
 void APlayerBase::BeginPlay()
@@ -48,9 +68,14 @@ void APlayerBase::BeginPlay()
 	Super::BeginPlay();
 
 	ValidateEssentialReferences();
-	ActiveRagdoll();
-	//DeactivateActiveRagdoll();
+
+	if (!HasAuthority())
+	{
+		ActiveRagdoll();
+	}
+
 	UpdateStatsFromDataTable();
+	UpdateSkinVisibility();
 
 	if (PlayerNameWidgetComponent)
 	{
@@ -211,17 +236,24 @@ void APlayerBase::MulticastRecoverFromStun_Implementation()
 void APlayerBase::RecoverFromStun()
 {
 	bIsStunned = false;
+
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
 		MeshComp->SetSimulatePhysics(false);
 		MeshComp->SetCollisionProfileName(TEXT("CharacterMesh"));
 		MeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-
 		MeshComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
 		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 		MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+
+		MeshComp->RecreatePhysicsState();
 	}
-	ActiveRagdoll();
+
+	if (!HasAuthority())
+	{
+		ActiveRagdoll();
+	}
+
 	SetHealth(GetMaxHealth());
 }
 
@@ -240,6 +272,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CurrentEquippedItemName);
 	DOREPLIFETIME(APlayerBase, RemainingStunTime);
 	DOREPLIFETIME(APlayerBase, PlayerStats);
+	DOREPLIFETIME(APlayerBase, SkinName);
 }
 
 void APlayerBase::OnRep_CurrentEquippedItemName()
@@ -297,7 +330,10 @@ void APlayerBase::ServerProcessDeath_Implementation(FVector RespawnLocation)
 		SetLifeCount(GetLifeCount() - 1);
 		UE_LOG(LogTemp, Log, TEXT("[PlayerBase] Character LifeCount %d. Respawn..."), GetLifeCount());
 
-		ActiveRagdoll();
+		if (!HasAuthority())
+		{
+			ActiveRagdoll();
+		}
 		// 레벨별 GetRespawnLocation 필요
 		//RespawnCharacter(RespawnLocation);
 	}
@@ -325,7 +361,10 @@ void APlayerBase::ActiveRagdoll()
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
 		PhysicalAnimationComponent->SetSkeletalMeshComponent(MeshComp);
-		PhysicalAnimationComponent->ApplyPhysicalAnimationSettingsBelow(TEXT("pelvis"), PhysAnimData, true);
+		PhysicalAnimationComponent->ApplyPhysicalAnimationSettingsBelow(
+			TEXT("pelvis"), PhysAnimData, true);
+		MeshComp->SetCollisionProfileName(TEXT("Ragdoll"));
+		MeshComp->RecreatePhysicsState();
 		MeshComp->SetAllBodiesBelowSimulatePhysics(TEXT("pelvis"), true, false);
 	}
 }
@@ -353,3 +392,42 @@ void APlayerBase::DeactivateActiveRagdoll()
 		}
 	}
 }
+
+//----------------------------------- 스킨 -----------------------------------
+void APlayerBase::UpdateSkinVisibility()
+{
+	PigMeshComponent->SetVisibility(SkinName == FName("Pig"));
+	FoxMeshComponent->SetVisibility(SkinName == FName("Fox"));
+	WolfMeshComponent->SetVisibility(SkinName == FName("Wolf"));
+	DeerMeshComponent->SetVisibility(SkinName == FName("Deer"));
+}
+
+void APlayerBase::OnRep_SkinName()
+{
+	UpdateSkinVisibility();
+}
+
+bool APlayerBase::ServerSetSkinName_Validate(FName NewSkinName)
+{
+	return true;
+}
+
+void APlayerBase::ServerSetSkinName_Implementation(FName NewSkinName)
+{
+	SkinName = NewSkinName;
+	UpdateSkinVisibility();
+}
+
+void APlayerBase::SetSkinName(FName NewSkinName)
+{
+	if (HasAuthority())
+	{
+		SkinName = NewSkinName;
+		UpdateSkinVisibility();
+	}
+	else
+	{
+		ServerSetSkinName(NewSkinName);
+	}
+}
+//--------------------------------------------------------------------------
