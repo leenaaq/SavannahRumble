@@ -61,6 +61,17 @@ void AAICharacter::OnStunned(float StunTime)
 	}
 }
 
+void AAICharacter::RecoverFromStun()
+{
+	Super::RecoverFromStun();
+
+	AAIC_Enemy* AIC = Cast<AAIC_Enemy>(GetController());
+	if (IsValid(AIC))
+	{
+		AIC->GetBrainComponent()->StartLogic();
+	}
+}
+
 void AAICharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult)
 {
 	if(!MyFlag)
@@ -409,6 +420,76 @@ void AAICharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AAICharacter, bLeftCanAttack);
 	DOREPLIFETIME(AAICharacter, bRightCanAttack);
+}
+
+void AAICharacter::SpawnProjectileFromItem()
+{
+	if (!ItemManager)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemManagerComponent 값이 null"));
+		return;
+	}
+	if (!ItemManager->ItemDataTable)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemDataTable 값이 null"));
+		return;
+	}
+	const FName EquippedItem = CurrentEquippedItemName;
+	if (EquippedItem.IsNone() || EquippedItem == FName("DEFAULT"))
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : CurrentEquippedItemName 확인"));
+		return;
+	}
+	static const FString Context = TEXT("ProjectileSpawn");
+	const FEquipItemDataRow* Row = ItemManager->ItemDataTable->FindRow<FEquipItemDataRow>(EquippedItem, Context);
+	if (!Row)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : %s 행 확인"), *EquippedItem.ToString());
+		return;
+	}
+	if (!Row->ProjectileBlueprint)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ProjectileBlueprint 값이 null"));
+		return;
+	}
+	if (!MuzzleComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : MuzzleComponent 값이 null"));
+		return;
+	}
+	const FTransform MuzzleTransform = MuzzleComponent->GetComponentTransform();
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+	AActor* Projectile = GetWorld()->SpawnActor<AActor>(
+		Row->ProjectileBlueprint,
+		MuzzleTransform.GetLocation(),
+		MuzzleTransform.GetRotation().Rotator(),
+		SpawnParams
+	);
+	if (!Projectile)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : Projectile 값이 null"));
+		return;
+	}
+	UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(
+		Projectile->GetComponentByClass(UPrimitiveComponent::StaticClass())
+	);
+	if (!PrimitiveComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter.cpp : PrimitiveComponent 확인"));
+		return;
+	}
+	if (!PrimitiveComp->IsSimulatingPhysics())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter.cpp : 물리 시뮬레이션 확인"));
+		return;
+	}
+	const FVector ForwardVector = MuzzleTransform.GetRotation().GetForwardVector();
+	const FVector LaunchVelocity = ForwardVector * Row->ProjectileSpeed;
+	const FVector LaunchForce = ForwardVector * Row->ProjectileForce;
+	PrimitiveComp->SetPhysicsLinearVelocity(LaunchVelocity, true);
+	PrimitiveComp->AddImpulse(LaunchForce, NAME_None, true);
 }
 
 void AAICharacter::ServerProcessDeath(FVector RespawnLocation)

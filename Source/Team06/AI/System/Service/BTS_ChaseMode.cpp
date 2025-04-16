@@ -27,24 +27,69 @@ void UBTS_ChaseMode::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 	AAICharacter* AICharacter = Cast<AAICharacter>(AIController->GetPawn());
 	if (!AICharacter) return;
 
-	ABC = true;
-		if (ABC == true)
-		{
-			UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
-			if (!BBComp) return;
+	UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
+	if (!BBComp) return;
 
-			BBComp->SetValueAsBool(AAIC_Enemy::ShouldChaseKey, true);
-			ABC = false;
+	if (AIController->bIsEquip())
+	{
+		BBComp->SetValueAsBool(AAIC_Enemy::HaveWeaponKey, true);
+
+		bool bShouldAttack = false;
+		int32 RandomNum = FMath::RandRange(1, 100);
+		if (RandomNum <= 75)
+		{
+			bShouldAttack = true;
 		}
 		else
 		{
-			UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
-			if (!BBComp) return;
-
-			BBComp->SetValueAsBool(AAIC_Enemy::ShouldChaseKey, false);
-
-			ABC = true;
+			bShouldAttack = false;
 		}
+
+		BBComp->SetValueAsBool(AAIC_Enemy::ShouldAttackKey, bShouldAttack);
+	}
+	else
+	{
+		BBComp->SetValueAsBool(AAIC_Enemy::HaveWeaponKey, false);
+
+		bool bShouldAttack = false;
+		int32 RandomNum = FMath::RandRange(1, 100);
+		if (RandomNum <= 25)
+		{
+			bShouldAttack = true;
+		}
+		else
+		{
+			bShouldAttack = false;
+		}
+
+		BBComp->SetValueAsBool(AAIC_Enemy::ShouldAttackKey, bShouldAttack);
+	}
+
+	bool bShouldChase = false;
+	int32 RandomNum = FMath::RandRange(1, 100);
+	if (RandomNum <= 50)
+	{
+		bShouldChase = true;
+	}
+	else
+	{
+		int32 ChaseChance = AIController->bIsEquip() ? 90 : 60;
+		bShouldChase = (RandomNum <= ChaseChance);
+	}
+
+	if (AICharacter->GetbHasFlag())
+	{
+		bShouldChase = false;
+	}
+
+	if (bShouldChase)
+	{
+		BBComp->SetValueAsBool(AAIC_Enemy::ShouldChaseKey, true);
+	}
+	else
+	{
+		BBComp->SetValueAsBool(AAIC_Enemy::ShouldChaseKey, false);
+	}
 
 
 
@@ -56,7 +101,6 @@ void UBTS_ChaseMode::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 
 	bool bShouldChase = false;
 	int32 RandomNum = FMath::RandRange(1, 100);
-
 	if (RandomNum <= 50)
 	{
 		bShouldChase = true;

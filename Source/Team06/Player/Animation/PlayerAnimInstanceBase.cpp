@@ -2,6 +2,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/Player/PlayerCharacter.h"
+#include "AI/Character/AICharacter.h"
 
 void UPlayerAnimInstanceBase::NativeInitializeAnimation()
 {
@@ -45,6 +46,15 @@ void UPlayerAnimInstanceBase::AnimNotify_CheckMeleeAttackHit()
         //    Montage_SetPlayRate(CurrentMontage, 0.f);
         //}
     }
+
+	AAICharacter* AI = Cast<AAICharacter>(OwnerCharacter);
+	if (IsValid(AI))
+	{
+		if (AI->HasAuthority())
+		{
+			AI->CheckMeleeAttackHit(AI->GetPendingAttackOffset());
+		}
+	}
 }
 
 void UPlayerAnimInstanceBase::AnimNotify_CheckRangedAttack()

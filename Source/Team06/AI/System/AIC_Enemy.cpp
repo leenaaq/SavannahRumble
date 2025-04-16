@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "AI/Character/AICharacter.h"
 
 // ---------- Blackboard Key Declaration ----------
 const FName AAIC_Enemy::GoalLocationKey(TEXT("GoalLocation"));
@@ -81,6 +82,19 @@ void AAIC_Enemy::EndAI()
 bool AAIC_Enemy::bIsEquip()
 {
 	// Check AI Character has Equip an item
+	AAICharacter* AICharacter = Cast<AAICharacter>(GetPawn());
+	if (AICharacter)
+	{
+		const FName EquippedItem = AICharacter->GetCurrentEquippedItemName();
+		if (EquippedItem.IsNone() || EquippedItem == FName("DEFAULT"))
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
 
 	return false;
 }

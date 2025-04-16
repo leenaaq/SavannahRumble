@@ -70,4 +70,6 @@ private:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	AActor* TargetPlayer;
+
+	FName NoEquip = "DEFAULT";
 };

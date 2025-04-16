@@ -24,6 +24,4 @@ protected:
 	float ServiceInterval;
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	float ServiceIntervalExtra;
-
-	bool ABC;
 };
