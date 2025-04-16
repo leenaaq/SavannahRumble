@@ -9,6 +9,7 @@
 #include "AI/Character/AICharacter.h"
 #include "TimerManager.h"
 #include "System/GameSystem/T6GameStateBase.h"
+#include "System/GameSystem/T6GameModeBase_GameLevel.h"
 
 // ---------- Blackboard Key Declaration ----------
 const FName AAIC_Enemy::GoalLocationKey(TEXT("GoalLocation"));
@@ -108,6 +109,21 @@ void AAIC_Enemy::GameStarter()
 	}
 }
 
+// ---------- Server Function ----------
+void AAIC_Enemy::ServerNotifyGoalReached_Implementation()
+{
+	AT6GameModeBase_GameLevel* GM = GetWorld()->GetAuthGameMode<AT6GameModeBase_GameLevel>();
+	if (GM)
+	{
+		GM->HandlePlayerGameWin(this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Wrong GameModeBase Called in AAIC_Enemy"));
+	}
+}
+// ---------- //////////////////////// ----------
+
 // ---------- AI Character State Check ----------
 bool AAIC_Enemy::bIsEquip()
 {
@@ -128,6 +144,7 @@ bool AAIC_Enemy::bIsEquip()
 
 	return false;
 }
+// ---------- //////////////////////// ----------
 
 void AAIC_Enemy::SetTargetPlayer(AActor* Player)
 {
