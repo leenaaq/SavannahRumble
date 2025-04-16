@@ -7,6 +7,10 @@
 #include "Player/Controller/PCController_GamePlay.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PlayerState/T6PlayerCharacterState_GamePlay.h"
+#include "AI/System/AIC_Enemy.h"
+#include "AI/Character/AICharacter.h"
+#include "Engine/PlayerStartPIE.h"
+#include "EngineUtils.h"
 
 void AT6GameModeBase::NotifyToAllPlayer(const FString& NotificationString)
 {
@@ -86,6 +90,12 @@ void AT6GameModeBase::Logout(AController* Exiting)
 void AT6GameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	AT6GameStateBase* GSB = GetGameState<AT6GameStateBase>();
+	if (GSB)
+	{
+		GSB->InitAISpawnPoint();
+	}
 }
 
 FString AT6GameModeBase::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
@@ -150,6 +160,73 @@ void AT6GameModeBase::OnShowingLoadingScreen()
 		if (IsValid(LP) == true)
 		{
 			LP->ShowGameLoadingWidget();
+		}
+	}
+}
+
+void AT6GameModeBase::SpawnAIControllers()
+{
+	if(!HasAuthority())
+	{
+		UE_LOG(LogTemp, Error, TEXT("UnExpected AISpawning at GameModeBase"));
+		return;
+	}
+	else
+	{
+		UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+		if (GI)
+		{
+			if (!GI->bIsAIAvailable)
+			{
+				UE_LOG(LogTemp, Error, TEXT("No_AI_Allowed"));
+			}
+			else
+			{
+				int32 SpawnIndex = 0;
+				for (TTuple<FString, FPlayerScore> AIPlayer : GI->AIScoreBoard)
+				{
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+					AT6GameStateBase* GSB = GetGameState<AT6GameStateBase>();
+					if (!IsValid(GSB))
+					{
+						UE_LOG(LogTemp, Error, TEXT("AISpawnPoints is empty or invalid GameState"));
+						return;
+					}
+
+
+					FVector SpawnLocation = GSB->AISpawnPoints[SpawnIndex]->GetActorLocation();
+					FRotator SpawnRotation = GSB->AISpawnPoints[SpawnIndex]->GetActorRotation();
+					SpawnIndex++;
+
+					AAIController* NewAI = GetWorld()->SpawnActor<AAIController>(AIControllerClass, SpawnLocation, SpawnRotation, SpawnParams);
+					UE_LOG(LogTemp, Warning, TEXT("AI Controller Spawned!!!"));
+					if (NewAI)
+					{
+						AAICharacter* AIPawn = GetWorld()->SpawnActor<AAICharacter>(AICharacterClass, SpawnLocation, SpawnRotation, SpawnParams);
+						UE_LOG(LogTemp, Warning, TEXT("AI Pawn Spawned!!!"));
+						
+						if (AIPawn)
+						{
+							NewAI->Possess(AIPawn);
+
+							UE_LOG(LogTemp, Warning, TEXT("AI Possessed!!!"));
+
+							if (NewAI->PlayerState)
+							{
+								NewAI->PlayerState->SetPlayerName(AIPlayer.Key);
+								UE_LOG(LogTemp, Warning, TEXT("AI PlayerName Setting!!!"));
+							}
+
+						}
+						else
+						{
+							UE_LOG(LogTemp, Warning, TEXT("AIPawn InValid!!!"));
+						}
+					}
+				}
+
+			}
 		}
 	}
 }

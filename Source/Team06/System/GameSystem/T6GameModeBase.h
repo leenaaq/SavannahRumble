@@ -45,4 +45,14 @@ protected:
 #pragma endregion
 public:
 	bool bIsGameFinallyFinished = false;
+
+#pragma region AI
+public:
+	virtual void SpawnAIControllers();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AAIC_Enemy> AIControllerClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AAICharacter> AICharacterClass;
+#pragma endregion
 };

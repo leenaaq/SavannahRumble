@@ -17,8 +17,16 @@ class TEAM06_API AT6GameStateBase : public AGameStateBase
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	virtual void InitAISpawnPoint();
 public:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
 	EMatchState MatchState = EMatchState::Waiting;
+
+public:
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool bIsLobbyMode = false;
+
+public:
+
+	TArray<APlayerStart*> AISpawnPoints;
 };

@@ -43,4 +43,19 @@ private:
 
 public:
 	FString FinalWinnerController = TEXT("NoOne");
+
+
+public:
+	bool bIsAIAvailable = false;
+	bool bIsAISpawned = false;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	int32 MaxAIAllow = 2;
+
+	int32 CurrentAINum = 0;
+
+	UPROPERTY()
+	TMap<FString, FPlayerScore> AIScoreBoard;
+public:
+	void InitAIPlayer();
+	void AddAIPlayer();
 };
