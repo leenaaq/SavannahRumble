@@ -20,7 +20,6 @@
 #include "Components/SphereComponent.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Player/Component/SkinManagerComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -816,11 +815,7 @@ void APlayerCharacter::HandleCheat5Key(const FInputActionValue& Value)
 
 void APlayerCharacter::HandleGrabKey(const FInputActionValue& Value)
 {
-    if (!SkinManagerComponent)
-    {
-        return;
-    }
-    SkinManagerComponent->ApplySkinByName(FName("Skin1"));
+    SetSkinName(TEXT("Deer"));
 }
 
 void APlayerCharacter::ServerStartGrab_Implementation()

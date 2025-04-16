@@ -21,6 +21,14 @@ ABlizzardArea::ABlizzardArea()
     VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisualMesh"));
     VisualMesh->SetupAttachment(DamageArea);
     VisualMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    BlizzardAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("BlizzardAudio"));
+    BlizzardAudio->SetupAttachment(RootComponent);
+    BlizzardAudio->bAutoActivate = true; // 코드에서 재생
+    BlizzardAudio->bIsUISound = false;
+    BlizzardAudio->bAllowSpatialization = false; // 공간감 제거
+    BlizzardAudio->bOverrideAttenuation = true;
+    BlizzardAudio->AttenuationOverrides.bAttenuate = false; // 전역 사운드처럼
 }
 
 void ABlizzardArea::BeginPlay()
@@ -38,6 +46,9 @@ void ABlizzardArea::BeginPlay()
 
             GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &ABlizzardArea::DealDamageToPlayers, BlizzardTickInterval, true);
         }
+
+        // 멀티캐스트로 사운드 재생
+        Multicast_PlayBlizzardSound();
     }
 }
 
@@ -91,5 +102,14 @@ void ABlizzardArea::DealDamageToPlayers()
                 PC->TakeDamage(BlizzardDamage, DamageEvent, nullptr, this);
             }
         }
+    }
+}
+
+void ABlizzardArea::Multicast_PlayBlizzardSound_Implementation()
+{
+    if (BlizzardSound)
+    {
+        BlizzardAudio->SetSound(BlizzardSound);
+        BlizzardAudio->Play();
     }
 }
