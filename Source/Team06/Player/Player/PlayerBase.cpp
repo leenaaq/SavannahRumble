@@ -9,6 +9,9 @@
 #include "TimerManager.h"
 #include "System/UI/UW_PlayerNameText.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "GameFramework/PlayerState.h"
 
 APlayerBase::APlayerBase()
@@ -236,25 +239,86 @@ void APlayerBase::MulticastRecoverFromStun_Implementation()
 void APlayerBase::RecoverFromStun()
 {
 	bIsStunned = false;
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (!MeshComp) return;
 
-	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	MeshComp->SetSimulatePhysics(false);
+	MeshComp->bBlendPhysics = false;
+	MeshComp->SetCollisionProfileName(TEXT("CharacterMesh"));
+
+	MeshComp->AttachToComponent(
+		GetCapsuleComponent(),
+		FAttachmentTransformRules::SnapToTargetIncludingScale
+	);
+
+	StartRelLocation = MeshComp->GetRelativeLocation();
+	StartRelRotation = MeshComp->GetRelativeRotation();
+	TargetRelLocation = FVector(0.f, 0.f, -90.f);
+
+	TargetRelRotation = FRotator(
+		TargetRelRotation.Pitch,
+		StartRelRotation.Yaw,
+		TargetRelRotation.Roll
+	);
+	MeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+
+	if (UAnimInstance* AnimInst = MeshComp->GetAnimInstance())
 	{
-		MeshComp->SetSimulatePhysics(false);
-		MeshComp->SetCollisionProfileName(TEXT("CharacterMesh"));
-		MeshComp->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-		MeshComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
-		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
-		MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+		bool bFaceUp = FVector::DotProduct(
+			MeshComp->GetUpVector(),
+			FVector::UpVector
+		) > 0.f;
+		UAnimMontage* ChosenMontage =
+			bFaceUp ? GetupForwardMontage : GetupBackwardMontage;
 
-		MeshComp->RecreatePhysicsState();
+		if (ChosenMontage)
+		{
+			AnimInst->Montage_Play(
+				ChosenMontage,
+				1.f,
+				EMontagePlayReturnType::MontageLength,
+				0.f,
+				true
+			);
+
+			InterpDuration = 0.25f;
+			InterpElapsed = 0.f;
+			GetWorld()->GetTimerManager().SetTimer(
+				TransformInterpTimerHandle,
+				this,
+				&APlayerBase::UpdateTransformInterp,
+				0.01f,
+				true
+			);
+		}
 	}
 
-	if (!HasAuthority())
-	{
-		ActiveRagdoll();
-	}
-
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	SetHealth(GetMaxHealth());
+}
+
+void APlayerBase::UpdateTransformInterp()
+{
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (!MeshComp)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TransformInterpTimerHandle);
+		return;
+	}
+
+	InterpElapsed += 0.01f;
+	float Alpha = FMath::Clamp(InterpElapsed / InterpDuration, 0.f, 1.f);
+	FVector NewLoc = FMath::Lerp(StartRelLocation, TargetRelLocation, Alpha);
+	MeshComp->SetRelativeLocation(NewLoc);
+	float NewPitch = FMath::Lerp(StartRelRotation.Pitch, TargetRelRotation.Pitch, Alpha);
+	float NewRoll = FMath::Lerp(StartRelRotation.Roll, TargetRelRotation.Roll, Alpha);
+	float FixedYaw = StartRelRotation.Yaw;
+	MeshComp->SetRelativeRotation(FRotator(NewPitch, FixedYaw, NewRoll));
+
+	if (Alpha >= 1.f)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TransformInterpTimerHandle);
+	}
 }
 
 void APlayerBase::OnRep_bIsStunned()
