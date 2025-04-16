@@ -20,6 +20,8 @@
 #include "Components/SphereComponent.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "System/GameSystem/T6GameModeBase_Lobby.h"
+#include "System/GameSystem/T6GameModeBase_GameResult.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -118,6 +120,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void APlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
+    UpdateGamePhase();
+    PlayResultMontage();
 
     if (HasAuthority() == false && IsLocallyControlled() == true)
     {
@@ -226,8 +230,6 @@ void APlayerCharacter::ValidateEssentialReferences()
     }
 }
 
-
-
 void APlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 {
     if (!Controller)
@@ -269,6 +271,11 @@ void APlayerCharacter::HandleLookInput(const FInputActionValue& InValue)
 #pragma region Attack
 void APlayerCharacter::HandleLeftHandMeleeAttack(const FInputActionValue& InValue)
 {
+    if (CurrentPhase != EGamePhase::InGame)
+    {
+        return;
+    }
+
     if (!bLeftCanAttack || GetbIsStunned())
     {
         return;
@@ -281,6 +288,11 @@ void APlayerCharacter::HandleLeftHandMeleeAttack(const FInputActionValue& InValu
 
 void APlayerCharacter::HandleRightHandMeleeAttack(const FInputActionValue& InValue)
 {
+    if (CurrentPhase != EGamePhase::InGame)
+    {
+        return;
+    }
+
     if (!bRightCanAttack || GetbIsStunned())
     {
         return;
@@ -703,9 +715,13 @@ void APlayerCharacter::SpawnProjectileFromItem()
     PrimitiveComp->AddImpulse(LaunchForce, NAME_None, true);
 }
 
-
 void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
 {
+    if (CurrentPhase != EGamePhase::InGame)
+    {
+        return;
+    }
+
     if (!bRightCanAttack || CurrentEquippedItemName == "DEFAULT" || !ItemManager || !ItemManager->ItemDataTable)
     {
         return;
@@ -870,4 +886,38 @@ void APlayerCharacter::GrabTarget(USkeletalMeshComponent* TargetMesh, const FNam
     HandConstraint->ConstraintInstance.SetAngularTwistLimit(EAngularConstraintMotion::ACM_Limited, 45.f);
 
     UE_LOG(LogTemp, Warning, TEXT("GrabTarget: 본 [%s]와 연결"), *TargetBone.ToString());
+}
+
+
+void APlayerCharacter::UpdateGamePhase()
+{
+    if (AGameModeBase* GM = GetWorld()->GetAuthGameMode<AGameModeBase>())
+    {
+        if (GM->IsA(AT6GameModeBase_GameResult::StaticClass()))
+        {
+            CurrentPhase = EGamePhase::Result;
+        }
+        else if (GM->IsA(AT6GameModeBase_Lobby::StaticClass()))
+        {
+            CurrentPhase = EGamePhase::Lobby;
+        }
+        else
+        {
+            CurrentPhase = EGamePhase::InGame;
+        }
+    }
+}
+
+void APlayerCharacter::PlayResultMontage()
+{
+    if (CurrentPhase == EGamePhase::Result && ResultMontage)
+    {
+        if (UAnimInstance* Anim = GetMesh()->GetAnimInstance())
+        {
+            if (!Anim->Montage_IsPlaying(ResultMontage))
+            {
+                Anim->Montage_Play(ResultMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f, true);
+            }
+        }
+    }
 }
