@@ -31,10 +31,18 @@ EBTNodeResult::Type UBTT_AI_Jumping::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 
 			if (MovementComp && !MovementComp->IsFalling())
 			{
-				const FVector LaunchVelocity(0.0f, 0.0f, 600.0f);
-				AICharacter->LaunchCharacter(LaunchVelocity, false, true);
+				int32 JumpChance = FMath::RandRange(1, 100);
+				if (JumpChance > 50)
+				{
+					const FVector LaunchVelocity(0.0f, 0.0f, 600.0f);
+					AICharacter->LaunchCharacter(LaunchVelocity, false, true);
 
-				return EBTNodeResult::Succeeded;
+					return EBTNodeResult::Succeeded;
+				}
+				else
+				{
+					return EBTNodeResult::Succeeded;
+				}
 			}
 			else
 			{

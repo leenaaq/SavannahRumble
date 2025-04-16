@@ -14,7 +14,7 @@
 UBTS_ChaseMode::UBTS_ChaseMode(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	NodeName = TEXT("ChaseModeChanger");
-	Interval = ServiceInterval + ServiceIntervalExtra;
+	Interval = ServiceInterval;
 }
 
 void UBTS_ChaseMode::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -36,7 +36,7 @@ void UBTS_ChaseMode::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 
 		bool bShouldAttack = false;
 		int32 RandomNum = FMath::RandRange(1, 100);
-		if (RandomNum <= 75)
+		if (RandomNum <= 80)
 		{
 			bShouldAttack = true;
 		}
@@ -53,7 +53,7 @@ void UBTS_ChaseMode::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 
 		bool bShouldAttack = false;
 		int32 RandomNum = FMath::RandRange(1, 100);
-		if (RandomNum <= 25)
+		if (RandomNum <= 80)
 		{
 			bShouldAttack = true;
 		}

@@ -33,7 +33,7 @@ EBTNodeResult::Type UBTT_MoveJump::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	FAIRequestID RequestID = CachedAIController->MoveToActor(TargetActor, AcceptRadius, true, true, false, nullptr, true);
 	if (RequestID.IsValid())
 	{
-		CachedAIController->SetTargetPlayer(TargetActor); // 선택적으로 유지
+		CachedAIController->SetTargetPlayer(TargetActor);
 
 		CachedAIController->GetPathFollowingComponent()->OnRequestFinished.AddUObject(this, &UBTT_MoveJump::OnMoveCompleted);
 
