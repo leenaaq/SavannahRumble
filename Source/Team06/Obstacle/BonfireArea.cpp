@@ -14,6 +14,27 @@ ABonfireArea::ABonfireArea()
     SetRootComponent(ProtectionZone);
     ProtectionZone->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
     ProtectionZone->SetSphereRadius(300.f);
+
+    // 메시
+    BonfireMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BonfireMesh"));
+    BonfireMesh->SetupAttachment(ProtectionZone);
+
+    // 파티클
+    FireEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("FireEffect"));
+    FireEffect->SetupAttachment(BonfireMesh);
+    FireEffect->bAutoActivate = true;
+
+    FireAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("FireAudio"));
+    FireAudio->SetupAttachment(BonfireMesh);
+    FireAudio->bAutoActivate = true;
+    FireAudio->SetSound(FireSound);
+
+    // 거리 감쇠 설정
+    static ConstructorHelpers::FObjectFinder<USoundAttenuation> AttenuationAsset(TEXT("/Game/Audio/YourAttenuationAsset")); // 필요시 경로 수정
+    if (AttenuationAsset.Succeeded())
+    {
+        FireAudio->AttenuationSettings = AttenuationAsset.Object;
+    }
 }
 
 void ABonfireArea::BeginPlay()
@@ -83,4 +104,13 @@ void ABonfireArea::HealPlayersInZone()
 bool ABonfireArea::IsPlayerInside(AActor* Player) const
 {
     return ProtectionZone->IsOverlappingActor(Player);
+}
+
+void ABonfireArea::Multicast_PlayBonfireEffects_Implementation()
+{
+    if (FireEffect)
+    {
+        FireEffect->ActivateSystem();
+    }
+
 }

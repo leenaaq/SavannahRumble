@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/BoxComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundBase.h"
 #include "TimerManager.h"
 #include "ObstacleDataRow.h"
 #include "BlizzardArea.generated.h"
@@ -19,6 +21,13 @@ protected:
     virtual void BeginPlay() override;
 
 public:
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UAudioComponent* BlizzardAudio;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blizzard Area")
+    USoundBase* BlizzardSound;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FName ObstacleRowName;
 
@@ -49,4 +58,7 @@ private:
     UFUNCTION()
     void OnDamageAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_PlayBlizzardSound();
 };

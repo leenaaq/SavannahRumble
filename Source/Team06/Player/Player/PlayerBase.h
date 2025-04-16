@@ -8,8 +8,6 @@
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
 #include "PlayerBase.generated.h"
 
-class USkinManagerComponent;
-
 USTRUCT(BlueprintType)
 struct FPlayerStats : public FTableRowBase
 {
@@ -110,6 +108,17 @@ protected:
 	void MulticastRecoverFromStun();
 
 	virtual void RecoverFromStun();
+
+	UFUNCTION()
+	void OnRep_SkinName();
+
+	void UpdateSkinVisibility();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetSkinName(FName NewSkinName);
+
+	UFUNCTION(BlueprintCallable, Category = "Character|Skin")
+	void SetSkinName(FName NewSkinName);
 	
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -117,6 +126,21 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setting|Component")
 	UChildActorComponent* EquipItemMeshActorComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character|Mesh")
+	USkeletalMeshComponent* PigMeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character|Mesh")
+	USkeletalMeshComponent* FoxMeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character|Mesh")
+	USkeletalMeshComponent* WolfMeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character|Mesh")
+	USkeletalMeshComponent* DeerMeshComponent;
+
+	UPROPERTY(ReplicatedUsing = OnRep_SkinName, BlueprintReadOnly, Category = "Character|Skin")
+	FName SkinName = "Pig";
 
 	void ActiveRagdoll();
 	void DeactivateActiveRagdoll();
@@ -142,9 +166,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UPlayerTextWidgetComponent> PlayerNameWidgetComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
-	USkinManagerComponent* SkinManagerComponent;
 
 private:
 	UPROPERTY(Replicated)
