@@ -12,6 +12,8 @@
 #include "Player/Player/PlayerCharacter.h"
 #include "System/GameSystem/T6GMB_GL_Survival.h"
 #include "Kismet/GameplayStatics.h"
+#include "System/GameSystem/T6GameInstance.h"
+
 
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -169,5 +171,51 @@ void APCController_GamePlay::OnPlayerFalltoDeath_Implementation()
 	if (HasAuthority() == true && IsValid(GMB_Survival) == true)
 	{
 		GMB_Survival->OnCharacterDead(this);
+	}
+}
+
+bool APCController_GamePlay::ServerRequestAddingAI_Validate()
+{
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
+	UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+
+	if (GI)
+	{
+		return true;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't Add AI"));
+		return false;
+	}
+}
+
+void APCController_GamePlay::ServerRequestAddingAI_Implementation()
+{
+	UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+	GI->bIsAIAvailable = true;
+	if (GI->bIsAISpawned)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AI already Spawned"));
+		return;
+	}
+	else
+	{
+		GI->bIsAISpawned = true;
+		// AI 추가
+		GI->AddAIPlayer();
+		// GI에서 AI 점수판 추가
+		AT6GameModeBase* GMB = GetWorld()->GetAuthGameMode<AT6GameModeBase>();
+		if (GMB)
+		{
+			// GameMode에서 점수판의 이름을 가진 AI 추가
+			GMB->SpawnAIControllers();
+		}
+
+
 	}
 }

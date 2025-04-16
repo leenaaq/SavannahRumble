@@ -24,10 +24,16 @@ protected:
 
 	UFUNCTION()
 	void OnReadyButtonClicked();
-
+	
+	UFUNCTION()
+	void OnAIAddButtonClicked();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = LobbyWidget, Meta = (AllowPrivateAccess, BindWidget))
 	TObjectPtr<class UButton> ReadyButton;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = LobbyWidget, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<class UButton> AddAIButton;
 
 	UPROPERTY()
 	TObjectPtr<APCController_GamePlay> OwnerPlayerController;

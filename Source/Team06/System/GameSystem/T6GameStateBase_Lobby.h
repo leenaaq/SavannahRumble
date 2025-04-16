@@ -23,5 +23,6 @@ public:
 	int32 ReadyPlayerCount = 0;
 
 	UFUNCTION()
-	void OnRep_ReadyCount();
+	void OnRep_ReadyCount(); 
+
 };

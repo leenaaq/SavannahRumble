@@ -39,6 +39,8 @@ AAIC_Enemy::AAIC_Enemy()
 {
 	Blackboard = CreateDefaultSubobject<UBlackboardComponent>(TEXT("Blackboard"));
 	BrainComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BrainComponent"));
+
+	bWantsPlayerState = true;
 }
 
 void AAIC_Enemy::BeginPlay()
