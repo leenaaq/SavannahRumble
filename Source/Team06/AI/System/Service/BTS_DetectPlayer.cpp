@@ -8,80 +8,32 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Player/Player/PlayerCharacter.h"
 #include "Engine/OverlapResult.h"
+#include "kismet/GameplayStatics.h"
+#include "GameFramework/Actor.h"
 
 UBTS_DetectPlayer::UBTS_DetectPlayer(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	NodeName = TEXT("DetectPlayerCharacter");
-	Interval = 1.f;
+	Interval = 0.15f;
 }
 
 void UBTS_DetectPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	AAIC_Enemy* AIC = Cast<AAIC_Enemy>(OwnerComp.GetAIOwner());
-	if (IsValid(AIC) == true)
+	AAIC_Enemy* AIController = Cast<AAIC_Enemy>(OwnerComp.GetAIOwner());
+	if (IsValid(AIController))
 	{
-		AAICharacter* NPC = Cast<AAICharacter>(AIC->GetPawn());
-		if (IsValid(NPC) == true)
+		TArray<AActor*> Players;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), Players);
+
+		if (Players.Num() > 0)
 		{
-			UWorld* World = NPC->GetWorld();
-			if (IsValid(World) == true)
-			{
-				FVector DetectCenter = NPC->GetActorLocation();
-				float DetectRadius = 500.f;
-				TArray<FOverlapResult> OverlapResults;
-				FCollisionQueryParams CollisionQueryParams(NAME_None, false, NPC);
-				bool bResult = World->OverlapMultiByChannel(
-					OverlapResults,
-					DetectCenter,
-					FQuat::Identity,
-					ECollisionChannel::ECC_GameTraceChannel2,
-					FCollisionShape::MakeSphere(DetectRadius),
-					CollisionQueryParams
-				);
+			float NearsetActorDistance = 100.f;
+			AActor* NearsetPlayer = UGameplayStatics::FindNearestActor(OwnerComp.GetAIOwner()->GetPawn()->GetActorLocation(), Players, NearsetActorDistance);
 
-				if (bResult == true)
-				{
-					for (auto const& OverlapResult : OverlapResults)
-					{
-
-						APlayerCharacter* PC = Cast<APlayerCharacter>(OverlapResult.GetActor());
-						if (IsValid(PC) == true && PC->GetController()->IsPlayerController() == true)
-						{
-							OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::OtherPlayerLocationKey, PC);
-
-							if (AAIC_Enemy::ShowAIDebug == 1)
-							{
-								UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("AI Detecting Player!")));
-								DrawDebugSphere(World, DetectCenter, DetectRadius, 16, FColor::Red, false, 0.5f);
-								DrawDebugPoint(World, PC->GetActorLocation(), 10.f, FColor::Red, false, 0.5f);
-								DrawDebugLine(World, NPC->GetActorLocation(), PC->GetActorLocation(), FColor::Red, false, 0.5f, 0u, 3.f);
-							}
-
-							break;
-						}
-						else
-						{
-							OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::OtherPlayerLocationKey, nullptr);
-
-							if (AAIC_Enemy::ShowAIDebug == 1)
-							{
-								DrawDebugSphere(World, DetectCenter, DetectRadius, 16, FColor::Green, false, 0.5f);
-							}
-						}
-					}
-				}
-				else
-				{
-					OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::OtherPlayerLocationKey, nullptr);
-				}
-
-				if (AAIC_Enemy::ShowAIDebug == 1)
-				{
-					DrawDebugSphere(World, DetectCenter, DetectRadius, 16, FColor::Green, false, 0.5f);
-				}
-			}
+			AIController->SetTargetPlayer(NearsetPlayer);
+			OwnerComp.GetBlackboardComponent()->SetValueAsObject(AAIC_Enemy::ClosePlayerKey, NearsetPlayer);
 		}
 	}
 }

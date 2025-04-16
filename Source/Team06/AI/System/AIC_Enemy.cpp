@@ -12,6 +12,7 @@ const FName AAIC_Enemy::GoalLocationKey(TEXT("GoalLocation"));
 const FName AAIC_Enemy::BuffItemLocationKey(TEXT("BuffItemLocation"));
 const FName AAIC_Enemy::UseItemLocationKey(TEXT("UseItemLocation"));
 const FName AAIC_Enemy::OtherPlayerLocationKey(TEXT("OtherPlayerLocation"));
+const FName AAIC_Enemy::ClosePlayerKey(TEXT("ClosePlayer"));
 
 const FName AAIC_Enemy::ShouldChaseKey(TEXT("ShouldChase"));
 const FName AAIC_Enemy::ShouldAttackKey(TEXT("ShouldAttack"));
