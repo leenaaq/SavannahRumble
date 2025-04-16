@@ -149,7 +149,14 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_SkinName, BlueprintReadOnly, Category = "Character|Skin")
 	FName SkinName = "Pig";
 
-	void ActiveRagdoll();
+	virtual void ActiveRagdoll();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastActiveRagdoll();
+
+	UFUNCTION(Server, Reliable)
+	void Server_ActivateActiveRagdoll();
+
 	void DeactivateActiveRagdoll();
 
 protected:

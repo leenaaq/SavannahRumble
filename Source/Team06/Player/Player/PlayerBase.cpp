@@ -441,6 +441,15 @@ void APlayerBase::ActiveRagdoll()
 	}
 }
 
+void APlayerBase::MulticastActiveRagdoll_Implementation()
+{
+    ActiveRagdoll();
+}
+
+void APlayerBase::Server_ActivateActiveRagdoll_Implementation()
+{
+	MulticastActiveRagdoll();
+}
 
 void APlayerBase::DeactivateActiveRagdoll()
 {

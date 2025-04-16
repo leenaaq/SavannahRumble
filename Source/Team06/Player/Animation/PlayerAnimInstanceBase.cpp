@@ -83,3 +83,23 @@ void UPlayerAnimInstanceBase::AnimNotify_CheckRangedAttack()
         }
     }
 }
+
+void UPlayerAnimInstanceBase::AnimNotify_CheckGetupEnd()
+{
+    AAICharacter* AI = Cast<AAICharacter>(OwnerCharacter);
+    if (IsValid(AI))
+    {
+        if (AI->HasAuthority())
+        {
+            AI->AIMovementOn();
+        }
+    }
+    APlayerCharacter* Player = Cast<APlayerCharacter>(OwnerCharacter);
+    if (IsValid(Player))
+    {
+        if (Player->HasAuthority())
+        {
+            Player->CharacterMovementOn();
+        }
+    }
+}

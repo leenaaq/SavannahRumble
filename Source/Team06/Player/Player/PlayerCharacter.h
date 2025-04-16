@@ -30,7 +30,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void RecoverFromStun() override;
+	//virtual void RecoverFromStun() override;
 
 	virtual void OnStunned() override;
 
@@ -38,7 +38,7 @@ public:
 
 #pragma endregion
 
-#pragma region DXPlayerCharacter Components
+#pragma region PlayerCharacter Components
 
 public:
 	FORCEINLINE USpringArmComponent* GetSpringArm() const { return SpringArm; }
@@ -240,4 +240,8 @@ private:
 	EMatchState MatchState = EMatchState::None;
 	void PlayResultMontage();
 #pragma endregion
+
+public:
+	UFUNCTION(Client, Reliable)
+	void CharacterMovementOn();
 };

@@ -26,6 +26,9 @@ protected:
 	UFUNCTION()
 	void AnimNotify_CheckRangedAttack();
 
+	UFUNCTION()
+	void AnimNotify_CheckGetupEnd();
+
 protected:
 	UPROPERTY()
 	TObjectPtr<ACharacter> OwnerCharacter;

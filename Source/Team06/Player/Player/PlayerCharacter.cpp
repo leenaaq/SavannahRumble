@@ -129,6 +129,7 @@ void APlayerCharacter::BeginPlay()
 
     ValidateEssentialReferences();
     UpdateStatsFromDataTable();
+    MatchState = EMatchState::Playing;
 }
 
 void APlayerCharacter::ValidateEssentialReferences()
@@ -589,9 +590,13 @@ void APlayerCharacter::OnStunned()
     }
 }
 
-void APlayerCharacter::RecoverFromStun()
+//void APlayerCharacter::RecoverFromStun()
+//{
+//    Super::RecoverFromStun();
+//}
+
+void APlayerCharacter::CharacterMovementOn_Implementation()
 {
-    Super::RecoverFromStun();
 
     if (APlayerController* PC = Cast<APlayerController>(GetController()))
     {
@@ -607,6 +612,16 @@ void APlayerCharacter::RecoverFromStun()
         PC->SetIgnoreLookInput(false);
     }
     GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+
+    if (USkeletalMeshComponent* MeshComp = GetMesh())
+    {
+        MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+    }
+
+    if (!HasAuthority())
+    {
+        Server_ActivateActiveRagdoll();
+    }
 }
 
 void APlayerCharacter::HandleBKey(const FInputActionValue& Value)
