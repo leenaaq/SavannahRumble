@@ -29,7 +29,7 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual void RestartPlayer(AController* Player) override;
-
+	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 	virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId,
 		const FString& Options, const FString& Portal = TEXT(""));
 protected:

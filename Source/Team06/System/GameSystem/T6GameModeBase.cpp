@@ -114,6 +114,12 @@ void AT6GameModeBase::RestartPlayer(AController* Player)
 		{
 			APlayerBase* PB = Player->GetPawn<APlayerBase>();
 
+			if (!IsValid(PB))
+			{
+				UE_LOG(LogTemp, Error, TEXT("Player Pawn is Invalid"));
+				return;
+			}
+
 			if (GI->PlayerScoreBoard.Contains(PCS->GetPlayerName()))
 			{
 				FName CurrentSkinName = GI->PlayerScoreBoard[PCS->GetPlayerName()].SkinName;
@@ -130,6 +136,21 @@ void AT6GameModeBase::RestartPlayer(AController* Player)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("This is not PlayerController"));
 	}
+}
+
+APawn* AT6GameModeBase::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
+{
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Instigator = GetInstigator();
+	SpawnInfo.ObjectFlags |= RF_Transient;	// We never want to save default player pawns into a map
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	UClass* PawnClass = GetDefaultPawnClassForController(NewPlayer);
+	APawn* ResultPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnInfo);
+	if (!ResultPawn)
+	{
+		UE_LOG(LogGameMode, Warning, TEXT("SpawnDefaultPawnAtTransform: Couldn't spawn Pawn of type %s at %s"), *GetNameSafe(PawnClass), *SpawnTransform.ToHumanReadableString());
+	}
+	return ResultPawn;
 }
 
 FString AT6GameModeBase::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
