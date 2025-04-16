@@ -32,6 +32,10 @@ protected:
 	void WaitGameStarter();
 	void GameStarter();
 
+	// ---------- Server Function ----------
+	UFUNCTION(Server, Reliable)
+	void ServerNotifyGoalReached();
+
 	// ---------- AI Character State Check ----------
 public:
 	bool bIsEquip();
