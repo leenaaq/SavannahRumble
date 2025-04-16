@@ -116,7 +116,7 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetSkinName(FName NewSkinName);
-
+public:
 	UFUNCTION(BlueprintCallable, Category = "Character|Skin")
 	void SetSkinName(FName NewSkinName);
 	

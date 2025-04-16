@@ -230,3 +230,7 @@ void AT6GameModeBase::SpawnAIControllers()
 		}
 	}
 }
+
+void AT6GameModeBase::ApplyPlayerSkinMesh()
+{
+}

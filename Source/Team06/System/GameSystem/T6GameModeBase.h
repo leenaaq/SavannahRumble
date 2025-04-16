@@ -55,4 +55,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AAICharacter> AICharacterClass;
 #pragma endregion
+
+public:
+
+	void ApplyPlayerSkinMesh();
 };
