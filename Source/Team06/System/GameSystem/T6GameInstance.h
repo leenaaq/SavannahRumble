@@ -16,6 +16,9 @@ struct FPlayerScore
 
 	UPROPERTY()
 	int32 TotalWins = 0;
+
+	UPROPERTY()
+	FName SkinName = "Wolf";
 };
 
 UCLASS()
@@ -30,7 +33,7 @@ public:
 	void CheckWinScore();
 	void RegisterPlayer(const FString& PlayerName);
 	void AddWinForPlayer(const FString& PlayerName);
-
+	void SetPlayerSkinName(FString PlayerName,FName SkinName);
 	void PrintScoreBoardLog();
 public:
 	UPROPERTY()

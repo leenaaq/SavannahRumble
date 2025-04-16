@@ -114,6 +114,7 @@ protected:
 
 	void UpdateSkinVisibility();
 
+public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetSkinName(FName NewSkinName);
 

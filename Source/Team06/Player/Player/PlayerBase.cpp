@@ -13,6 +13,8 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "GameFramework/PlayerState.h"
+#include "Player/PlayerState/PlayerCharacterState.h"
+#include "Player/Controller/PCController_GamePlay.h"
 
 APlayerBase::APlayerBase()
 {

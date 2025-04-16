@@ -14,6 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "System/GameSystem/T6GameInstance.h"
 #include "System/GameSystem/T6GSB_GL_Survival.h"
+#include "Player/PlayerState/PlayerCharacterState.h"
 
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -227,5 +228,23 @@ void APCController_GamePlay::ServerApplyLifeItem_Implementation()
 	if (GSB_Survival)
 	{
 		GSB_Survival->OnPlayerLifeIncrease(this);
+	}
+}
+
+void APCController_GamePlay::ServerChangePSPlayerSkinName_Implementation(FName SkinMeshName)
+{
+	APlayerCharacterState* PCS =  GetPlayerState<APlayerCharacterState>();
+
+	if (IsValid(PCS)&& HasAuthority())
+	{
+		PCS->PlayerSkinName = SkinMeshName;
+
+		UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+
+		UE_LOG(LogTemp, Warning, TEXT("PCS PlayerSkinName is now %s "),*PCS->PlayerSkinName.ToString());
+		if (GI)
+		{
+			GI->SetPlayerSkinName(PCS->GetPlayerName(), PCS->PlayerSkinName);
+		}
 	}
 }
