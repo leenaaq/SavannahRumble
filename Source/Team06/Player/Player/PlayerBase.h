@@ -139,6 +139,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character|Mesh")
 	USkeletalMeshComponent* DeerMeshComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
+	TObjectPtr<UAnimMontage> GetupBackwardMontage = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
+	TObjectPtr<UAnimMontage> GetupForwardMontage = nullptr;
+
 	UPROPERTY(ReplicatedUsing = OnRep_SkinName, BlueprintReadOnly, Category = "Character|Skin")
 	FName SkinName = "Pig";
 
@@ -177,4 +183,14 @@ private:
 	bool bPlayerNameInitialized = false;
 	bool bHasFlag = false;
 
+
+	public:
+		FTimerHandle TransformInterpTimerHandle;
+		FVector StartRelLocation;
+		FRotator StartRelRotation;
+		FVector TargetRelLocation;
+		FRotator TargetRelRotation;
+		float InterpDuration;
+		float InterpElapsed;
+		void UpdateTransformInterp();
 };
