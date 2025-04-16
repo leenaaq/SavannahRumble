@@ -711,6 +711,12 @@ void APlayerCharacter::SpawnProjectileFromItem()
     PrimitiveComp->AddImpulse(LaunchForce, NAME_None, true);
 }
 
+void APlayerCharacter::ServerSpawnProjectileFromItem_Implementation()
+{
+    SpawnProjectileFromItem();
+}
+
+
 void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
 {
     if (MatchState != EMatchState::Playing)

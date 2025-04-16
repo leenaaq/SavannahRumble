@@ -59,30 +59,33 @@ void UPlayerAnimInstanceBase::AnimNotify_CheckMeleeAttackHit()
 
 void UPlayerAnimInstanceBase::AnimNotify_CheckRangedAttack()
 {
-    APlayerCharacter* OwnerPlayerCharacter = Cast<APlayerCharacter>(OwnerCharacter);
-    if (IsValid(OwnerPlayerCharacter))
-    {
-        OwnerPlayerCharacter->SpawnProjectileFromItem();
+    APlayerCharacter* OwnerPC = Cast<APlayerCharacter>(OwnerCharacter);
+    if (!IsValid(OwnerPC))
+        return;
 
-        FTimerHandle TempHandle;
-        APlayerController* PC = Cast<APlayerController>(OwnerPlayerCharacter->GetController());
-        if (IsValid(PC))
-        {
-            PC->GetWorldTimerManager().SetTimer(
-                TempHandle,
-                [OwnerPlayerCharacter]()
+    if (OwnerPC->IsLocallyControlled())
+    {
+        OwnerPC->ServerSpawnProjectileFromItem();
+    }
+
+    FTimerHandle TempHandle;
+    if (APlayerController* PC = Cast<APlayerController>(OwnerPC->GetController()))
+    {
+        PC->GetWorldTimerManager().SetTimer(
+            TempHandle,
+            [OwnerPC]()
+            {
+                if (IsValid(OwnerPC))
                 {
-                    if (IsValid(OwnerPlayerCharacter))
-                    {
-                        OwnerPlayerCharacter->ServerSetEquippedItemName("DEFAULT");
-                    }
-                },
-                0.1f,
-                false
-            );
-        }
+                    OwnerPC->ServerSetEquippedItemName("DEFAULT");
+                }
+            },
+            0.1f,
+            false
+        );
     }
 }
+
 
 void UPlayerAnimInstanceBase::AnimNotify_CheckGetupEnd()
 {

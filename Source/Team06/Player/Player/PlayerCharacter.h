@@ -244,4 +244,7 @@ private:
 public:
 	UFUNCTION(Client, Reliable)
 	void CharacterMovementOn();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSpawnProjectileFromItem();
 };
