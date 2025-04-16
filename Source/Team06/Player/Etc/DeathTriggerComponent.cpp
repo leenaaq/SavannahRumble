@@ -3,6 +3,7 @@
 #include "GameFramework/Actor.h"
 #include "Player/Player/PlayerBase.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Controller/PCController_GamePlay.h"
 
 ADeathTriggerActor::ADeathTriggerActor()
 {
@@ -30,10 +31,18 @@ void ADeathTriggerActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAc
 	{
 		if (APlayerBase* Player = Cast<APlayerBase>(OtherActor))
 		{
-			if (Player->HasAuthority())
+			//if (Player->HasAuthority())
+			//{
+			//	Player->ServerProcessDeath(RespawnLocation);
+			//}
+			// 서버에서 목숨 관리 코드 변경
+			APCController_GamePlay* PC = Player->GetController<APCController_GamePlay>();
+			if (IsValid(PC))
 			{
-				Player->ServerProcessDeath(RespawnLocation);
+				PC->OnPlayerFalltoDeath();
 			}
 		}
+
+
 	}
 }

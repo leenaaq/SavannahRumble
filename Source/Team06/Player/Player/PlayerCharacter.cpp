@@ -111,6 +111,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
     EIC->BindAction(CheatKeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleCheatKey);
     EIC->BindAction(Cheat2KeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleCheat2Key);
+    EIC->BindAction(Cheat3KeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleCheat3Key);
+    EIC->BindAction(Cheat4KeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleCheat4Key);
+    EIC->BindAction(Cheat5KeyAction, ETriggerEvent::Started, this, &APlayerCharacter::HandleCheat5Key);
 }
 
 void APlayerCharacter::BeginPlay()
@@ -793,17 +796,31 @@ void APlayerCharacter::HandleCheat2Key(const FInputActionValue& Value)
     //UE_LOG(LogTemp, Log, TEXT("Cheat2"));
 }
 
+void APlayerCharacter::HandleCheat3Key(const FInputActionValue& Value)
+{
+    // 키보드 3번 할당
+    UE_LOG(LogTemp, Warning, TEXT("3번키"));
+}
+
+void APlayerCharacter::HandleCheat4Key(const FInputActionValue& Value)
+{
+    // 키보드 4번 할당
+    UE_LOG(LogTemp, Warning, TEXT("4번키"));
+}
+
+void APlayerCharacter::HandleCheat5Key(const FInputActionValue& Value)
+{
+    // 키보드 5번 할당
+    UE_LOG(LogTemp, Warning, TEXT("5번키"));
+}
+
 void APlayerCharacter::HandleGrabKey(const FInputActionValue& Value)
 {
-    bool bPressed = Value.Get<bool>();
-    if (bPressed)
+    if (!SkinManagerComponent)
     {
-        ServerStartGrab();
+        return;
     }
-    else
-    {
-        ServerStopGrab();
-    }
+    SkinManagerComponent->ApplySkinByName(FName("Skin1"));
 }
 
 void APlayerCharacter::ServerStartGrab_Implementation()

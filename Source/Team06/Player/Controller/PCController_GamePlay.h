@@ -68,5 +68,12 @@ public:
 	void ServerTeleportToCheckpoint();
 #pragma endregion
 
+#pragma region Survival
+public:
+	UFUNCTION(Server, Reliable)
+	void OnPlayerFalltoDeath();
+
+	FTimerHandle RespawnHandle;
+#pragma endregion
 
 };

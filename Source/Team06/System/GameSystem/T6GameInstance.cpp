@@ -59,6 +59,8 @@ void UT6GameInstance::LoadLevelsFromFolder()
 			LevelList.Add(LevelPath);
 		}
 	}
+
+	// LevelList.Add("/Game/Team6/GameSystem/GS_Level/GameLevel/TempleLD");
 	if (LevelList.Num() == 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No levels found in /Game/Team6/GameSystem/GS_Level/GameLevel !!"));

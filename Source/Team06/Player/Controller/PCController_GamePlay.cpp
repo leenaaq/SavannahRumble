@@ -10,7 +10,8 @@
 #include "System/GameSystem/T6GameModeBase_GameLevel.h"
 #include "System/GameSystem/MyT6GSB_GL_Mountain.h"
 #include "Player/Player/PlayerCharacter.h"
-
+#include "System/GameSystem/T6GMB_GL_Survival.h"
+#include "Kismet/GameplayStatics.h"
 
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -158,5 +159,15 @@ void APCController_GamePlay::ServerTeleportToCheckpoint_Implementation()
 	{
 		FVector TargetLoc = GSM->GetCheckpointLocationForPlayer(this);
 		MyChar->SetActorLocation(TargetLoc);
+	}
+}
+
+void APCController_GamePlay::OnPlayerFalltoDeath_Implementation()
+{
+	AT6GMB_GL_Survival* GMB_Survival = Cast<AT6GMB_GL_Survival>(UGameplayStatics::GetGameMode(this));
+
+	if (HasAuthority() == true && IsValid(GMB_Survival) == true)
+	{
+		GMB_Survival->OnCharacterDead(this);
 	}
 }
