@@ -18,6 +18,8 @@ public:
 	void InitSpawnPoint();
 	UFUNCTION()
 	void RespawnPlayer(AController* Player);
+	UFUNCTION(Server,Reliable)
+	void OnPlayerLifeIncrease(AController* Player);
 public:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly)
 	int32 AliveSurviverCount = 0;
