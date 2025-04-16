@@ -3,6 +3,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundBase.h"
 #include "TimerManager.h"
 #include "ObstacleDataRow.h"
 #include "BonfireArea.generated.h"
@@ -21,6 +25,18 @@ protected:
 public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     USphereComponent* ProtectionZone;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UStaticMeshComponent* BonfireMesh;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UParticleSystemComponent* FireEffect;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UAudioComponent* FireAudio;
+
+    UPROPERTY(EditAnywhere, Category = "Bonfire Area")
+    USoundBase* FireSound;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FName ObstacleRowName;
@@ -42,4 +58,8 @@ private:
     void ApplyObstacleData(const FObstacleDataRow* Row);
 
     void HealPlayersInZone();
+
+    // 멀티캐스트 이펙트
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_PlayBonfireEffects();
 };
