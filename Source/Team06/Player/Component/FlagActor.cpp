@@ -75,6 +75,12 @@ void AFlagActor::OnIdleTriggerBegin(UPrimitiveComponent* OverlappedComp, AActor*
 
 	APawn* Character = Cast<APawn>(OtherActor);
 
+	if (!Character)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid APawn"));
+		return;
+	}
+
 	AController* NewController = Character->GetController();
 	
 	if (IsValid(Character)||IsValid(NewController))
@@ -96,6 +102,12 @@ void AFlagActor::OnGameTriggerBegin(UPrimitiveComponent* OverlappedComp, AActor*
 	if (!HasAuthority() || FlagState != EFlagState::Active || !bCanSwap || !OtherActor) return;
 
 	APawn* NewChar = Cast<APawn>(OtherActor);
+	if (!NewChar)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid APawn"));
+		return;
+	}
+
 	AController* NewController = NewChar->GetController();
 	if (IsValid(NewChar) || IsValid(NewController))
 	{
