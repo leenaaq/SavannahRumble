@@ -7,9 +7,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "T6GameStateBase.generated.h"
 
-/**
- * 
- */
+class APlayerStart;
+
 UCLASS()
 class TEAM06_API AT6GameStateBase : public AGameStateBase
 {
