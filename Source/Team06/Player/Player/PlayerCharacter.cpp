@@ -20,8 +20,7 @@
 #include "Components/SphereComponent.h"
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "System/GameSystem/T6GameModeBase_Lobby.h"
-#include "System/GameSystem/T6GameModeBase_GameResult.h"
+#include "System/GameSystem/T6GameStateBase_GameLevel.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -59,37 +58,19 @@ APlayerCharacter::APlayerCharacter()
     }
 }
 
-//void APlayerCharacter::Tick(float DeltaTime)
-//{
-//    Super::Tick(DeltaTime);
-//
-//    if (IsLocallyControlled())
-//    {
-//        //FString CurrentWeaponName = CurrentEquippedItemName.ToString();
-//
-//        //FString WeaponMeshName = TEXT("None");
-//
-//        //if (EquipItemChildActor)
-//        //{
-//        //    AEquipItemMeshActor* EquipMeshActor = Cast<AEquipItemMeshActor>(EquipItemChildActor->GetChildActor());
-//        //    if (EquipMeshActor && EquipMeshActor->MeshComp && EquipMeshActor->MeshComp->GetStaticMesh())
-//        //    {
-//        //        WeaponMeshName = EquipMeshActor->MeshComp->GetStaticMesh()->GetName();
-//        //    }
-//        //}
-//
-//        FString LeftStatus = bLeftCanAttack ? TEXT("Ready") : TEXT("Attacking");
-//        FString RightStatus = bRightCanAttack ? TEXT("Ready") : TEXT("Attacking");
-//
-//        if (GEngine)
-//        {
-//            GEngine->AddOnScreenDebugMessage(100, 0.f, FColor::Red,
-//                FString::Printf(TEXT("[LEFT]  %s"), *LeftStatus));
-//            GEngine->AddOnScreenDebugMessage(101, 0.f, FColor::Blue,
-//                FString::Printf(TEXT("[RIGHT] %s"), *RightStatus));
-//        }
-//    }
-//}
+void APlayerCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    if (const AT6GameStateBase_GameLevel* GS = GetWorld()->GetGameState<AT6GameStateBase_GameLevel>())
+    {
+        if (MatchState != GS->MatchState)
+        {
+            MatchState = GS->MatchState;
+            UE_LOG(LogTemp, Log, TEXT("MatchState 변경됨: %s"), *UEnum::GetValueAsString(MatchState));
+        }
+    }
+}
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -120,7 +101,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void APlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    UpdateGamePhase();
     PlayResultMontage();
 
     if (HasAuthority() == false && IsLocallyControlled() == true)
@@ -271,7 +251,7 @@ void APlayerCharacter::HandleLookInput(const FInputActionValue& InValue)
 #pragma region Attack
 void APlayerCharacter::HandleLeftHandMeleeAttack(const FInputActionValue& InValue)
 {
-    if (CurrentPhase != EGamePhase::InGame)
+    if (MatchState != EMatchState::Playing)
     {
         return;
     }
@@ -288,7 +268,7 @@ void APlayerCharacter::HandleLeftHandMeleeAttack(const FInputActionValue& InValu
 
 void APlayerCharacter::HandleRightHandMeleeAttack(const FInputActionValue& InValue)
 {
-    if (CurrentPhase != EGamePhase::InGame)
+    if (MatchState != EMatchState::Playing)
     {
         return;
     }
@@ -583,6 +563,7 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(APlayerCharacter, bLeftCanAttack);
     DOREPLIFETIME(APlayerCharacter, bRightCanAttack);
+    DOREPLIFETIME(ThisClass, MatchState);
 }
 
 #pragma endregion
@@ -717,7 +698,7 @@ void APlayerCharacter::SpawnProjectileFromItem()
 
 void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
 {
-    if (CurrentPhase != EGamePhase::InGame)
+    if (MatchState != EMatchState::Playing)
     {
         return;
     }
@@ -889,28 +870,9 @@ void APlayerCharacter::GrabTarget(USkeletalMeshComponent* TargetMesh, const FNam
 }
 
 
-void APlayerCharacter::UpdateGamePhase()
-{
-    if (AGameModeBase* GM = GetWorld()->GetAuthGameMode<AGameModeBase>())
-    {
-        if (GM->IsA(AT6GameModeBase_GameResult::StaticClass()))
-        {
-            CurrentPhase = EGamePhase::Result;
-        }
-        else if (GM->IsA(AT6GameModeBase_Lobby::StaticClass()))
-        {
-            CurrentPhase = EGamePhase::Lobby;
-        }
-        else
-        {
-            CurrentPhase = EGamePhase::InGame;
-        }
-    }
-}
-
 void APlayerCharacter::PlayResultMontage()
 {
-    if (CurrentPhase == EGamePhase::Result && ResultMontage)
+    if (MatchState == EMatchState::End && ResultMontage)
     {
         if (UAnimInstance* Anim = GetMesh()->GetAnimInstance())
         {
