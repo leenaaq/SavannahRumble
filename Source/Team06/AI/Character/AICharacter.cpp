@@ -64,6 +64,15 @@ void AAICharacter::RecoverFromStun()
 {
 	Super::RecoverFromStun();
 
+	/*AAIC_Enemy* AIC = Cast<AAIC_Enemy>(GetController());
+	if (IsValid(AIC))
+	{
+		AIC->GetBrainComponent()->StartLogic();
+	}*/
+}
+
+void AAICharacter::AIMovementOn()
+{
 	AAIC_Enemy* AIC = Cast<AAIC_Enemy>(GetController());
 	if (IsValid(AIC))
 	{

@@ -29,6 +29,9 @@ protected:
 
 	void EndAI();
 
+	void WaitGameStarter();
+	void GameStarter();
+
 	// ---------- AI Character State Check ----------
 public:
 	bool bIsEquip();

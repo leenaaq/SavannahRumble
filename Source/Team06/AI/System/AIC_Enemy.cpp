@@ -7,6 +7,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "AI/Character/AICharacter.h"
+#include "TimerManager.h"
+#include "System/GameSystem/T6GameStateBase.h"
 
 // ---------- Blackboard Key Declaration ----------
 const FName AAIC_Enemy::GoalLocationKey(TEXT("GoalLocation"));
@@ -59,6 +61,8 @@ void AAIC_Enemy::BeginAI(APawn* InPawn)
 		{
 			bool bRunSucceeded = RunBehaviorTree(BehaviorTree);
 		}
+
+		BrainComponent->StopLogic(TEXT("GameStartWaiting"));
 	}
 }
 
@@ -75,6 +79,29 @@ void AAIC_Enemy::EndAI()
 	if (IsValid(BehaviorTreeComponent) == true)
 	{
 		BehaviorTreeComponent->StopTree();
+	}
+}
+
+void AAIC_Enemy::WaitGameStarter()
+{
+	FTimerHandle TimeoutHandle;
+	GetWorldTimerManager().SetTimer(TimeoutHandle, this, &AAIC_Enemy::GameStarter, 0.5f, false);
+}
+
+void AAIC_Enemy::GameStarter()
+{
+	AT6GameStateBase* GameState = Cast<AT6GameStateBase>(GetWorld()->GetGameState());
+	if (GameState)
+	{
+		EMatchState NowMatchState = GameState->MatchState;
+		if (NowMatchState == EMatchState::Playing)
+		{
+			GetBrainComponent()->StartLogic();
+		}
+		else
+		{
+			WaitGameStarter();
+		}
 	}
 }
 

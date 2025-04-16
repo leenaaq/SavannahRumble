@@ -25,6 +25,7 @@ public:
 	virtual void OnStunned();
 	virtual void OnStunned(float StunTime);
 	virtual void RecoverFromStun();
+	void AIMovementOn();
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult);
