@@ -6,6 +6,8 @@
 #include "EngineUtils.h" // TActorIterator
 #include "Engine/PlayerStartPIE.h"
 #include "Player/PlayerState/PlayerCharacterState.h"
+#include "GameFramework/Controller.h"
+
 void AT6GSB_GL_Survival::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -94,4 +96,19 @@ void AT6GSB_GL_Survival::RespawnPlayer(AController* Player)
         }
     }
 }
+
+void AT6GSB_GL_Survival::OnPlayerLifeIncrease_Implementation(AController* Player)
+{
+    if (!HasAuthority())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InvalidLifeIncreaseCalled in GSB_GL_Survival"));
+        return;
+    }
+    else
+    {
+        ++PlayerLives[Player];
+        UE_LOG(LogTemp, Warning, TEXT("Player %s 's Life Increased!!! "),*Player->PlayerState->GetPlayerName());
+    }
+}
+
 
