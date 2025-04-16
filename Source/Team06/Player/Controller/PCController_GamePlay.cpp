@@ -13,7 +13,7 @@
 #include "System/GameSystem/T6GMB_GL_Survival.h"
 #include "Kismet/GameplayStatics.h"
 #include "System/GameSystem/T6GameInstance.h"
-
+#include "System/GameSystem/T6GSB_GL_Survival.h"
 
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -217,5 +217,15 @@ void APCController_GamePlay::ServerRequestAddingAI_Implementation()
 		}
 
 
+	}
+}
+
+void APCController_GamePlay::ServerApplyLifeItem_Implementation()
+{
+	AT6GSB_GL_Survival* GSB_Survival = GetWorld()->GetGameState<AT6GSB_GL_Survival>();
+
+	if (GSB_Survival)
+	{
+		GSB_Survival->OnPlayerLifeIncrease(this);
 	}
 }

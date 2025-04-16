@@ -83,4 +83,10 @@ public:
 	void ServerRequestAddingAI();
 
 #pragma endregion
+#pragma region ItemRPC
+public:
+	UFUNCTION(Server, Reliable)
+	void ServerApplyLifeItem();
+
+#pragma endregion
 };
