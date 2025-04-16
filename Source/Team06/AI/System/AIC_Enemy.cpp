@@ -65,6 +65,7 @@ void AAIC_Enemy::BeginAI(APawn* InPawn)
 		}
 
 		BrainComponent->StopLogic(TEXT("GameStartWaiting"));
+		WaitGameStarter();
 	}
 }
 

@@ -434,35 +434,29 @@ void AAICharacter::SpawnProjectileFromItem()
 {
 	if (!ItemManager)
 	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemManagerComponent 값이 null"));
 		return;
 	}
 	if (!ItemManager->ItemDataTable)
 	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemDataTable 값이 null"));
 		return;
 	}
 	const FName EquippedItem = CurrentEquippedItemName;
 	if (EquippedItem.IsNone() || EquippedItem == FName("DEFAULT"))
 	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : CurrentEquippedItemName 확인"));
 		return;
 	}
 	static const FString Context = TEXT("ProjectileSpawn");
 	const FEquipItemDataRow* Row = ItemManager->ItemDataTable->FindRow<FEquipItemDataRow>(EquippedItem, Context);
 	if (!Row)
 	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : %s 행 확인"), *EquippedItem.ToString());
 		return;
 	}
 	if (!Row->ProjectileBlueprint)
 	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ProjectileBlueprint 값이 null"));
 		return;
 	}
 	if (!MuzzleComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : MuzzleComponent 값이 null"));
 		return;
 	}
 	const FTransform MuzzleTransform = MuzzleComponent->GetComponentTransform();
@@ -477,7 +471,6 @@ void AAICharacter::SpawnProjectileFromItem()
 	);
 	if (!Projectile)
 	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : Projectile 값이 null"));
 		return;
 	}
 	UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(
@@ -485,12 +478,10 @@ void AAICharacter::SpawnProjectileFromItem()
 	);
 	if (!PrimitiveComp)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter.cpp : PrimitiveComponent 확인"));
 		return;
 	}
 	if (!PrimitiveComp->IsSimulatingPhysics())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter.cpp : 물리 시뮬레이션 확인"));
 		return;
 	}
 	const FVector ForwardVector = MuzzleTransform.GetRotation().GetForwardVector();
