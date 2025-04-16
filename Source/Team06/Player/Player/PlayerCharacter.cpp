@@ -653,17 +653,19 @@ void APlayerCharacter::SpawnProjectileFromItem()
         UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ItemDataTable 값이 null"));
         return;
     }
+
     const FName EquippedItem = CurrentEquippedItemName;
     if (EquippedItem.IsNone() || EquippedItem == FName("DEFAULT"))
     {
         UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : CurrentEquippedItemName 확인"));
         return;
     }
+
     static const FString Context = TEXT("ProjectileSpawn");
     const FEquipItemDataRow* Row = ItemManager->ItemDataTable->FindRow<FEquipItemDataRow>(EquippedItem, Context);
     if (!Row)
     {
-        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : %s 행 확인"), *EquippedItem.ToString());
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : '%s' 행을 찾을 수 없음"), *EquippedItem.ToString());
         return;
     }
     if (!Row->ProjectileBlueprint)
@@ -671,45 +673,62 @@ void APlayerCharacter::SpawnProjectileFromItem()
         UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : ProjectileBlueprint 값이 null"));
         return;
     }
+
     if (!MuzzleComponent)
     {
         UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : MuzzleComponent 값이 null"));
         return;
     }
-    const FTransform MuzzleTransform = MuzzleComponent->GetComponentTransform();
+
+    const FVector SpawnLoc = MuzzleComponent->GetComponentLocation();
+
+    FVector AimDir = GetActorForwardVector();
+    if (APlayerController* PC = Cast<APlayerController>(GetController()))
+    {
+        if (PC->IsLocalController())
+        {
+            AimDir = PC->GetControlRotation().Vector();
+        }
+        else if (HasAuthority())
+        {
+            AimDir = GetActorForwardVector();
+        }
+    }
+
     FActorSpawnParameters SpawnParams;
     SpawnParams.Owner = this;
     SpawnParams.Instigator = this;
+
     AActor* Projectile = GetWorld()->SpawnActor<AActor>(
         Row->ProjectileBlueprint,
-        MuzzleTransform.GetLocation(),
-        MuzzleTransform.GetRotation().Rotator(),
+        SpawnLoc,
+        AimDir.Rotation(),
         SpawnParams
     );
     if (!Projectile)
     {
-        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : Projectile 값이 null"));
+        UE_LOG(LogTemp, Error, TEXT("PlayerCharacter.cpp : Projectile 스폰 실패"));
         return;
     }
-    UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(
-        Projectile->GetComponentByClass(UPrimitiveComponent::StaticClass())
-    );
-    if (!PrimitiveComp)
+
+    if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(
+        Projectile->GetComponentByClass(UPrimitiveComponent::StaticClass())))
     {
-        UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter.cpp : PrimitiveComponent 확인"));
-        return;
+        if (Prim->IsSimulatingPhysics())
+        {
+            const FVector LaunchVelocity = AimDir * Row->ProjectileSpeed;
+            Prim->SetPhysicsLinearVelocity(LaunchVelocity, true);
+
+            const float ImpulseScale = (Row->ProjectileForce / Row->ProjectileSpeed);
+            Prim->AddImpulse(LaunchVelocity * ImpulseScale, NAME_None, true);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter.cpp : Projectile 물리 시뮬레이션 비활성"));
+        }
     }
-    if (!PrimitiveComp->IsSimulatingPhysics())
-    {
-        UE_LOG(LogTemp, Warning, TEXT("PlayerCharacter.cpp : 물리 시뮬레이션 확인"));
-        return;
-    }
-    const FVector ForwardVector = MuzzleTransform.GetRotation().GetForwardVector();
-    const FVector LaunchVelocity = ForwardVector * Row->ProjectileSpeed;
-    const FVector LaunchForce = ForwardVector * Row->ProjectileForce;
-    PrimitiveComp->SetPhysicsLinearVelocity(LaunchVelocity, true);
-    PrimitiveComp->AddImpulse(LaunchForce, NAME_None, true);
 }
+
 
 void APlayerCharacter::ServerSpawnProjectileFromItem_Implementation()
 {
