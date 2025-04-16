@@ -14,7 +14,6 @@ class TEAM06_API AT6GameModeBase_GameResult : public AT6GameModeBase
 {
 	GENERATED_BODY()
 protected:
-	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	virtual void BeginPlay() override;
 private:
 	FTimerHandle ResetGameTimerHandle;
@@ -22,7 +21,7 @@ private:
 	void OnGameResultTimerFinished();
 
 	void ResetAndReturnToLobby();
-	
+	void SpreadPlayerbyGameResult();
 
 private:
 	UFUNCTION()

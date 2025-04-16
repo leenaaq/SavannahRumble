@@ -4,7 +4,7 @@
 #include "System/GameSystem/FinishGoalActor.h"
 #include "Components/BoxComponent.h"
 #include "Player/Controller/PCController_GamePlay.h"
-
+#include "AI/System/AIC_Enemy.h"
 // Sets default values
 AFinishGoalActor::AFinishGoalActor()
 {
@@ -31,12 +31,22 @@ void AFinishGoalActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 {
 	APawn* Pawn = Cast<APawn>(OtherActor);
 	if (!Pawn) return;
+	if (!Pawn->GetController()) return;
 
-	APCController_GamePlay* PC = Cast<APCController_GamePlay>(Pawn->GetController());
-	if (PC)
+	if (Pawn->GetController()->IsPlayerController())
 	{
-		PC->ServerNotifyGoalReached();
+		APCController_GamePlay* PC = Cast<APCController_GamePlay>(Pawn->GetController());
+		if (PC)
+		{
+			PC->ServerNotifyGoalReached();
+		}
 	}
+	else
+	{
+		AAIController* AIC = Cast<AAIController>(Pawn->GetController());
+		// AI의 경우
+	}
+
 }
 
 

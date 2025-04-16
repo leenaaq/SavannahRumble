@@ -6,45 +6,11 @@
 #include "Player/PlayerState/PlayerCharacterState.h"
 #include "EngineUtils.h"
 #include "Engine/PlayerStartPIE.h"
-#include "Player/Controller/PlayerCharacterController.h"
+#include "Player/Controller/PCController_GamePlay.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/GameSession.h"
-
-AActor* AT6GameModeBase_GameResult::ChoosePlayerStart_Implementation(AController* Player)
-{
-    UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
-    if (!GI)
-    {
-        UE_LOG(LogTemp, Error, TEXT("GameInstance not valid."));
-        return Super::ChoosePlayerStart_Implementation(Player);
-    }
-
-    FString WinnerName = GI->FinalWinnerController;
-    if (WinnerName == "NoOne")
-    {
-        UE_LOG(LogTemp, Error, TEXT("FinalWinnerController not set! Cannot spawn properly."));
-        return Super::ChoosePlayerStart_Implementation(Player);
-    }
-
-    APlayerState* PS = Player->PlayerState;
-    if (PS && PS->GetPlayerName() == WinnerName)
-    {
-        // Find a PlayerStart with Tag == "Winner"
-        for (TActorIterator<APlayerStart> It(GetWorld()); It; ++It)
-        {
-            APlayerStart* Start = *It;
-            if (Start->PlayerStartTag == "Winner")
-            {
-                UE_LOG(LogTemp, Log, TEXT("Spawning winner %s at WinnerStart"), *WinnerName);
-                return Start;
-            }
-        }
-    }
-
-    // Default fallback
-    return Super::ChoosePlayerStart_Implementation(Player);
-}
+#include "System/GameSystem/T6GameStateBase_GameResult.h"
 
 void AT6GameModeBase_GameResult::BeginPlay()
 {
@@ -57,8 +23,15 @@ void AT6GameModeBase_GameResult::BeginPlay()
             UE_LOG(LogTemp, Warning, TEXT("Final winner is: %s"), *GI->FinalWinnerController);
         }
     }
-    //GetWorld()->GetTimerManager().SetTimer(ResetGameTimerHandle, this, &AT6GameModeBase_GameResult::OnGameResultTimerFinished, 60.f, false);
     GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &ThisClass::OnMainTimerElapsed, 1.f, true);
+
+    AT6GameStateBase_GameResult* GSB_GR = GetGameState<AT6GameStateBase_GameResult>();
+    if (GSB_GR)
+    {
+        GSB_GR->InitGameResultSpawnPoint();
+
+        SpreadPlayerbyGameResult();
+    }
 }
 
 void AT6GameModeBase_GameResult::OnGameResultTimerFinished()
@@ -89,6 +62,53 @@ void AT6GameModeBase_GameResult::ResetAndReturnToLobby()
     // Lobby 레벨로 이동
     const FString LobbyMapPath = TEXT("/Game/Team6/GameSystem/GS_Level/TestLobby?listen");
     UGameplayStatics::OpenLevel(this, FName(*LobbyMapPath), true);
+}
+
+void AT6GameModeBase_GameResult::SpreadPlayerbyGameResult()
+{
+    AT6GameStateBase_GameResult* GSB_GR = GetGameState<AT6GameStateBase_GameResult>();
+
+    if (!IsValid(GSB_GR))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Invalid GSB_GR"));
+        return;
+    }
+    else
+    {
+        UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+        if (!GI) return;
+        if (GI->FinalWinnerController == "NoOne")
+        {
+            UE_LOG(LogTemp, Error, TEXT("No Winner Controller Error!!!!"));
+            return;
+        }
+
+        int32 SpawnPointAmount = GSB_GR->SpawnPoints.Num();
+        for (APCController_GamePlay* PCC : SessionPlayerControllers)
+        {
+            if (SpawnPointAmount == 0)
+            {
+                UE_LOG(LogTemp, Error, TEXT("SpawnPoints가 없습니다!"));
+                return;
+            }
+            if (PCC->PlayerState)
+            {
+                if (GI->FinalWinnerController == PCC->PlayerState->GetPlayerName())
+                {
+                    UE_LOG(LogTemp, Error, TEXT("WinnerController %s Found!!!"), *PCC->PlayerState->GetPlayerName());
+                    RestartPlayerAtPlayerStart(PCC, GSB_GR->WinnerSpawnPoint);
+                }
+                else
+                {
+                    RestartPlayerAtPlayerStart(PCC, GSB_GR->SpawnPoints[FMath::RandRange(0, SpawnPointAmount - 1)]);
+                }
+            }
+        }
+        if (GI->bIsAIAvailable)
+        {
+            //AI 있으면 등수 배치
+        }
+    }
 }
 
 void AT6GameModeBase_GameResult::OnMainTimerElapsed()
