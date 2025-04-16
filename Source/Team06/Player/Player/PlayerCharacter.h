@@ -3,6 +3,7 @@
 #include "PlayerBase.h"
 #include "InputActionValue.h"
 #include "Player/Component/GrabActor.h" 
+#include "System/GameSystem/T6EMatchState.h"
 #include "PlayerCharacter.generated.h"
 
 class UCameraComponent;
@@ -12,15 +13,6 @@ class UInputAction;
 class UAnimMontage;
 class USphereComponent;
 
-UENUM(BlueprintType)
-enum class EGamePhase : uint8
-{
-	Lobby,
-	InGame,
-	Result
-};
-
-
 UCLASS()
 class TEAM06_API APlayerCharacter : public APlayerBase
 {
@@ -29,7 +21,7 @@ class TEAM06_API APlayerCharacter : public APlayerBase
 public:
 	APlayerCharacter();
 
-	//void Tick(float DeltaTime);
+	virtual void Tick(float DeltaTime) override;
 
 #pragma region Overrides Character
 
@@ -192,6 +184,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
 	TObjectPtr<UAnimMontage> ItemShortRangedAttackMontage = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PlayerCharacter|Montage")
+	UAnimMontage* ResultMontage = nullptr;
+
 	//UPROPERTY(ReplicatedUsing = OnRep_CanAttack)
 	UPROPERTY(Replicated)
 	bool bLeftCanAttack = true;
@@ -211,45 +206,38 @@ private:
 #pragma endregion
 
 #pragma region Grab
-	protected:
-		UPROPERTY(EditDefaultsOnly, Category = "Grab")
-		TSubclassOf<AGrabActor> GrabActorClass;
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Grab")
+	TSubclassOf<AGrabActor> GrabActorClass;
 
-		UPROPERTY(VisibleAnywhere, Category = "Grab")
-		USphereComponent* GrabSphere;
+	UPROPERTY(VisibleAnywhere, Category = "Grab")
+	USphereComponent* GrabSphere;
 
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grab", meta = (AllowPrivateAccess = "true"))
-		UPhysicsConstraintComponent* HandConstraint;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grab", meta = (AllowPrivateAccess = "true"))
+	UPhysicsConstraintComponent* HandConstraint;
 
-		UPROPERTY()
-		AGrabActor* GrabActorInstance = nullptr;
+	UPROPERTY()
+	AGrabActor* GrabActorInstance = nullptr;
 
-		UFUNCTION(Server, Reliable)
-		void ServerStartGrab();
+	UFUNCTION(Server, Reliable)
+	void ServerStartGrab();
 
-		UFUNCTION(Server, Reliable)
-		void ServerStopGrab();
+	UFUNCTION(Server, Reliable)
+	void ServerStopGrab();
 
-		UFUNCTION(NetMulticast, Unreliable)
-		void MulticastActivateGrab();
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastActivateGrab();
 
-		UFUNCTION(NetMulticast, Unreliable)
-		void MulticastReleaseGrab();
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastReleaseGrab();
 
-		void GrabTarget(USkeletalMeshComponent* TargetMesh, const FName& TargetBone);
+	void GrabTarget(USkeletalMeshComponent* TargetMesh, const FName& TargetBone);
 #pragma endregion
 
 #pragma region State
-	private:
-		void UpdateGamePhase();
-		void PlayResultMontage();
-
-	protected:
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		EGamePhase CurrentPhase = EGamePhase::Lobby;
-
-		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		UAnimMontage* ResultMontage = nullptr;
-
+private:
+	UPROPERTY(Replicated)
+	EMatchState MatchState = EMatchState::None;
+	void PlayResultMontage();
 #pragma endregion
 };
