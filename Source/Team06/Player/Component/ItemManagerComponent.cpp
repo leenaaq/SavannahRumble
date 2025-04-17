@@ -172,3 +172,11 @@ void UItemManagerComponent::UpdateItemVisibility(FName NewItemName)
     EquipActor->SetActorScale3D(Row->MeshScale);
     EquipActor->SetActorRelativeLocation(Row->MeshOffset);
 }
+
+const FEquipItemDataRow* UItemManagerComponent::GetItemDataRow(FName RowName) const
+{
+    if (!ItemDataTable) return nullptr;
+
+    static const FString Context = TEXT("ItemDataRowContext");
+    return ItemDataTable->FindRow<FEquipItemDataRow>(RowName, Context);
+}

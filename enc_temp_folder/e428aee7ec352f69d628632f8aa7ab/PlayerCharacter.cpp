@@ -316,7 +316,7 @@ void APlayerCharacter::ServerRPCItemMeleeAttack_Implementation(float InStartTime
     PendingAttackOffset = GetActorRightVector() * 50.0f;
     PerformMeleeAttack(PendingAttackOffset, ItemRightMeleeAttackMontage, false);
     MulticastPlayMeleeAttackMontage(ItemRightMeleeAttackMontage);
-    //ServerSetEquippedItemName("DEFAULT");
+    ServerSetEquippedItemName("DEFAULT");
 }
 
 bool APlayerCharacter::ServerRPCItemMeleeAttack_Validate(float InStartTime)
@@ -482,90 +482,6 @@ bool APlayerCharacter::ServerRPCPerformMeleeHit_Validate(AActor* DamagedActor, f
     return true;
 }
 
-void APlayerCharacter::CheckItemMeleeAttack()
-{
-    if (!HasAuthority())
-    {
-        return;
-    }
-    if (CurrentEquippedItemName == "DEFAULT" || !ItemManager || !ItemManager->ItemDataTable)
-    {
-        return;
-    }
-    const FString Context = TEXT("ItemMeleeAttackContext");
-    const FEquipItemDataRow* Row = ItemManager->ItemDataTable->FindRow<FEquipItemDataRow>(CurrentEquippedItemName, Context);
-    if (!Row)
-    {
-        UE_LOG(LogTemp, Error, TEXT("CheckItemMeleeAttack: '%s' 아이템 데이터 없음"), *CurrentEquippedItemName.ToString());
-        return;
-    }
-
-    const FVector Forward = GetActorForwardVector();
-    const FVector Start = GetCapsuleComponent()->GetComponentLocation() + GetActorRightVector() * 50.0f + Forward * GetCapsuleComponent()->GetScaledCapsuleRadius();
-    const FVector End = Start + Forward * Row->HitRange;
-
-    TArray<FHitResult> OutHits;
-    FCollisionQueryParams Params(NAME_None, false, this);
-
-    bool bHit = GetWorld()->SweepMultiByChannel(
-        OutHits,
-        Start,
-        End,
-        FQuat::Identity,
-        ECC_Camera,
-        FCollisionShape::MakeSphere(Row->HitRadius),
-        Params
-    );
-
-    const FVector CapsuleCenter = (Start + End) * 0.5f;
-    const float CapsuleHalfHeight = Row->HitRange * 0.5f;
-    DrawDebugCapsule(GetWorld(), CapsuleCenter, CapsuleHalfHeight, Row->HitRadius, FRotationMatrix::MakeFromZ(Forward).ToQuat(), bHit ? FColor::Red : FColor::Blue, false, 2.0f);
-
-    TSet<APlayerBase*> HitPlayers;
-
-    for (const FHitResult& Hit : OutHits)
-    {
-        APlayerBase* Target = Cast<APlayerBase>(Hit.GetActor());
-        if (!Target || Target == this || HitPlayers.Contains(Target))
-        {
-            continue;
-        }
-        HitPlayers.Add(Target);
-
-        const float TotalDamage = GetAttackDamage() + Row->AdditionalDamage;
-        FDamageEvent DamageEvent;
-        Target->TakeDamage(TotalDamage, DamageEvent, GetController(), this);
-
-        FVector KnockForce = Forward * Row->KnockBackForce;
-        KnockForce.Z += Row->LaunchUpForce;
-
-        if (UCharacterMovementComponent* MoveComp = Target->GetCharacterMovement())
-        {
-            MoveComp->Launch(FVector::ZeroVector); // 리셋 후
-            MoveComp->Launch(KnockForce);
-        }
-
-        if (Row->RagdollTime > 0.f)
-        {
-            Target->OnStunned(Row->RagdollTime);
-        }
-
-        UE_LOG(LogTemp, Log, TEXT("Item Melee Hit: %s (Damage: %.1f Knock: %.1f LaunchZ: %.1f Ragdoll: %.1f)"),
-            *Target->GetName(), TotalDamage, Row->KnockBackForce, Row->LaunchUpForce, Row->RagdollTime);
-    }
-}
-
-void APlayerCharacter::Multicast_CheckItemMeleeAttack_Implementation()
-{
-    CheckItemMeleeAttack();
-}
-
-void APlayerCharacter::Server_CheckItemMeleeAttack_Implementation()
-{
-    CheckItemMeleeAttack();
-}
-
-
 void APlayerCharacter::DrawDebugMeleeAttack(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward)
 {
     const float MeleeAttackRange = 50.f;
@@ -629,7 +545,6 @@ void APlayerCharacter::MulticastPlayMeleeAttackMontage_Implementation(UAnimMonta
         }
     }
 }
-
 
 void APlayerCharacter::MulticastResetAttack_Implementation(bool bIsLeftHand)
 {
@@ -847,6 +762,7 @@ void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
 
     if (Row->ItemType == EEquipItemType::Melee)
     {
+        // 근접 아이템은 바로 몽타주 재생 (멀티캐스트)
         MulticastPlayMeleeAttackMontage(ItemRightRangedAttackMontage);
 
         float Duration = ItemRightRangedAttackMontage ? ItemRightRangedAttackMontage->GetPlayLength() : 1.0f;
@@ -863,6 +779,7 @@ void APlayerCharacter::HandleFKey(const FInputActionValue& Value)
     }
     else if (Row->ItemType == EEquipItemType::Ranged)
     {
+        // 원거리 아이템 → 가까이 던지기 → 서버가 Multicast 호출
         ServerStartShortThrow();
     }
 }
@@ -1002,9 +919,4 @@ void APlayerCharacter::PlayResultMontage()
             }
         }
     }
-}
-
-void APlayerCharacter::Server_RemoveEquippedItem_Implementation()
-{
-    ServerSetEquippedItemName("DEFAULT");
 }

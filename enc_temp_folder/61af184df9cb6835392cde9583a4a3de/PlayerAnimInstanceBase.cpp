@@ -94,7 +94,7 @@ void UPlayerAnimInstanceBase::AnimNotify_CheckShortRangedAttack()
 
     if (OwnerPC->IsLocallyControlled())
     {
-        OwnerPC->ServerSpawnProjectileFromItem(.3f, .3f);
+        OwnerPC->ServerSpawnProjectileFromItem(.9f, .9f);
     }
 
     FTimerHandle TempHandle;
@@ -132,28 +132,6 @@ void UPlayerAnimInstanceBase::AnimNotify_CheckGetupEnd()
         if (Player->HasAuthority())
         {
             Player->CharacterMovementOn();
-        }
-    }
-}
-
-void UPlayerAnimInstanceBase::AnimNotify_CheckItemMeleeAttack()
-{
-    if (APlayerCharacter* PC = Cast<APlayerCharacter>(TryGetPawnOwner()))
-    {
-        if (PC->IsLocallyControlled())
-        {
-            PC->Server_CheckItemMeleeAttack();
-        }
-    }
-}
-
-void UPlayerAnimInstanceBase::AnimNotify_EndItemMeleeAttack()
-{
-    if (APlayerCharacter* PC = Cast<APlayerCharacter>(TryGetPawnOwner()))
-    {
-        if (PC->IsLocallyControlled())
-        {
-            PC->Server_RemoveEquippedItem();
         }
     }
 }

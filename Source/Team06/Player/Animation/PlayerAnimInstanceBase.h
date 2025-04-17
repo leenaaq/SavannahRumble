@@ -27,7 +27,16 @@ protected:
 	void AnimNotify_CheckRangedAttack();
 
 	UFUNCTION()
+	void AnimNotify_CheckShortRangedAttack();
+
+	UFUNCTION()
 	void AnimNotify_CheckGetupEnd();
+
+	UFUNCTION()
+	void AnimNotify_CheckItemMeleeAttack();
+
+	UFUNCTION()
+	void AnimNotify_EndItemMeleeAttack();
 
 protected:
 	UPROPERTY()

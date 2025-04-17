@@ -27,29 +27,54 @@ struct FEquipItemDataRow : public FTableRowBase
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EEquipItemType ItemType = EEquipItemType::Invalid;
 
-    // 원거리 공격 시 스폰 아이템
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TSubclassOf<AActor> ProjectileBlueprint;
-
-    // 발사체 초기 속도
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float ProjectileSpeed = 0.0f;
-
-    // 발사체 힘
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float ProjectileForce = 0.0f;
-
-    // 들고 있는 아이템 메시
+    // [공용] 들고 있는 아이템 메시
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UStaticMesh* StaticMesh = nullptr;
 
-    // 들고 있는 아이템 메시 스케일 조절
+    // [공용] 들고 있는 아이템 메시 스케일 조절
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FVector MeshScale = FVector(.0f, .0f, .0f);
 
-    // 들고 있는 아이템 메시 위치 조절
+    // [공용] 들고 있는 아이템 메시 위치 조절
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FVector MeshOffset = FVector::ZeroVector;
+
+    // [공용] 공격 시 스폰 아이템
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<AActor> ProjectileBlueprint;
+
+    // [공용] 발사체 초기 속도
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float ProjectileSpeed = 0.0f;
+
+    // [공용] 발사체 힘
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float ProjectileForce = 0.0f;
+
+    // [근접] 근접 추가 공격
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float AdditionalDamage = 0.0f;
+
+    // [근접] 넉백 수치
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float KnockBackForce = 0.0f;
+
+    // [근접] 상승 수치
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float LaunchUpForce = 0.0f;
+
+    // [근접] 레그돌 시간 (0 입력 시 렉돌 X)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float RagdollTime = 0.0f;
+
+    // [근접] 타격 범위
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float HitRadius = 0.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float HitRange = 0.0f;
+
+
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -70,6 +95,8 @@ public:
 
     UFUNCTION()
     void UpdateItemVisibility(FName NewItemName);
+
+    const FEquipItemDataRow* GetItemDataRow(FName RowName) const;
 
 protected:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

@@ -129,7 +129,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
-	void SpawnProjectileFromItem();
+	void SpawnProjectileFromItem(float SpeedFactor = 1.f, float ForceFactor = 1.f);
 
 	void CheckMeleeAttackHit(const FVector& AttackOffset);
 
@@ -138,7 +138,6 @@ private:
 	void HandleLeftHandMeleeAttack(const FInputActionValue& InValue);
 	void HandleRightHandMeleeAttack(const FInputActionValue& InValue);
 	void PerformMeleeAttack(const FVector& Offset, UAnimMontage* Montage, bool bIsLeftHand);
-	void PerformRangedAttack(UAnimMontage* AttackMontage);
 	void DrawDebugMeleeAttack(const FColor& DrawColor, FVector TraceStart, FVector TraceEnd, FVector Forward);
 	void ResetLeftAttack();
 	void ResetRightAttack();
@@ -167,6 +166,9 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRPCItemRangedAttack(float InStartTime);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStartShortThrow();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerCharacter|Setting")
@@ -246,5 +248,17 @@ public:
 	void CharacterMovementOn();
 
 	UFUNCTION(Server, Reliable)
-	void ServerSpawnProjectileFromItem();
+	void ServerSpawnProjectileFromItem(float SpeedFactor, float ForceFactor);
+
+	UFUNCTION()
+	void CheckItemMeleeAttack();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_CheckItemMeleeAttack();
+
+	UFUNCTION(Server, Reliable)
+	void Server_CheckItemMeleeAttack();
+
+	UFUNCTION(Server, Reliable)
+	void Server_RemoveEquippedItem();
 };
