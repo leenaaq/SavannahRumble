@@ -45,6 +45,21 @@ void AT6GMB_GL_Survival::BeginPlay()
 
 }
 
+void AT6GMB_GL_Survival::StartPlay()
+{
+	Super::StartPlay();
+	AT6GSB_GL_Survival* GSB_S = GetGameState<AT6GSB_GL_Survival>();
+	if (!GSB_S)
+	{
+		UE_LOG(LogTemp, Error, TEXT("GameStateBase가 유효하지 않습니다."));
+		return;
+	}
+	else
+	{
+		GSB_S->InitSpawnPoint();
+	}
+}
+
 void AT6GMB_GL_Survival::OnCharacterDead(AController* InController)
 {
 	if (IsValid(InController) == false)
@@ -76,25 +91,31 @@ void AT6GMB_GL_Survival::OnCharacterDead(AController* InController)
 				--GSB_Survival->PlayerLives[InController];
 				UE_LOG(LogTemp, Warning, TEXT("Player %s Dead, Reaspawning... "),*InController->PlayerState->GetPlayerName());
 				APawn* PlayerPawn = InController->GetPawn();
-				if (PlayerPawn||InController->IsPlayerController())
+
+				if (InController->IsPlayerController())
 				{
-					// Pawn 숨기고 충돌 제거해서 폐기처럼 처리 (BUT 유지)
-					PlayerPawn->SetActorEnableCollision(false);
-					PlayerPawn->SetActorHiddenInGame(true);
-					PlayerPawn->DisableInput(Cast<APlayerController>(InController));
-
-					// 위치 보관하고 Spectator 전환
-					GSB_Survival->RespawningPawn.Add(InController, PlayerPawn);
-					// 컨트롤러 언포제션 (중요: 소유권 유지하면 Spectator로 안 넘어감)
-					InController->UnPossess();
-					if (InController->GetPawn())
+					if (PlayerPawn)
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Error, Player Still Posses Pawn"));
-					}
-				}
+						// Pawn 숨기고 충돌 제거해서 폐기처럼 처리 (BUT 유지)
+						PlayerPawn->SetActorEnableCollision(false);
+						PlayerPawn->SetActorHiddenInGame(true);
+						PlayerPawn->DisableInput(Cast<APlayerController>(InController));
 
+						// 위치 보관하고 Spectator 전환
+						GSB_Survival->RespawningPawn.Add(InController, PlayerPawn);
+						// 컨트롤러 언포제션 (중요: 소유권 유지하면 Spectator로 안 넘어감)
+						InController->UnPossess();
+						if (InController->GetPawn())
+						{
+							UE_LOG(LogTemp, Warning, TEXT("Error, Player Still Posses Pawn"));
+						}
+					}
+					Cast<APlayerController>(InController)->StartSpectatingOnly();
+
+				}
+				
 				// 관전 모드 전환
-				Cast<APlayerController>(InController)->StartSpectatingOnly();
+				
 				if (APCController_GamePlay* PCGP = Cast<APCController_GamePlay>(InController))
 				{
 					GetWorld()->GetTimerManager().SetTimer(
@@ -149,21 +170,30 @@ void AT6GMB_GL_Survival::HandleDeathController(AController* InController)
 	APawn* PlayerPawn = InController->GetPawn();
 	DeadPlayerControllers.Add(InController);
 	AlivePlayerControllers.Remove(InController);
-	if (PlayerPawn || InController->IsPlayerController())
+	if (InController->IsPlayerController())
 	{
-		// Pawn 숨기고 충돌 제거해서 폐기처럼 처리 (BUT 유지)
-		PlayerPawn->SetActorEnableCollision(false);
-		PlayerPawn->SetActorHiddenInGame(true);
-		PlayerPawn->DisableInput(Cast<APlayerController>(InController));
+		if (PlayerPawn)
+		{
+			// Pawn 숨기고 충돌 제거해서 폐기처럼 처리 (BUT 유지)
+			PlayerPawn->SetActorEnableCollision(false);
+			PlayerPawn->SetActorHiddenInGame(true);
+			PlayerPawn->DisableInput(Cast<APlayerController>(InController));
 
-		// 위치 보관하고 Spectator 전환
-		GSB_Survival->RespawningPawn.Add(InController, PlayerPawn);
+			// 위치 보관하고 Spectator 전환
+			GSB_Survival->RespawningPawn.Add(InController, PlayerPawn);
+
+		}
+		else
+		{
+			UE_LOG(LogTemp,Warning,TEXT("Pawn Nullptr before Erase"))
+		}
 		// 컨트롤러 언포제션 (중요: 소유권 유지하면 Spectator로 안 넘어감)
 		InController->UnPossess();
-	}
+		Cast<APlayerController>(InController)->StartSpectatingOnly();
 
-	// 관전 모드 전환
-	Cast<APlayerController>(InController)->StartSpectatingOnly();
+		// 관전 모드 전환
+
+	}
 }
 
 void AT6GMB_GL_Survival::EndingSurvivalGameLevel()

@@ -15,6 +15,7 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	virtual void BeginPlay() override;
+	virtual void StartPlay() override;
 	void OnCharacterDead(AController* InController);
 	void RegistPCSessionToAlive();
 	void HandleDeathController(AController* InController);
