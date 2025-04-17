@@ -134,6 +134,21 @@ void UT6GameInstance::PrintScoreBoardLog()
 	}
 }
 
+TArray<FPlayerScoreEntry> UT6GameInstance::PackingPlayerScore()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Packing PlayerScores"));
+	TArray<FPlayerScoreEntry> ScoreDatas;
+	for (TTuple<FString, FPlayerScore> PlayerScore : PlayerScoreBoard)
+	{
+		FPlayerScoreEntry PlayerScoreEntry;
+		PlayerScoreEntry.PlayerName = PlayerScore.Key;
+		PlayerScoreEntry.Score = PlayerScore.Value.TotalWins;
+		ScoreDatas.Add(PlayerScoreEntry);
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Successfully Packed PlayerScores"));
+	return ScoreDatas;
+}
+
 void UT6GameInstance::InitAIPlayer()
 {
 	// AI 두 명 하드코딩

@@ -23,25 +23,9 @@ void AT6GameModeBase::NotifyToAllPlayer(const FString& NotificationString)
 
 }
 
-AT6GameModeBase::AT6GameModeBase()
-{
-	// bUseSeamlessTravel = true;
-}
-
-void AT6GameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
-{
-	Super::InitGame(MapName,Options,ErrorMessage);
-	UE_LOG(LogTemp, Warning, TEXT("InitGame -MapName: %s"), *MapName);
-}
-
 void AT6GameModeBase::GameWelcomePlayer(UNetConnection* Connection, FString& RedirectURL)
 {
 	Super::GameWelcomePlayer(Connection, RedirectURL);
-}
-
-void AT6GameModeBase::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
-{
-	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
 }
 
 APlayerController* AT6GameModeBase::Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)

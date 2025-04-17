@@ -5,13 +5,6 @@
 #include "Player/Controller/PCController_GamePlay.h"
 #include "System/GameSystem/T6GameStateBase_Lobby.h"
 
-
-
-void AT6GameModeBase_Lobby::NotifyToAllPlayer(const FString& NotificationString)
-{
-	Super::NotifyToAllPlayer(NotificationString);
-}
-
 void AT6GameModeBase_Lobby::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);

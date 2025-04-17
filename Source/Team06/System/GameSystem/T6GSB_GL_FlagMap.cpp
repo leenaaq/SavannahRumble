@@ -6,12 +6,6 @@
 #include "EngineUtils.h"
 #include "System/GameSystem/FlagSpawnBox.h"
 
-
-void AT6GSB_GL_FlagMap::BeginPlay()
-{
-    Super::BeginPlay(); // 부모 클래스 BeginPlay 호출 잊지 마세요
-}
-
 void AT6GSB_GL_FlagMap::InitSpawnPoint()
 {
     // PlayerStart 모으기

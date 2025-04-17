@@ -21,6 +21,18 @@ struct FPlayerScore
 	FName SkinName = "Wolf";
 };
 
+USTRUCT(BlueprintType)
+struct FPlayerScoreEntry
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite)
+	FString PlayerName;
+
+	UPROPERTY(BlueprintReadWrite)
+	int32 Score = 0;
+};
+
 UCLASS()
 class TEAM06_API UT6GameInstance : public UGameInstance
 {
@@ -35,6 +47,7 @@ public:
 	void AddWinForPlayer(const FString& PlayerName);
 	void SetPlayerSkinName(FString PlayerName,FName SkinName);
 	void PrintScoreBoardLog();
+	TArray<FPlayerScoreEntry> PackingPlayerScore();
 public:
 	UPROPERTY()
 	TMap<FString, FPlayerScore> PlayerScoreBoard;

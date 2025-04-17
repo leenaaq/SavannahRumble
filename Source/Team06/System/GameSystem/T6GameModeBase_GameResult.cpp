@@ -34,40 +34,6 @@ void AT6GameModeBase_GameResult::BeginPlay()
 
 }
 
-void AT6GameModeBase_GameResult::PostLogin(APlayerController* NewPlayer)
-{
-    Super::PostLogin(NewPlayer);
-    //// PlayerState가 유효한지 확인
-    //if (!NewPlayer || !NewPlayer->PlayerState) return;
-
-    //FString NewPlayerName = NewPlayer->PlayerState->GetPlayerName();
-    //AT6GameStateBase_GameResult* GSB = GetGameState<AT6GameStateBase_GameResult>();
-    //if (!GSB)
-    //{
-    //    UE_LOG(LogTemp, Error, TEXT("GameStateBase가 유효하지 않습니다."));
-    //    return;
-    //}
-    //if (NewPlayerName == Winner)
-    //{
-    //    // GSB에 저장된 Actor 위치/회전 가져오기
-    //    if (GSB->WinnerSpawnPoint)
-    //    {
-    //        FTransform WinnerTransform = GSB->WinnerSpawnPoint->GetActorTransform();
-
-    //        APawn* NewPawn = SpawnDefaultPawnAtTransform(NewPlayer, WinnerTransform);
-    //        if (NewPawn)
-    //        {
-    //            NewPlayer->Possess(NewPawn);
-    //            UE_LOG(LogTemp, Log, TEXT("승자 %s 를 WinnerActor 위치에 스폰했습니다."), *NewPlayerName);
-    //        }
-    //        else
-    //        {
-    //            UE_LOG(LogTemp, Error, TEXT("Pawn 생성 실패 (충돌 등의 이유)"));
-    //        }
-    //    }
-    //}
-}
-
 void AT6GameModeBase_GameResult::StartPlay()
 {
     Super::StartPlay();

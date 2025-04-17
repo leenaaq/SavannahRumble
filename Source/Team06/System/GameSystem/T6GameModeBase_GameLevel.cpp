@@ -8,11 +8,6 @@
 #include "player/PlayerState/PlayerCharacterState.h"
 #include "System/GameSystem/T6GameStateBase_GameLevel.h"
 
-void AT6GameModeBase_GameLevel::NotifyToAllPlayer(const FString& NotificationString)
-{
-    Super::NotifyToAllPlayer(NotificationString);
-}
-
 void AT6GameModeBase_GameLevel::HandlePlayerGameWin(AController* Winner)
 {
     if (!Winner || !Winner->PlayerState) return;
@@ -125,6 +120,23 @@ void AT6GameModeBase_GameLevel::BeginPlay()
 	{
 		GI->PrintScoreBoardLog();
 	}
+}
+
+void AT6GameModeBase_GameLevel::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	APCController_GamePlay* PCC_GP = Cast<APCController_GamePlay>(NewPlayer);
+	if (IsValid(PCC_GP))
+	{
+		UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
+
+		PCC_GP->Client_StartScoreBoard(GI->PackingPlayerScore());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Can't Access Score in HandleStartingNewPlayer"));
+	}
+
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 }
 
 void AT6GameModeBase_GameLevel::OnMainTimerElapsed()
@@ -326,5 +338,21 @@ void AT6GameModeBase_GameLevel::InitiatedGameLevelEnding(AController* Winner)
 		NotifyToAllPlayer(NotificationString);
 
 	}
+	UpdateAllClientScoreBoards();
 	GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &ThisClass::OnMainTimerElapsed, 1.f, true);
+}
+
+void AT6GameModeBase_GameLevel::UpdateAllClientScoreBoards()
+{
+	for (AController* Player : SessionPlayerControllers)
+	{
+		APCController_GamePlay* GPPlayer = Cast<APCController_GamePlay>(Player);
+		if (IsValid(GPPlayer))
+		{
+			if (UT6GameInstance* GI = GetGameInstance<UT6GameInstance>())
+			{
+				GPPlayer->Client_UpdateScoreBoard(GI->PackingPlayerScore());
+			}
+		}
+	}
 }
