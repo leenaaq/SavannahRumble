@@ -29,7 +29,7 @@ void AT6GSB_GL_Survival::InitiatePlayerLife(int32 Life)
             }
             else
             {
-                UE_LOG(LogTemp, Warning, TEXT("Alreay Registered AController"));
+               // UE_LOG(LogTemp, Warning, TEXT("Alreay Registered AController"));
             }
 		}
         else

@@ -32,22 +32,16 @@ void AT6GameModeBase::InitGame(const FString& MapName, const FString& Options, F
 {
 	Super::InitGame(MapName,Options,ErrorMessage);
 	UE_LOG(LogTemp, Warning, TEXT("InitGame -MapName: %s"), *MapName);
-	UE_LOG(LogTemp, Warning, TEXT("InitGame -Options: %s"), *Options);
-
 }
 
 void AT6GameModeBase::GameWelcomePlayer(UNetConnection* Connection, FString& RedirectURL)
 {
 	Super::GameWelcomePlayer(Connection, RedirectURL);
-	UE_LOG(LogTemp, Warning, TEXT("GameWelcomePlayer -RedirectURL: %s"), *RedirectURL);
 }
 
 void AT6GameModeBase::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
 {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
-	UE_LOG(LogTemp, Warning, TEXT("PreLogin -Address: %s"), *Address);
-	UE_LOG(LogTemp, Warning, TEXT("PreLogin -Options: %s"), *Options);
-
 }
 
 APlayerController* AT6GameModeBase::Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
@@ -129,7 +123,6 @@ void AT6GameModeBase::RestartPlayer(AController* Player)
 			UE_LOG(LogTemp, Warning, TEXT("PlayerState SkinName: %s"),*PCS->PlayerSkinName.ToString());
 
 			PB->ServerSetSkinName(PCS->PlayerSkinName);
-			UE_LOG(LogTemp, Warning, TEXT("Player MeshChanged at T6GameModeBase ay RestartPlayer"));
 		}
 	}
 	else
@@ -171,7 +164,6 @@ FString AT6GameModeBase::InitNewPlayer(APlayerController* NewPlayerController, c
 
 
 		GI->RegisterPlayer(IncomingName);
-		UE_LOG(LogTemp,Warning,TEXT("Server-GameMode: Player %s Registered"), *IncomingName);
 	}
 
 	return Result;
