@@ -64,11 +64,11 @@ void AAICharacter::RecoverFromStun()
 {
 	Super::RecoverFromStun();
 
-	/*AAIC_Enemy* AIC = Cast<AAIC_Enemy>(GetController());
-	if (IsValid(AIC))
+	FTimerHandle RecoveryMovementHandle;
+	if (GetWorld())
 	{
-		AIC->GetBrainComponent()->StartLogic();
-	}*/
+		GetWorld()->GetTimerManager().SetTimer(RecoveryMovementHandle, this, &AAICharacter::AIMovementOn, 2.f, false);
+	}
 }
 
 void AAICharacter::AIMovementOn()
