@@ -8,6 +8,8 @@
 #include "Player/PlayerState/PlayerCharacterState.h"
 #include "GameFramework/Controller.h"
 #include "Player/Controller/PCController_GamePlay.h"
+#include "System/GameSystem/FlagSpawnBox.h"
+
 void AT6GSB_GL_Survival::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -41,10 +43,11 @@ void AT6GSB_GL_Survival::InitiatePlayerLife(int32 Life)
 
 void AT6GSB_GL_Survival::InitSpawnPoint()
 {
-	for (TActorIterator<APlayerStart> It(GetWorld()); It; ++It)
-	{
-		SpawnPoints.Add(*It); // *It으로 액터 포인터 추가
-	}
+    for (TActorIterator<AFlagSpawnBox> It(GetWorld()); It; ++It)
+    {
+        RespawnArea = *It; // *It으로 액터 포인터 추가
+        UE_LOG(LogTemp, Warning, TEXT("Temple Map Respawn Area Registered"));
+    }
 }
 
 void AT6GSB_GL_Survival::RespawnPlayer(AController* Player)
@@ -65,7 +68,7 @@ void AT6GSB_GL_Survival::RespawnPlayer(AController* Player)
 
     if (StoredPawn)
     {
-        if (IsValid(SpawnPoints[0]))
+        if (IsValid(RespawnArea))
         {
             if (APlayerController* PC = Cast<APlayerController>(Player))
             {
@@ -86,12 +89,12 @@ void AT6GSB_GL_Survival::RespawnPlayer(AController* Player)
                 UE_LOG(LogTemp, Error, TEXT("Controller Pawn Possed faild!!!!!!"));
                 return;
             }
-            FVector NewLocation = SpawnPoints[0]->GetActorLocation();
+            FVector NewLocation = RespawnArea->GetActorLocation();
             NewLocation += FVector(FMath::FRandRange(0, 50.f), FMath::FRandRange(0, 50.f), FMath::FRandRange(0, 10.f));
 
             // Pawn 위치 이동 후 복원
             StoredPawn->SetActorLocation(NewLocation);
-            StoredPawn->SetActorRotation(SpawnPoints[0]->GetActorRotation());
+            StoredPawn->SetActorRotation(RespawnArea->GetActorRotation());
 
             // Pawn 복구
             StoredPawn->SetActorEnableCollision(true);
@@ -99,6 +102,10 @@ void AT6GSB_GL_Survival::RespawnPlayer(AController* Player)
             StoredPawn->EnableInput(Cast<APlayerController>(Player));
 
 
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Can Not Find FlagSpawnBox in GSB_Survival"));
         }
     }
 }

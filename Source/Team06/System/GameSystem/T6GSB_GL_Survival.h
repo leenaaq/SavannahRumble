@@ -6,6 +6,7 @@
 #include "System/GameSystem/T6GameStateBase_GameLevel.h"
 #include "T6GSB_GL_Survival.generated.h"
 
+class AFlagSpawnBox;
 
 UCLASS()
 class TEAM06_API AT6GSB_GL_Survival : public AT6GameStateBase_GameLevel
@@ -27,7 +28,8 @@ public:
 	UPROPERTY()
 	TMap<TObjectPtr<AController>, int32> PlayerLives;
 
-	TArray<APlayerStart*> SpawnPoints;
+	//TArray<APlayerStart*> SpawnPoints;
 
+	AFlagSpawnBox* RespawnArea;
 	TMap<AController*, APawn*> RespawningPawn;
 };
