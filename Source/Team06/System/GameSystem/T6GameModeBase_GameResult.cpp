@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/GameSession.h"
 #include "System/GameSystem/T6GameStateBase_GameResult.h"
+#include "System/GameSystem/FlagSpawnBox.h"
 
 void AT6GameModeBase_GameResult::BeginPlay()
 {
@@ -21,17 +22,85 @@ void AT6GameModeBase_GameResult::BeginPlay()
         if (UT6GameInstance* GI = GetGameInstance<UT6GameInstance>())
         {
             UE_LOG(LogTemp, Warning, TEXT("Final winner is: %s"), *GI->FinalWinnerController);
+            Winner = GI->FinalWinnerController;
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Can't Read GameInstnace at GR_BeginPlay"));
         }
     }
     GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &ThisClass::OnMainTimerElapsed, 1.f, true);
 
-    AT6GameStateBase_GameResult* GSB_GR = GetGameState<AT6GameStateBase_GameResult>();
-    if (GSB_GR)
-    {
-        GSB_GR->InitGameResultSpawnPoint();
 
-        SpreadPlayerbyGameResult();
+}
+
+void AT6GameModeBase_GameResult::PostLogin(APlayerController* NewPlayer)
+{
+    Super::PostLogin(NewPlayer);
+    //// PlayerState가 유효한지 확인
+    //if (!NewPlayer || !NewPlayer->PlayerState) return;
+
+    //FString NewPlayerName = NewPlayer->PlayerState->GetPlayerName();
+    //AT6GameStateBase_GameResult* GSB = GetGameState<AT6GameStateBase_GameResult>();
+    //if (!GSB)
+    //{
+    //    UE_LOG(LogTemp, Error, TEXT("GameStateBase가 유효하지 않습니다."));
+    //    return;
+    //}
+    //if (NewPlayerName == Winner)
+    //{
+    //    // GSB에 저장된 Actor 위치/회전 가져오기
+    //    if (GSB->WinnerSpawnPoint)
+    //    {
+    //        FTransform WinnerTransform = GSB->WinnerSpawnPoint->GetActorTransform();
+
+    //        APawn* NewPawn = SpawnDefaultPawnAtTransform(NewPlayer, WinnerTransform);
+    //        if (NewPawn)
+    //        {
+    //            NewPlayer->Possess(NewPawn);
+    //            UE_LOG(LogTemp, Log, TEXT("승자 %s 를 WinnerActor 위치에 스폰했습니다."), *NewPlayerName);
+    //        }
+    //        else
+    //        {
+    //            UE_LOG(LogTemp, Error, TEXT("Pawn 생성 실패 (충돌 등의 이유)"));
+    //        }
+    //    }
+    //}
+}
+
+void AT6GameModeBase_GameResult::StartPlay()
+{
+    Super::StartPlay();
+    AT6GameStateBase_GameResult* GSB = GetGameState<AT6GameStateBase_GameResult>();
+    if (!GSB)
+    {
+        UE_LOG(LogTemp, Error, TEXT("GameStateBase가 유효하지 않습니다."));
+        return;
     }
+    else
+    {
+        GSB->InitGameResultSpawnPoint();
+    }
+}
+
+void AT6GameModeBase_GameResult::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+    FString NewPlayerName = NewPlayer->PlayerState->GetPlayerName();
+    AT6GameStateBase_GameResult* GSB = GetGameState<AT6GameStateBase_GameResult>();
+
+    if (GSB && GSB->WinnerSpawnPoint && NewPlayerName == Winner)
+    {
+        FTransform WinnerTransform = GSB->WinnerSpawnPoint->GetActorTransform();
+        APawn* NewPawn = SpawnDefaultPawnAtTransform(NewPlayer, WinnerTransform);
+        if (NewPawn)
+        {
+            NewPlayer->Possess(NewPawn);
+            return; // 기본 처리 막기
+        }
+    }
+
+    // 기본 처리로 넘어감
+    Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 }
 
 void AT6GameModeBase_GameResult::OnGameResultTimerFinished()
@@ -62,53 +131,6 @@ void AT6GameModeBase_GameResult::ResetAndReturnToLobby()
     // Lobby 레벨로 이동
     const FString LobbyMapPath = TEXT("/Game/Team6/GameSystem/GS_Level/TestLobby?listen");
     UGameplayStatics::OpenLevel(this, FName(*LobbyMapPath), true);
-}
-
-void AT6GameModeBase_GameResult::SpreadPlayerbyGameResult()
-{
-    AT6GameStateBase_GameResult* GSB_GR = GetGameState<AT6GameStateBase_GameResult>();
-
-    if (!IsValid(GSB_GR))
-    {
-        UE_LOG(LogTemp, Error, TEXT("Invalid GSB_GR"));
-        return;
-    }
-    else
-    {
-        UT6GameInstance* GI = GetGameInstance<UT6GameInstance>();
-        if (!GI) return;
-        if (GI->FinalWinnerController == "NoOne")
-        {
-            UE_LOG(LogTemp, Error, TEXT("No Winner Controller Error!!!!"));
-            return;
-        }
-
-        int32 SpawnPointAmount = GSB_GR->SpawnPoints.Num();
-        for (APCController_GamePlay* PCC : SessionPlayerControllers)
-        {
-            if (SpawnPointAmount == 0)
-            {
-                UE_LOG(LogTemp, Error, TEXT("SpawnPoints가 없습니다!"));
-                return;
-            }
-            if (PCC->PlayerState)
-            {
-                if (GI->FinalWinnerController == PCC->PlayerState->GetPlayerName())
-                {
-                    UE_LOG(LogTemp, Error, TEXT("WinnerController %s Found!!!"), *PCC->PlayerState->GetPlayerName());
-                    RestartPlayerAtPlayerStart(PCC, GSB_GR->WinnerSpawnPoint);
-                }
-                else
-                {
-                    RestartPlayerAtPlayerStart(PCC, GSB_GR->SpawnPoints[FMath::RandRange(0, SpawnPointAmount - 1)]);
-                }
-            }
-        }
-        if (GI->bIsAIAvailable)
-        {
-            //AI 있으면 등수 배치
-        }
-    }
 }
 
 void AT6GameModeBase_GameResult::OnMainTimerElapsed()

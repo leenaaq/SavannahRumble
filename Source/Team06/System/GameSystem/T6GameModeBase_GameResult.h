@@ -15,20 +15,22 @@ class TEAM06_API AT6GameModeBase_GameResult : public AT6GameModeBase
 	GENERATED_BODY()
 protected:
 	virtual void BeginPlay() override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void StartPlay() override;
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 private:
 	FTimerHandle ResetGameTimerHandle;
 
 	void OnGameResultTimerFinished();
 
 	void ResetAndReturnToLobby();
-	void SpreadPlayerbyGameResult();
 
 private:
 	UFUNCTION()
 	void OnMainTimerElapsed();
 public:
 	FTimerHandle MainTimerHandle;
-
+	FString Winner;
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	int32 RemainGameResultClosingTime = 60;
 };
