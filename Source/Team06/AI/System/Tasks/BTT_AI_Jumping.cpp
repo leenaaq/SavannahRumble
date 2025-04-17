@@ -18,35 +18,31 @@ EBTNodeResult::Type UBTT_AI_Jumping::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 
 	if (EBTNodeResult::Failed == Result)
 	{
-		return Result;
+		return EBTNodeResult::Failed;
 	}
 
-	AAIC_Enemy* AIController = Cast<AAIC_Enemy>(OwnerComp.GetAIOwner());
-	if (IsValid(AIController))
+	int32 JumpChance = FMath::RandRange(1, 100);
+	if (JumpChance > 50)
 	{
-		AAICharacter* AICharacter = Cast<AAICharacter>(AIController->GetPawn());
-		if (IsValid(AICharacter))
+		AAIC_Enemy* AIController = Cast<AAIC_Enemy>(OwnerComp.GetAIOwner());
+		if (IsValid(AIController))
 		{
-			UCharacterMovementComponent* MovementComp = AICharacter->GetCharacterMovement();
-
-			if (MovementComp && !MovementComp->IsFalling())
+			AAICharacter* AICharacter = Cast<AAICharacter>(AIController->GetPawn());
+			if (IsValid(AICharacter))
 			{
-				int32 JumpChance = FMath::RandRange(1, 100);
-				if (JumpChance > 50)
+				UCharacterMovementComponent* MovementComp = AICharacter->GetCharacterMovement();
+
+				if (MovementComp->IsFalling())
+				{
+					return EBTNodeResult::Succeeded;
+				}
+				else
 				{
 					const FVector LaunchVelocity(0.0f, 0.0f, 600.0f);
 					AICharacter->LaunchCharacter(LaunchVelocity, false, true);
 
 					return EBTNodeResult::Succeeded;
 				}
-				else
-				{
-					return EBTNodeResult::Succeeded;
-				}
-			}
-			else
-			{
-				return EBTNodeResult::Failed;
 			}
 		}
 
