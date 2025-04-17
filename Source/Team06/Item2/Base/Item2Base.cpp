@@ -120,3 +120,9 @@ void AItem2Base::InitializeFromDataTable()
 		UE_LOG(LogTemp, Warning, TEXT("데이터테이블에서 %s 행을 찾을 수 없음"), *ItemRowName.ToString());
 	}
 }
+
+void AItem2Base::OnRespawned_Implementation()
+{
+	UE_LOG(LogTemp, Log, TEXT("[ItemBase] 아이템 리스폰됨: %s"), *GetName());
+
+}

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "RespawnableInterface.h"
 #include "ItemBase.generated.h"
 
 class UNiagaraSystem;
@@ -12,7 +13,7 @@ class USoundBase;
 class APlayerBase;
 
 UCLASS()
-class TEAM06_API AItemBase : public AActor
+class TEAM06_API AItemBase : public AActor, public IRespawnableInterface
 {
 	GENERATED_BODY()
 	
@@ -80,4 +81,6 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Item|Interaction")
 	void ApplyToCharacter(APlayerBase* Character);
 	virtual void ApplyToCharacter_Implementation(APlayerBase* Character);
+
+	virtual void OnRespawned_Implementation() override;
 };

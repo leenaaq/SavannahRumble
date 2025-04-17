@@ -92,3 +92,11 @@ void AItemBase::OnItemPickedUp_Implementation(AActor* OtherActor)
 		}
 	}
 }
+
+void AItemBase::OnRespawned_Implementation()
+{
+	// 아이템이 리스폰될 때 실행할 동작
+	UE_LOG(LogTemp, Log, TEXT("[ItemBase] 아이템 리스폰됨: %s"), *GetName());
+
+	// 필요하다면 이펙트 재생 등 추가 가능
+}

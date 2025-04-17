@@ -27,6 +27,7 @@ void ABanana_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
     if (SlipSound)
     {
         UGameplayStatics::PlaySoundAtLocation(GetWorld(), SlipSound, GetActorLocation());
+        Destroy();
     }
 
     const float SavedGroundFriction = MoveComp->GroundFriction;
@@ -73,5 +74,17 @@ void ABanana_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
             PBase->OnStunned(BananaStunTime);
         }
     }
-    
+
+    // Destroy 호출해서 리스폰 트리거
+Destroy();
+
+}
+
+// 인터페이스 함수 정의
+void ABanana_Item::OnRespawned_Implementation()
+{
+  
+    // 필요한 초기화 동작이 있다면 여기에
+    SetActorHiddenInGame(false);
+    SetActorEnableCollision(true);
 }

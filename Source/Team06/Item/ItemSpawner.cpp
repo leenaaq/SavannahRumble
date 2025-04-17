@@ -28,9 +28,9 @@ void AItemSpawner::BeginPlay()
 
 		for (AActor* Actor : FoundActors)
 		{
-			if (AItemSpawnPoint* SpawnPoint = Cast<AItemSpawnPoint>(Actor))
+			if (AItemSpawnPoint* Point = Cast<AItemSpawnPoint>(Actor))
 			{
-				SpawnPoints.Add(SpawnPoint);
+				SpawnPoints.Add(Point);
 			}
 		}
 
@@ -71,74 +71,54 @@ FItemSpawnRow* AItemSpawner::GetRandomItem() const
 
 void AItemSpawner::SpawnItems()
 {
-	if (SpawnPoints.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[ItemSpawner] 스폰 포인트가 비어 있습니다."));
-		return;
-	}
-
+		
 	for (AItemSpawnPoint* SpawnPoint : SpawnPoints)
-	{
-		if (SpawnedItems.Contains(SpawnPoint) && SpawnedItems[SpawnPoint] != nullptr)
-		{
-			continue;
-		}
+		
+	{	
+		if (SpawnedItems.Contains(SpawnPoint) && SpawnedItems[SpawnPoint]) continue;	
 
-		FItemSpawnRow* SelectedRow = GetRandomItem();
-		if (SelectedRow && SelectedRow->ItemClass)
-		{
-			AActor* SpawnedItem = GetWorld()->SpawnActor<AActor>(
-				SelectedRow->ItemClass,
+		FItemSpawnRow* Row = GetRandomItem();
+		if (!Row || !Row->ItemClass) continue;
+		AActor* Spawned = GetWorld()->SpawnActor<AActor>(
+				Row->ItemClass,
 				SpawnPoint->GetActorLocation(),
 				FRotator::ZeroRotator
-			);
-
-			if (SpawnedItem)
-			{
-				UE_LOG(LogTemp, Log, TEXT("[ItemSpawner] 아이템 생성 완료: %s (스폰 위치: %s)"),
-					*SpawnedItem->GetName(), *SpawnPoint->GetName());
-
-				if (SpawnedItem->GetClass()->ImplementsInterface(URespawnableInterface::StaticClass()))
-				{
-					SpawnedItem->OnDestroyed.AddDynamic(this, &AItemSpawner::OnItemDestroyed);
-				}
-
-				SpawnedItems.Add(SpawnPoint, SpawnedItem);
-			}
+		);
+		if (IsValid(Spawned) && Spawned->GetClass()->ImplementsInterface(URespawnableInterface::StaticClass()))
+		{
+			
+			Spawned->OnDestroyed.AddDynamic(this, &AItemSpawner::OnItemDestroyed);
+			SpawnedItems.Add(SpawnPoint, Spawned);
 		}
 	}
 }
 
 void AItemSpawner::OnItemDestroyed(AActor* DestroyedActor)
 {
-	if (!DestroyedActor) return;
-
 	for (auto& Elem : SpawnedItems)
 	{
 		if (Elem.Value == DestroyedActor)
 		{
-			AItemSpawnPoint* SpawnPoint = Elem.Key;
-			SpawnedItems[SpawnPoint] = nullptr;
+			AItemSpawnPoint* Point = Elem.Key;
+			SpawnedItems[Point] = nullptr;
 
-			// 리스폰 인터페이스 구현 확인
+		
 			if (DestroyedActor->GetClass()->ImplementsInterface(URespawnableInterface::StaticClass()))
 			{
-				IRespawnableInterface::Execute_OnRespawned(DestroyedActor); // 선택적으로 사용
+				IRespawnableInterface::Execute_OnRespawned(DestroyedActor);
 
-				FTimerHandle RespawnTimerHandle;
-				GetWorld()->GetTimerManager().SetTimer(RespawnTimerHandle, FTimerDelegate::CreateLambda([this, SpawnPoint]()
+				FTimerHandle TimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this, Point]()
 					{
-						if (SpawnPoint)
-						{
-							this->SpawnItems();
-						}
-					}), RespawnTime, false);
+						if (Point) SpawnItems();
+					}, RespawnTime, false);
 			}
 
 			break;
 		}
 	}
 }
+
 
 void AItemSpawner::RespawnItem(AItemSpawnPoint* SpawnPoint)
 {

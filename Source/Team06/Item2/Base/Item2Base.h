@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Item/RespawnableInterface.h" 
 #include "Item2Base.generated.h"
 
 UENUM(BlueprintType)
@@ -12,7 +13,7 @@ enum class EItemState : uint8
 };
 
 UCLASS()
-class TEAM06_API AItem2Base : public AActor
+class TEAM06_API AItem2Base : public AActor, public IRespawnableInterface
 {
 	GENERATED_BODY()
 
@@ -40,6 +41,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void InitializeFromDataTable();
+
+	virtual void OnRespawned_Implementation() override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
@@ -74,4 +77,5 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
 	float SpawnTime;
+
 };

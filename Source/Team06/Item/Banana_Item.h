@@ -21,4 +21,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Effect|Sound")
 	USoundBase* SlipSound;
+
+public:
+	virtual void OnRespawned_Implementation() override;
 };
