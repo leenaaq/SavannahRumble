@@ -9,6 +9,10 @@ AThrowableSpawnerItem::AThrowableSpawnerItem()
 
     SetReplicates(true);
     SetReplicateMovement(true);
+    if (MeshComp)
+    {
+        MeshComp->SetSimulatePhysics(false); // 물리 시뮬레이션 끄기
+    }
 }
 
 void AThrowableSpawnerItem::BeginPlay()
