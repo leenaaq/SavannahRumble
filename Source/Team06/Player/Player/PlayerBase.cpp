@@ -128,6 +128,25 @@ void APlayerBase::Tick(float DeltaTime)
 			}
 		}
 	}
+
+	if (GetbIsStunned())
+	{
+		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+		USkeletalMeshComponent* MeshComp = GetMesh();
+		if (CapsuleComp && MeshComp)
+		{
+			FVector CapsuleLoc = CapsuleComp->GetComponentLocation();
+			static const FName PelvisBoneName(TEXT("pelvis"));
+			FBodyInstance* PelvisBody = MeshComp->GetBodyInstance(PelvisBoneName);
+			if (PelvisBody)
+			{
+				FTransform PelvisTransform = PelvisBody->GetUnrealWorldTransform();
+				FVector NewLoc = FVector(CapsuleLoc.X, CapsuleLoc.Y, PelvisTransform.GetLocation().Z);
+				PelvisTransform.SetLocation(NewLoc);
+				PelvisBody->SetBodyTransform(PelvisTransform, ETeleportType::TeleportPhysics);
+			}
+		}
+	}
 }
 
 
