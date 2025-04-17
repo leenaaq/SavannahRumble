@@ -15,7 +15,6 @@ class TEAM06_API AT6GameModeBase_GameResult : public AT6GameModeBase
 	GENERATED_BODY()
 protected:
 	virtual void BeginPlay() override;
-	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void StartPlay() override;
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 private:

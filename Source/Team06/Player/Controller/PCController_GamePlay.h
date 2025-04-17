@@ -8,6 +8,10 @@
 
 class UUserWidget;
 class UUW_SurvivalRespawnUI;
+class UUW_PlayerScoreBoard;
+class UPlayerScoreWidget;
+struct FPlayerScoreEntry;
+
 UCLASS()
 class TEAM06_API APCController_GamePlay : public APlayerCharacterController
 {
@@ -119,4 +123,18 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void Client_EndRespawnUI();
+
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	TSubclassOf<UUW_PlayerScoreBoard> PlayerScoreBoardClass;
+
+	UPROPERTY()
+	UUW_PlayerScoreBoard* PlayerScoreBoardClassWidget;
+
+	UFUNCTION(Client, Reliable)
+	void Client_StartScoreBoard(const TArray<FPlayerScoreEntry>& SortedArray);
+	
+	UFUNCTION(Client, Reliable)
+	void Client_UpdateScoreBoard(const TArray<FPlayerScoreEntry>& SortedArray);
 };

@@ -12,8 +12,6 @@ UCLASS()
 class TEAM06_API AT6GameModeBase_Lobby : public AT6GameModeBase
 {
 	GENERATED_BODY()
-protected:
-	void NotifyToAllPlayer(const FString& NotificationString) override;
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int32 LobbyWaitingTime = 15;

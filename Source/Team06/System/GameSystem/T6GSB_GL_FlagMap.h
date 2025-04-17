@@ -15,7 +15,6 @@ class TEAM06_API AT6GSB_GL_FlagMap : public AT6GameStateBase_GameLevel
 	GENERATED_BODY()
 	
 public:
-	virtual void BeginPlay() override;
 	void InitSpawnPoint();
 	UFUNCTION(Server,Reliable)
 	void ServerChangeFlagOwner(AController* NewFlagOwner);

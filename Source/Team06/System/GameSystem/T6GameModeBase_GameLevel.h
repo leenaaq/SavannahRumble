@@ -14,8 +14,6 @@ UCLASS()
 class TEAM06_API AT6GameModeBase_GameLevel : public AT6GameModeBase
 {
 	GENERATED_BODY()
-protected:
-	void NotifyToAllPlayer(const FString& NotificationString) override;
 public:
 	UFUNCTION(BlueprintCallable)
 	void HandlePlayerGameWin(AController* Winner);
@@ -38,7 +36,7 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	virtual void BeginPlay() override;
-
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 private:
 	UFUNCTION()
 	virtual void OnMainTimerElapsed();
@@ -72,5 +70,5 @@ protected:
 	void InitiatedGameLevelEnding(AController* Winner);
 
 #pragma endregion
-
+	void UpdateAllClientScoreBoards();
 };

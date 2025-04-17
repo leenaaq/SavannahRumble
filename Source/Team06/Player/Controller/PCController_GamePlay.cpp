@@ -16,6 +16,8 @@
 #include "System/GameSystem/T6GSB_GL_Survival.h"
 #include "Player/PlayerState/PlayerCharacterState.h"
 #include "System/UI/UW_SurvivalRespawnUI.h"
+#include "System/UI/PlayerScoreWidget.h"
+#include "System/UI/UW_PlayerScoreBoard.h"
 
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -320,5 +322,27 @@ void APCController_GamePlay::Client_EndRespawnUI_Implementation()
 		RespawnProgressWidget->SetProgressBarVisibility(false);
 		RespawnProgressWidget->RemoveFromParent();
 		RespawnProgressWidget = nullptr;
+	}
+}
+
+void APCController_GamePlay::Client_StartScoreBoard_Implementation(const TArray<FPlayerScoreEntry>& SortedArray)
+{
+	if (PlayerScoreBoardClass && PlayerScoreBoardClassWidget == nullptr)
+	{
+		PlayerScoreBoardClassWidget = CreateWidget<UUW_PlayerScoreBoard>(this, PlayerScoreBoardClass);
+		if (PlayerScoreBoardClassWidget)
+		{
+			PlayerScoreBoardClassWidget->AddToViewport(-3);
+
+			PlayerScoreBoardClassWidget->InitializeScoreBoard(SortedArray);
+		}
+	}
+}
+
+void APCController_GamePlay::Client_UpdateScoreBoard_Implementation(const TArray<FPlayerScoreEntry>& SortedArray)
+{
+	if (PlayerScoreBoardClassWidget)
+	{
+		PlayerScoreBoardClassWidget->InitializeScoreBoard(SortedArray);
 	}
 }
