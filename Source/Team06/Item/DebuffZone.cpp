@@ -44,10 +44,7 @@ void ADebuffZone::TriggerEffect_Implementation(AActor* OverlappedActor)
 			}
 		}
 
-		if (UseSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), UseSound, GetActorLocation());
-		}
+		PlayItemEffects(GetActorLocation());
 
 		Destroy();
 	}

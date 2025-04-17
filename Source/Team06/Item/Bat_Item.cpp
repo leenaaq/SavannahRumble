@@ -48,6 +48,9 @@ void ABat_Item::ServerUseItem_Implementation(AActor* Target)
 	ACharacter* HitCharacter = Cast<ACharacter>(Target);
 	if (HitCharacter && HitCharacter->GetCharacterMovement())
 	{
+		// 이펙트 + 사운드
+		PlayItemEffects(GetActorLocation());
+
 		// 데미지 + 넉백
 		UGameplayStatics::ApplyDamage(HitCharacter, 30.0f, GetInstigatorController(), this, nullptr);
 
@@ -98,6 +101,8 @@ void ABat_Item::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 	ACharacter* HitCharacter = Cast<ACharacter>(OtherActor);
 	if (HitCharacter)
 	{
+		PlayItemEffects(GetActorLocation());
+
 		UGameplayStatics::ApplyDamage(HitCharacter, 20.0f, GetInstigatorController(), this, nullptr);
 
 		// 간단한 래그돌 처리
