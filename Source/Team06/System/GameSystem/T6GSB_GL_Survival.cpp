@@ -7,7 +7,7 @@
 #include "Engine/PlayerStartPIE.h"
 #include "Player/PlayerState/PlayerCharacterState.h"
 #include "GameFramework/Controller.h"
-
+#include "Player/Controller/PCController_GamePlay.h"
 void AT6GSB_GL_Survival::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -56,6 +56,11 @@ void AT6GSB_GL_Survival::RespawnPlayer(AController* Player)
     {
         StoredPawn = RespawningPawn[Player];
         RespawningPawn.Remove(Player);
+    }
+
+    if (APCController_GamePlay* PCCGP = Cast<APCController_GamePlay>(Player))
+    {
+        PCCGP->Server_EndRespawnUI();
     }
 
     if (StoredPawn)

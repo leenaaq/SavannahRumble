@@ -15,6 +15,7 @@
 #include "System/GameSystem/T6GameInstance.h"
 #include "System/GameSystem/T6GSB_GL_Survival.h"
 #include "Player/PlayerState/PlayerCharacterState.h"
+#include "System/UI/UW_SurvivalRespawnUI.h"
 
 void APCController_GamePlay::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -246,5 +247,78 @@ void APCController_GamePlay::ServerChangePSPlayerSkinName_Implementation(FName S
 		{
 			GI->SetPlayerSkinName(PCS->GetPlayerName(), PCS->PlayerSkinName);
 		}
+	}
+}
+
+void APCController_GamePlay::Server_StartRespawnUI(float RespawnTIme)
+{
+	if (HasAuthority())
+	{
+		RespawnTotalTime = RespawnTIme;
+		GetWorld()->GetTimerManager().SetTimer(
+			RespawnProgressHandle,
+			this,
+			&ThisClass::Server_UpdateRespawnUI,
+			0.2f,
+			true
+		);
+
+		Client_StartRespawnUI();
+	}
+}
+
+void APCController_GamePlay::Client_StartRespawnUI_Implementation()
+{
+	if (RespawnProgressWidget == nullptr)
+	{
+		RespawnProgressWidget = CreateWidget<UUW_SurvivalRespawnUI>(this, RespawnProgressClass);
+		RespawnProgressWidget->AddToViewport(-5);
+		if (RespawnProgressWidget->RespawnProgressBar)
+		{
+			RespawnProgressWidget->SetProgressBarVisibility(true);
+		}
+	}
+
+}
+void APCController_GamePlay::Server_UpdateRespawnUI()
+{
+	if (HasAuthority())
+	{
+		float RemainingTime = GetWorld()->GetTimerManager().GetTimerRemaining(RespawnHandle);
+		float RemainPercent = RemainingTime / RespawnTotalTime;
+		Client_UpdateRespawnUI(RemainPercent);
+	}
+}
+
+void APCController_GamePlay::Client_UpdateRespawnUI_Implementation(float RespawnPercent)
+{
+	if (RespawnProgressWidget == nullptr)
+	{
+		RespawnProgressWidget = CreateWidget<UUW_SurvivalRespawnUI>(this, RespawnProgressClass);
+		RespawnProgressWidget->AddToViewport(-5);
+		if (RespawnProgressWidget->RespawnProgressBar)
+		{
+			RespawnProgressWidget->SetProgressBarVisibility(true);
+		}
+	}
+
+	RespawnProgressWidget->SetRespawnProgress(RespawnPercent);
+
+}
+
+void APCController_GamePlay::Server_EndRespawnUI()
+{
+	GetWorld()->GetTimerManager().ClearTimer(RespawnProgressHandle);
+	Client_EndRespawnUI();
+}
+
+void APCController_GamePlay::Client_EndRespawnUI_Implementation()
+{
+	// 위젯이 유효하면 종료 처리
+	if (RespawnProgressWidget)
+	{
+		RespawnProgressWidget->SetProgressBarVisibility(false);
+		RespawnProgressWidget->RemoveFromParent();
+		RespawnProgressWidget = nullptr;
 	}
 }

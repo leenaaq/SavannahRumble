@@ -107,6 +107,8 @@ void AT6GMB_GL_Survival::OnCharacterDead(AController* InController)
 						RespawnWaitingTime,
 						false
 					);
+
+					PCGP->Server_StartRespawnUI(RespawnWaitingTime);
 				}
 
 			}

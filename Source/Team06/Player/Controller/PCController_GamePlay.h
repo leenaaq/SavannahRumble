@@ -7,7 +7,7 @@
 #include "PCController_GamePlay.generated.h"
 
 class UUserWidget;
-
+class UUW_SurvivalRespawnUI;
 UCLASS()
 class TEAM06_API APCController_GamePlay : public APlayerCharacterController
 {
@@ -93,4 +93,30 @@ public:
 public:
 	UFUNCTION(Server, Reliable)
 	void ServerChangePSPlayerSkinName(FName SkinMeshName);
+
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	TSubclassOf<UUW_SurvivalRespawnUI> RespawnProgressClass;
+
+	UPROPERTY()
+	UUW_SurvivalRespawnUI* RespawnProgressWidget;
+	FTimerHandle RespawnProgressHandle;
+
+	
+	float RespawnTotalTime;
+	float RespawnRemainTime;
+
+	UFUNCTION(Client, Reliable)
+	void Client_StartRespawnUI();
+
+	void Server_StartRespawnUI(float RespawnTIme);
+	UFUNCTION(Client, Reliable)
+	void Client_UpdateRespawnUI(float RespawnPercent);
+
+	void Server_UpdateRespawnUI();
+	void Server_EndRespawnUI();
+
+	UFUNCTION(Client, Reliable)
+	void Client_EndRespawnUI();
 };
