@@ -9,7 +9,12 @@
 ABombItem::ABombItem()
 {
     bReplicates = true;
-    SetReplicateMovement(true);
+    SetReplicateMovement(false);
+
+    if (MeshComp)
+    {
+        MeshComp->SetSimulatePhysics(false);
+    }
 }
 
 void ABombItem::OnSpawn()
@@ -35,6 +40,7 @@ void ABombItem::OnCollision(AActor* OtherActor)
         Player->OnStunned();
         ApplyEffect(Player);
     }
+
     GetWorld()->GetTimerManager().ClearTimer(ExplosionTimerHandle);
     Explode();
 }
@@ -42,6 +48,10 @@ void ABombItem::OnCollision(AActor* OtherActor)
 void ABombItem::Explode()
 {
     if (!HasAuthority()) return;
+
+    ActivateParticle1();
+    ServerPlaySound1();
+
     MulticastExplode();
     Destroy();
 }
