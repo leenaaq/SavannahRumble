@@ -3,7 +3,11 @@
 #include "CoreMinimal.h"
 #include "Item/TriggerItem.h"
 #include "Sound/SoundBase.h"
+#include "TimerManager.h"
 #include "Shoes_Item.generated.h"
+
+class APlayerBase;
+class UAudioComponent;
 
 UCLASS()
 class TEAM06_API AShoes_Item : public ATriggerItem
@@ -16,30 +20,38 @@ public:
 protected:
     virtual void BeginPlay() override;
     virtual void TriggerEffect_Implementation(AActor* OverlappedActor) override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
     UPROPERTY(EditAnywhere, Category = "Effect")
-    float SpeedBoost = 2000.0f;
+    float SpeedBoost = 2000.0f; // 스피드 수치 조정 필요
 
     UPROPERTY(EditAnywhere, Category = "Effect")
-    float JumpBoost = 2000.0f;
+    float JumpBoost = 2000.0f; // 점프 수치 조정 필요
 
     UPROPERTY(EditAnywhere, Category = "Effect")
-    float Duration = 5.0f; // 버프 지속 시간
+    float Duration = 5.0f; // 지속 시간 수치 확인
 
-    // ------ 이펙트 & 사운드 ------
-
-        // 루프되는 사운드 (효과 지속 중)
     UPROPERTY(EditAnywhere, Category = "Effect|Sound")
     USoundBase* LoopSound;
 
-    // 사운드 컴포넌트 (실행 중 사운드 제어용)
     UPROPERTY()
     UAudioComponent* LoopSoundComp;
 
+    bool bIsBuffActive = false;
+    float StoredOrigSpeed = 0.f;
+    float StoredOrigJump = 0.f;
+
+private:
     FTimerHandle TimerHandle;
 
-    // 루프 사운드 중지
     void StopLoopSound();
 
-    void EndPlay(const EEndPlayReason::Type EndPlayReason);
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_ApplyBootsBuff(APlayerBase* Player, float NewSpeed, float NewJump);
+
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_ResetBootsBuff(APlayerBase* Player, float OrigSpeed, float OrigJump);
+
+    virtual void Multicast_PlayLoopEffect_Implementation(APlayerBase* Player) override;
+    virtual void Multicast_StopLoopEffect_Implementation() override;
 };

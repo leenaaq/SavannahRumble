@@ -3,89 +3,124 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "TimerManager.h"
 
 AShoes_Item::AShoes_Item()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
-
+    PrimaryActorTick.bCanEverTick = false;
+    bAutoDestroyOnTrigger = false;
 }
 
 void AShoes_Item::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 }
 
 void AShoes_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 {
-	Super::TriggerEffect_Implementation(OverlappedActor);
+    Super::TriggerEffect_Implementation(OverlappedActor);
 
-	APlayerBase* Player = Cast<APlayerBase>(OverlappedActor);
-	if (!Player || !Player->GetCharacterMovement())
-	{
+    APlayerBase* Player = Cast<APlayerBase>(OverlappedActor);
+    if (!Player || !Player->GetCharacterMovement())
+        return;
 
-		return;
-	}
+    if (bIsBuffActive)
+    {
+        GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+        GetWorld()->GetTimerManager().SetTimer(
+            TimerHandle,
+            [this, Player]() mutable
+            {
+                Player->GetCharacterMovement()->MaxWalkSpeed = StoredOrigSpeed;
+                Player->GetCharacterMovement()->JumpZVelocity = StoredOrigJump;
+                Multicast_ResetBootsBuff(Player, StoredOrigSpeed, StoredOrigJump);
+                Multicast_StopLoopEffect();
+                StopLoopSound();
+                Destroy();
+            },
+            Duration,
+            false
+        );
+        return;
+    }
 
-	auto Move = Player->GetCharacterMovement();
-	const float OriginalSpeed = Move->MaxWalkSpeed;
-	const float OriginalJump = Move->JumpZVelocity;
+    bIsBuffActive = true;
+    SetActorHiddenInGame(true);
+    SetActorEnableCollision(false);
 
-	// 속도 및 점프력 증가
-	Move->MaxWalkSpeed += SpeedBoost;
-	Move->JumpZVelocity += JumpBoost;
+    StoredOrigSpeed = Player->GetCharacterMovement()->MaxWalkSpeed;
+    StoredOrigJump = Player->GetCharacterMovement()->JumpZVelocity;
 
+    float BoostedSpeed = StoredOrigSpeed + SpeedBoost;
+    float BoostedJump = StoredOrigJump + JumpBoost;
+    Player->GetCharacterMovement()->MaxWalkSpeed = BoostedSpeed;
+    Player->GetCharacterMovement()->JumpZVelocity = BoostedJump;
+    Multicast_ApplyBootsBuff(Player, BoostedSpeed, BoostedJump);
 
+    if (LoopSound)
+        LoopSoundComp = UGameplayStatics::SpawnSoundAttached(
+            LoopSound, Player->GetRootComponent(),
+            NAME_None, FVector::ZeroVector,
+            EAttachLocation::KeepRelativeOffset, true
+        );
+    Multicast_PlayLoopEffect(Player);
 
-
-	if (LoopSound)
-	{
-		LoopSoundComp = UGameplayStatics::SpawnSoundAttached(
-			LoopSound, Player->GetRootComponent(),
-			NAME_None, FVector::ZeroVector,
-			EAttachLocation::KeepRelativeOffset,
-			true // Loop
-		);
-	}
-
-	// 아이템이 사라지기 직전 → 서버에서 멀티캐스트로 시각 이펙트 제거
-	if (HasAuthority())
-	{
-		Multicast_PlayLoopEffect(Player); // ItemBase의 이펙트 제거 함수 (서버 → 모든 클라이언트)
-	}
-
-	// 일정 시간 후 부스트 해제 및 사운드 종료
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this, Player, OriginalSpeed, OriginalJump]()
-		{
-			if (IsValid(Player) && Player->GetCharacterMovement())
-			{
-				Player->GetCharacterMovement()->MaxWalkSpeed = OriginalSpeed;
-				Player->GetCharacterMovement()->JumpZVelocity = OriginalJump;
-
-			}
-
-			StopLoopSound();
-
-			if (HasAuthority())
-			{
-				Multicast_StopLoopEffect(); //  루프 이펙트 종료
-			}
-
-		}, Duration, false);
+    GetWorld()->GetTimerManager().SetTimer(
+        TimerHandle,
+        [this, Player]() mutable
+        {
+            Player->GetCharacterMovement()->MaxWalkSpeed = StoredOrigSpeed;
+            Player->GetCharacterMovement()->JumpZVelocity = StoredOrigJump;
+            Multicast_ResetBootsBuff(Player, StoredOrigSpeed, StoredOrigJump);
+            Multicast_StopLoopEffect();
+            StopLoopSound();
+            Destroy();
+        },
+        Duration,
+        false
+    );
 }
+
+
 void AShoes_Item::StopLoopSound()
 {
-	if (LoopSoundComp && LoopSoundComp->IsPlaying())
-	{
-		LoopSoundComp->FadeOut(0.5f, 0.0f); // 자연스럽게 사라지게
-		LoopSoundComp = nullptr;
-	}
+    if (LoopSoundComp && LoopSoundComp->IsPlaying())
+    {
+        LoopSoundComp->FadeOut(0.5f, 0.0f);
+        LoopSoundComp = nullptr;
+    }
 }
 
 void AShoes_Item::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::EndPlay(EndPlayReason);
-	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-	StopLoopSound();
+    Super::EndPlay(EndPlayReason);
+    GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+    StopLoopSound();
+}
+
+void AShoes_Item::Multicast_PlayLoopEffect_Implementation(APlayerBase* Player)
+{
+    if (!Player) return;
+}
+
+void AShoes_Item::Multicast_StopLoopEffect_Implementation()
+{
+}
+
+void AShoes_Item::Multicast_ApplyBootsBuff_Implementation(APlayerBase* Player, float NewSpeed, float NewJump)
+{
+    if (Player && Player->GetCharacterMovement())
+    {
+        Player->GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+        Player->GetCharacterMovement()->JumpZVelocity = NewJump;
+    }
+}
+
+void AShoes_Item::Multicast_ResetBootsBuff_Implementation(APlayerBase* Player, float OrigSpeed, float OrigJump)
+{
+    if (Player && Player->GetCharacterMovement())
+    {
+        Player->GetCharacterMovement()->MaxWalkSpeed = OrigSpeed;
+        Player->GetCharacterMovement()->JumpZVelocity = OrigJump;
+    }
 }

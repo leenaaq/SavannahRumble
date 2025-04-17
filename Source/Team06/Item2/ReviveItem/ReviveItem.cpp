@@ -31,15 +31,15 @@ void AReviveItem::BeginPlay()
     Super::BeginPlay();
 }
 
-void AReviveItem::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-
-    if (!HasAuthority())
-    {
-        AddActorLocalRotation(RotationRate * DeltaTime);
-    }
-}
+//void AReviveItem::Tick(float DeltaTime)
+//{
+//    Super::Tick(DeltaTime);
+//
+//    if (!HasAuthority())
+//    {
+//        AddActorLocalRotation(RotationRate * DeltaTime);
+//    }
+//}
 
 void AReviveItem::OnOverlapBegin(
     UPrimitiveComponent* OverlappedComp,

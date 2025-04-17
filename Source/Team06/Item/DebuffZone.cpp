@@ -16,6 +16,11 @@ void ADebuffZone::TriggerEffect_Implementation(AActor* OverlappedActor)
 
 	if (APlayerBase* Player = Cast<APlayerBase>(OverlappedActor))
 	{
+		if (Player->bIsDebuffed)
+		{
+			return; // 이미 디버프 상태라면 중복 적용 방지
+		}
+
 		if (HasAuthority())
 		{
 			UCharacterMovementComponent* MoveComp = Player->GetCharacterMovement();
@@ -39,6 +44,7 @@ void ADebuffZone::TriggerEffect_Implementation(AActor* OverlappedActor)
 								MC->MaxWalkSpeed = OriginalSpeed;
 								MC->JumpZVelocity = OriginalJump;
 							}
+							Player->bIsDebuffed = false; // 디버프 해제
 						}
 					}, DebuffDuration, false);
 			}

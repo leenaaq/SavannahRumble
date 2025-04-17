@@ -47,6 +47,12 @@ class TEAM06_API APlayerBase : public ACharacter
 
 public:
 	APlayerBase();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status")
+	bool bIsDebuffed = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Buff")
+	bool bIsSpeedBuffActive = false;
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	virtual void ServerProcessDeath(FVector RespawnLocation);

@@ -10,14 +10,14 @@ void ABanana_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 {
     Super::TriggerEffect_Implementation(OverlappedActor);
 
-    ACharacter* Character = Cast<ACharacter>(OverlappedActor);
-    if (Character == nullptr)
+    APlayerBase* Player = Cast<APlayerBase>(OverlappedActor);
+    if (Player == nullptr)
     {
     
         return;
     }
 
-    UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement();
+    UCharacterMovementComponent* MoveComp = Player->GetCharacterMovement();
     if (MoveComp == nullptr)
     {
      
@@ -38,7 +38,7 @@ void ABanana_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
     MoveComp->BrakingFrictionFactor = SavedBrakingFactor;
     MoveComp->BrakingDecelerationWalking = 1200.f;
 
-    FVector Forward = Character->GetActorForwardVector();
+    FVector Forward = Player->GetActorForwardVector();
     Forward.Z = 0.f;
     Forward.Normalize();
 
@@ -46,16 +46,35 @@ void ABanana_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
     const float MaxSlideSpeed = 1500.f;
     const float SlideSpeed = FMath::Clamp(SlideForce, MinSlideSpeed, MaxSlideSpeed);
 
-    Character->LaunchCharacter(Forward * SlideSpeed, true, true);
+    Player->LaunchCharacter(Forward * SlideSpeed, true, true);
+
+    FTimerHandle DisableMoveHandle;
+    GetWorldTimerManager().SetTimer(
+        DisableMoveHandle,
+        [Player]()
+        {
+            if (IsValid(Player))
+            {
+                if (UCharacterMovementComponent* MoveComp = Player->GetCharacterMovement())
+                {
+                    MoveComp->DisableMovement();
+                    MoveComp->SetMovementMode(MOVE_None);
+                    UE_LOG(LogTemp, Log, TEXT("Banana_Item: 이동 비활성화됨."));
+                }
+            }
+        },
+        0.15f,
+        false
+    );
 
     FTimerHandle TimerHandle;
     GetWorldTimerManager().SetTimer(
         TimerHandle,
-        [Character, SavedGroundFriction, SavedBrakingFactor, SavedDecelWalking]()
+        [Player,SavedGroundFriction, SavedBrakingFactor, SavedDecelWalking]()
         {
-            if (IsValid(Character) == false) { return; }
+            if (IsValid(Player) == false) { return; }
 
-            if (UCharacterMovementComponent* MC = Character->GetCharacterMovement())
+            if (UCharacterMovementComponent* MC = Player->GetCharacterMovement())
             {
                 MC->GroundFriction = SavedGroundFriction;
                 MC->BrakingFrictionFactor = SavedBrakingFactor;
@@ -66,7 +85,7 @@ void ABanana_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
         RagdollDuration,
         false);
 
-    if (APlayerBase* PBase = Cast<APlayerBase>(Character))
+    if (APlayerBase* PBase = Cast<APlayerBase>(Player))
     {
         if (PBase->HasAuthority())
         {
