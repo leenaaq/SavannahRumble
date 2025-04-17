@@ -6,7 +6,7 @@
 #include "Engine/PlayerStartPIE.h"
 #include "Player/Controller/PlayerCharacterController.h"
 #include "Engine/World.h"
-
+#include "System/GameSystem/FlagSpawnBox.h"
 void AT6GameStateBase_GameResult::InitGameResultSpawnPoint()
 {
 	if (!HasAuthority())
@@ -18,14 +18,14 @@ void AT6GameStateBase_GameResult::InitGameResultSpawnPoint()
     for (TActorIterator<APlayerStart> It(GetWorld()); It; ++It)
     {
         APlayerStart* Start = *It;
-        if (Start->PlayerStartTag == "Winner")
-        {
-            WinnerSpawnPoint = Start;
-        }
-        else
-        {
-            SpawnPoints.Add(Start);
-        }
+        SpawnPoints.Add(Start);
+    }
+
+    for (TActorIterator<AFlagSpawnBox> It(GetWorld()); It; ++It)
+    {
+        AFlagSpawnBox* WinnerSpawn = *It;
+        WinnerSpawnPoint = WinnerSpawn;
+        UE_LOG(LogTemp, Error, TEXT("WinnerSpawnRegistered"));
     }
 }
 

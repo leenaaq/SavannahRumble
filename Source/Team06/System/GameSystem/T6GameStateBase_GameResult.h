@@ -7,7 +7,7 @@
 #include "T6GameStateBase_GameResult.generated.h"
 
 class APlayerStart;
-
+class AFlagSpawnBox;
 UCLASS()
 class TEAM06_API AT6GameStateBase_GameResult : public AT6GameStateBase
 {
@@ -19,5 +19,5 @@ public:
 public:
 	TArray<TObjectPtr<APlayerStart>> SpawnPoints;
 	
-	TObjectPtr<APlayerStart> WinnerSpawnPoint;
+	TObjectPtr<AFlagSpawnBox> WinnerSpawnPoint;
 };
