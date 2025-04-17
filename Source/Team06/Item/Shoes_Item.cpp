@@ -9,7 +9,7 @@ AShoes_Item::AShoes_Item()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	
+
 }
 
 void AShoes_Item::BeginPlay()
@@ -24,7 +24,7 @@ void AShoes_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 	APlayerBase* Player = Cast<APlayerBase>(OverlappedActor);
 	if (!Player || !Player->GetCharacterMovement())
 	{
-		
+
 		return;
 	}
 
@@ -37,7 +37,7 @@ void AShoes_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 	Move->JumpZVelocity += JumpBoost;
 
 
-	
+
 
 	if (LoopSound)
 	{
@@ -56,7 +56,6 @@ void AShoes_Item::TriggerEffect_Implementation(AActor* OverlappedActor)
 	}
 
 	// 일정 시간 후 부스트 해제 및 사운드 종료
-	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this, Player, OriginalSpeed, OriginalJump]()
 		{
 			if (IsValid(Player) && Player->GetCharacterMovement())
@@ -82,4 +81,11 @@ void AShoes_Item::StopLoopSound()
 		LoopSoundComp->FadeOut(0.5f, 0.0f); // 자연스럽게 사라지게
 		LoopSoundComp = nullptr;
 	}
+}
+
+void AShoes_Item::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+	StopLoopSound();
 }
