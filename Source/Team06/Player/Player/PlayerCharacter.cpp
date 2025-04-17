@@ -67,7 +67,6 @@ void APlayerCharacter::Tick(float DeltaTime)
         if (MatchState != GS->MatchState)
         {
             MatchState = GS->MatchState;
-            UE_LOG(LogTemp, Log, TEXT("MatchState 변경됨: %s"), *UEnum::GetValueAsString(MatchState));
         }
     }
 }
@@ -928,6 +927,8 @@ void APlayerCharacter::HandleCheat5Key(const FInputActionValue& Value)
 {
     // 키보드 5번 할당
     UE_LOG(LogTemp, Warning, TEXT("5번키"));
+    MatchState = EMatchState::End;
+    PlayResultMontage();
 }
 
 void APlayerCharacter::HandleGrabKey(const FInputActionValue& Value)
